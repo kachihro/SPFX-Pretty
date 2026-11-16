@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX-Pretty",
   "description": "Make SharePoint Framework solutions look great in the App Catalog and toolbox: nice titles, icons for the .sppkg and every component, and theme-aware branding checks.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -28,11 +28,24 @@
       { "command": "spfxPretty.uploadCompanyLogo", "title": "Upload Company Logo (App Catalog, Teams, Toolbox)", "category": "SPFX-Pretty", "icon": "$(file-media)" },
       { "command": "spfxPretty.upgradeAssessment", "title": "Version Check & Upgrade Assessment", "category": "SPFX-Pretty", "icon": "$(versions)" },
       { "command": "spfxPretty.themingSnippet", "title": "Show Theme-Aware Web Part Snippet", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.applyFix", "title": "Apply Fix", "category": "SPFX-Pretty", "icon": "$(lightbulb)" },
+      { "command": "spfxPretty.filter", "title": "Filter by Severity...", "category": "SPFX-Pretty", "icon": "$(filter)" },
+      { "command": "spfxPretty.filterActive", "title": "Filter by Severity (filtered)...", "category": "SPFX-Pretty", "icon": "$(filter-filled)" },
+      { "command": "spfxPretty.filterErrors", "title": "Show Errors Only", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.filterWarnings", "title": "Show Errors and Warnings", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.filterAll", "title": "Show All Findings", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.applyFix", "title": "Apply Fix...", "category": "SPFX-Pretty", "icon": "$(lightbulb)" },
+      { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX-Pretty", "icon": "$(sparkle)" },
+      { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX-Pretty", "icon": "$(eye-closed)" },
+      { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX-Pretty" },
       { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX-Pretty" }
     ],
     "menus": {
       "view/title": [
+        { "command": "spfxPretty.filter", "when": "view == spfxPretty.findings && !spfxPretty.filtered", "group": "navigation@0" },
+        { "command": "spfxPretty.filterActive", "when": "view == spfxPretty.findings && spfxPretty.filtered", "group": "navigation@0" },
+        { "command": "spfxPretty.filterErrors", "when": "view == spfxPretty.findings", "group": "1_filter@1" },
+        { "command": "spfxPretty.filterWarnings", "when": "view == spfxPretty.findings", "group": "1_filter@2" },
+        { "command": "spfxPretty.filterAll", "when": "view == spfxPretty.findings", "group": "1_filter@3" },
         { "command": "spfxPretty.scan", "when": "view == spfxPretty.findings", "group": "navigation@1" },
         { "command": "spfxPretty.showReport", "when": "view == spfxPretty.findings", "group": "navigation@2" },
         { "command": "spfxPretty.fixAll", "when": "view == spfxPretty.findings", "group": "navigation@3" },
@@ -40,16 +53,31 @@
         { "command": "spfxPretty.upgradeAssessment", "when": "view == spfxPretty.findings", "group": "navigation@5" }
       ],
       "view/item/context": [
-        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "inline" }
+        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "inline" },
+        { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "inline" },
+        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "1_fix@1" },
+        { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "1_fix@1" },
+        { "command": "spfxPretty.openFinding", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "2_nav@1" },
+        { "command": "spfxPretty.copyMessage", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "2_nav@2" },
+        { "command": "spfxPretty.ignoreRule", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "3_ignore@1" }
       ],
       "commandPalette": [
         { "command": "spfxPretty.applyFix", "when": "false" },
-        { "command": "spfxPretty.openFinding", "when": "false" }
+        { "command": "spfxPretty.openFinding", "when": "false" },
+        { "command": "spfxPretty.fixCategory", "when": "false" },
+        { "command": "spfxPretty.ignoreRule", "when": "false" },
+        { "command": "spfxPretty.copyMessage", "when": "false" },
+        { "command": "spfxPretty.filterActive", "when": "false" }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "spfxPretty", "title": "SPFX-Pretty", "icon": "media/activitybar.svg" }
       ]
     },
     "views": {
-      "explorer": [
-        { "id": "spfxPretty.findings", "name": "SPFX-Pretty", "icon": "media/icon.png" }
+      "spfxPretty": [
+        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX-Pretty" }
       ]
     },
     "viewsWelcome": [

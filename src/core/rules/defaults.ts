@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RuleContext } from './context';
 import { LoadedComponent, componentName, walk } from '../project';
+import { componentSources } from '../sources';
 import { isPlaceholderDescription, splitWords, stripNoise, titleProblems, toNiceTitle } from '../titles';
 
 /**
@@ -92,12 +93,15 @@ function locPairs(text: string): { key: string; value: string; offset: number }[
 function locStrings(ctx: RuleContext, c: LoadedComponent): void {
   const locFiles = walk(path.join(c.folder, 'loc'), f => /^en-us\.js$/i.test(f) || /^default\.js$/i.test(f));
   const who = componentName(c);
+  // Only strings the code actually uses are seen by people (unused ones are PRP004's job)
+  const code = componentSources(ctx.project, c).files.map(s => s.text).join('\n');
+  const isUsed = (key: string) => new RegExp(`\\.\\s*${key}\\b|\\[\\s*['"]${key}['"]`).test(code);
   for (const file of locFiles) {
     const text = fs.readFileSync(file, 'utf8');
     for (const p of locPairs(text)) {
       const known = LOC_DEFAULTS[p.key];
       const isDefault = known ? known.value.test(p.value) : LOC_DEFAULT_TEXT.some(re => re.test(p.value));
-      if (!isDefault) { continue; }
+      if (!isDefault || !isUsed(p.key)) { continue; }
       const fixes = [];
       if (p.key === 'PropertyPaneDescription' && c.description && !isPlaceholderDescription(c.description, c.title)) {
         fixes.push({ title: `Use the web part description "${c.description}"`, safe: false, edits: [{ file, offset: p.offset, length: p.value.length, newText: c.description.replace(/"/g, '\\"') }] });

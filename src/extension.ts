@@ -13,14 +13,49 @@ import { applyFix, readConfig, setLatestOnline } from './vscode/apply';
 import { registerExtraCommands } from './vscode/extraCommands';
 import { fetchLatestSpfxVersion } from './core/versions';
 import { ScanManager } from './vscode/scanManager';
-import { FindingsTree, findingFromNode } from './vscode/treeView';
+import { FILTER_LABEL, FindingsTree, SeverityFilter, categoryFromNode, findingFromNode } from './vscode/treeView';
 
 let panel: vscode.WebviewPanel | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   const scans = new ScanManager();
   const tree = new FindingsTree(scans);
-  context.subscriptions.push(scans, vscode.window.createTreeView('spfxPretty.findings', { treeDataProvider: tree, showCollapseAll: true }));
+  const view = vscode.window.createTreeView('spfxPretty.findings', { treeDataProvider: tree, showCollapseAll: true });
+  context.subscriptions.push(scans, view);
+  // Badge on the SPFX-Pretty activity bar icon: errors + warnings across all projects
+  scans.onDidChange(() => {
+    const all = scans.all.flatMap(r => r.findings);
+    const errors = all.filter(f => f.severity === 'error').length;
+    const warnings = all.filter(f => f.severity === 'warning').length;
+    view.badge = errors + warnings ? { value: errors + warnings, tooltip: `SPFX-Pretty: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}` } : undefined;
+  });
+
+  // ---- Severity filter for the tree (remembered per workspace) ----
+  const applyFilter = (f: SeverityFilter) => {
+    tree.filter = f;
+    view.description = f === 'all' ? undefined : FILTER_LABEL[f];
+    vscode.commands.executeCommand('setContext', 'spfxPretty.filtered', f !== 'all');
+    context.workspaceState.update('spfxPretty.filter', f);
+    tree.refresh();
+  };
+  applyFilter(context.workspaceState.get<SeverityFilter>('spfxPretty.filter') ?? 'all');
+  const pickFilter = async () => {
+    const items: (vscode.QuickPickItem & { f: SeverityFilter })[] = [
+      { f: 'all', label: '$(list-flat) All', description: 'errors, warnings, info and what already looks nice' },
+      { f: 'warnings', label: '$(warning) Errors + warnings', description: 'hide info and passes' },
+      { f: 'errors', label: '$(error) Errors only', description: 'just the must-fix items' },
+    ];
+    items.forEach(i => { i.picked = i.f === tree.filter; if (i.f === tree.filter) { i.label += '  $(check)'; } });
+    const pick = await vscode.window.showQuickPick(items, { title: 'SPFX-Pretty: show which findings?' });
+    if (pick) { applyFilter(pick.f); }
+  };
+  context.subscriptions.push(
+    vscode.commands.registerCommand('spfxPretty.filter', pickFilter),
+    vscode.commands.registerCommand('spfxPretty.filterActive', pickFilter),
+    vscode.commands.registerCommand('spfxPretty.filterErrors', () => applyFilter('errors')),
+    vscode.commands.registerCommand('spfxPretty.filterWarnings', () => applyFilter('warnings')),
+    vscode.commands.registerCommand('spfxPretty.filterAll', () => applyFilter('all')),
+  );
 
   const rescan = (): ScanResult[] => {
     const r = scans.scan();
@@ -72,7 +107,33 @@ export function activate(context: vscode.ExtensionContext): void {
       await run(fix ?? f.fixes[0]);
     }),
 
-    vscode.commands.registerCommand('spfxPretty.openFinding', async (f: Finding) => {
+    vscode.commands.registerCommand('spfxPretty.fixCategory', async (node: unknown) => {
+      const cat = categoryFromNode(node);
+      if (!cat) { return; }
+      await vscode.workspace.saveAll(false);
+      const n = await applySafeFixes(scans, f => f.category === cat.category && f.file.startsWith(cat.root));
+      rescan();
+      vscode.window.showInformationMessage(`SPFX-Pretty: applied ${n} ${cat.category} fix${n === 1 ? '' : 'es'} ✨${n ? '' : ' - the rest need a human touch (right-click an item for its options)'}`);
+    }),
+
+    vscode.commands.registerCommand('spfxPretty.ignoreRule', async (node: unknown) => {
+      const f = findingFromNode(node);
+      if (!f) { return; }
+      const cfg = vscode.workspace.getConfiguration('spfxPretty');
+      const list = cfg.get<string[]>('disabledRules') ?? [];
+      if (!list.includes(f.ruleId)) { await cfg.update('disabledRules', [...list, f.ruleId], vscode.ConfigurationTarget.Workspace); }
+      rescan();
+      vscode.window.showInformationMessage(`SPFX-Pretty: ignoring ${f.ruleId} in this workspace (undo in Settings > SPFX-Pretty > Disabled Rules).`);
+    }),
+
+    vscode.commands.registerCommand('spfxPretty.copyMessage', async (node: unknown) => {
+      const f = findingFromNode(node);
+      if (f) { await vscode.env.clipboard.writeText(`${f.ruleId}: ${f.message}${f.detail ? `\n${f.detail}` : ''}\n${f.file}`); }
+    }),
+
+    vscode.commands.registerCommand('spfxPretty.openFinding', async (arg: unknown) => {
+      const f = findingFromNode(arg);
+      if (!f) { return; }
       const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(f.file));
       const start = doc.positionAt(f.offset ?? 0);
       const end = doc.positionAt((f.offset ?? 0) + (f.length ?? 0));
@@ -104,16 +165,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const detail = safe.slice(0, 15).map(f => `• ${f.fixes.find(x => x.safe)!.title}`).join('\n') + (safe.length > 15 ? `\n…and ${safe.length - 15} more` : '');
       if (await vscode.window.showInformationMessage(`Apply ${safe.length} safe fix${safe.length === 1 ? '' : 'es'}?`, { modal: true, detail }, go) !== go) { return; }
       await vscode.workspace.saveAll(false);
-      let applied = 0;
-      // Apply one at a time and rescan between, because offsets shift after each edit.
-      for (let i = 0; i < 300; i++) {
-        const next = scans.all.flatMap(r => issues(r)).map(f => ({ f, fix: f.fixes.find(x => x.safe) })).find(x => x.fix && !tried.has(sig(x.f, x.fix)));
-        if (!next?.fix) { break; }
-        tried.add(sig(next.f, next.fix));
-        if (await applyFix(next.fix)) { applied++; }
-        scans.scan();
-      }
-      tried.clear();
+      const applied = await applySafeFixes(scans, () => true);
       rescan();
       const score = scans.all.map(r => `${r.score}/100`).join(', ');
       vscode.window.showInformationMessage(`SPFX-Pretty: applied ${applied} fix${applied === 1 ? '' : 'es'} - niceness now ${score} ✨`, 'Show report')
@@ -184,7 +236,21 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void { /* nothing to clean up */ }
 
-const tried = new Set<string>();
+/** Apply safe fixes one at a time (rescanning between, as offsets shift) for findings matching `which`. */
+async function applySafeFixes(scans: ScanManager, which: (f: Finding) => boolean): Promise<number> {
+  const tried = new Set<string>();
+  let applied = 0;
+  for (let i = 0; i < 300; i++) {
+    const next = scans.all.flatMap(r => issues(r)).filter(which)
+      .map(f => ({ f, fix: f.fixes.find(x => x.safe) }))
+      .find(x => x.fix && !tried.has(sig(x.f, x.fix)));
+    if (!next?.fix) { break; }
+    tried.add(sig(next.f, next.fix));
+    if (await applyFix(next.fix)) { applied++; }
+    scans.scan();
+  }
+  return applied;
+}
 const sig = (f: Finding, fix: Fix) => `${f.ruleId}|${f.file}|${f.component ?? ''}|${fix.title}`;
 
 let timer: NodeJS.Timeout | undefined;

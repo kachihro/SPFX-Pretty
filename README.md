@@ -65,6 +65,15 @@ Each component type is handled on its own terms:
 - **ListView Command Sets**: command labels and 16x16 command bar icons
 - **Application / Field / Form Customizers**: branding in their SCSS (they don't appear in a toolbox)
 
+## Where to find it
+
+SPFX-Pretty has its own icon in the Activity Bar (four tiles with a sparkle). The badge counts errors + warnings.
+
+- **Filter** (funnel icon): All / Errors + warnings / Errors only
+- **Right-click an item**: Apply Fix..., Open, Copy Message, Ignore This Rule
+- **Sparkle on a group**: Fix All in This Group (safe fixes only)
+- **Lightbulb on an item**: apply its fix (pick one when there are several)
+
 ## Commands
 
 All commands are under **SPFX-Pretty** in the Command Palette (`Ctrl+Shift+P`):

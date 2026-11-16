@@ -12,6 +12,7 @@ import { LoadedComponent, componentName, walk } from '../project';
  */
 
 import { SourceFile, allSources, componentSources } from '../sources';
+import { TextEdit } from '../types';
 
 /** Find `interface IName { a: string; b?: number; }` and return member names with offsets. */
 function interfaceMembers(src: SourceFile[], name: string): { file: string; members: { name: string; offset: number }[]; offset: number } | undefined {
@@ -105,9 +106,13 @@ function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[], pro
       problems++;
       if (reported.has(`${iface.file}:${m.offset}`)) { continue; }
       reported.add(`${iface.file}:${m.offset}`);
-      const fixes = m.name in defaults
-        ? [{ title: `Remove "${m.name}" default from the manifest`, safe: false, edits: c.doc.set(['preconfiguredEntries', 0, 'properties', m.name], undefined) }]
-        : [];
+      const ifaceText = src.find(s => s.file === iface.file)?.text ?? fs.readFileSync(iface.file, 'utf8');
+      const removeMember = removeLine(iface.file, ifaceText, m.offset);
+      const removeDefault = m.name in defaults ? c.doc.set(['preconfiguredEntries', 0, 'properties', m.name], undefined) : [];
+      const fixes = [{
+        title: `Remove "${m.name}" from ${base}${removeDefault.length ? ' and the manifest defaults' : ''}`, safe: false,
+        edits: [...removeMember, ...removeDefault],
+      }];
       ctx.issue({
         ruleId: 'PRP001', severity: 'warning', category: 'Properties', file: iface.file, component: who,
         offset: m.offset, length: m.name.length,
@@ -131,7 +136,9 @@ function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[], pro
 
   if (iface) {
     for (const t of paneTargets(src)) {
-      if (declared.has(t.name)) { continue; }
+      // nested targets like "tile.size" are valid when the root ("tile") is declared; skip non-identifiers like "_"
+      if (!/^[A-Za-z$][\w$]*(\.[\w$]+)*$/.test(t.name)) { continue; }
+      if (declared.has(t.name) || declared.has(t.name.split('.')[0])) { continue; }
       problems++;
       if (reported.has(`${t.file}:${t.offset}`)) { continue; }
       reported.add(`${t.file}:${t.offset}`);
@@ -158,12 +165,26 @@ function checkLocStrings(ctx: RuleContext, locDir: string, src: SourceFile[], wh
   const aliases = new Set(['strings']);
   for (const s of src) { for (const m of s.text.matchAll(/import\s+\*\s+as\s+(\w+)\s+from\s+['"][^'"]*Strings['"]/g)) { aliases.add(m[1]); } }
   const all = src.map(s => s.text).join('\n');
+  const locJs = walk(path.dirname(dts), f => /\.js$/i.test(f)).map(file => ({ file, text: fs.readFileSync(file, 'utf8') }));
   const unused = members.filter(m => ![...aliases].some(a => new RegExp(`\\b${a}\\s*(?:\\?\\.|\\.)\\s*${m.name}\\b|\\b${a}\\s*\\[\\s*['"]${m.name}['"]`).test(all)));
   for (const m of unused) {
     ctx.issue({
       ruleId: 'PRP004', severity: 'info', category: 'Properties', file: dts, component: who,
       offset: m.offset, length: m.name.length,
       message: `Localised string "${m.name}" is never used - remove it from ${path.basename(dts)} and every loc/*.js file.`,
+      fixes: [{ title: `Remove "${m.name}" from ${path.basename(dts)} and ${locJs.length} loc file${locJs.length === 1 ? '' : 's'}`, safe: false,
+        edits: [
+          ...removeLine(dts, text, m.offset),
+          ...locJs.flatMap(js => { const i = new RegExp(`["']?${m.name}["']?\\s*:`).exec(js.text)?.index; return i === undefined ? [] : removeLine(js.file, js.text, i); }),
+        ] }],
     });
   }
+}
+
+/** Edit that deletes the whole line containing `offset` (including its line break). */
+function removeLine(file: string, text: string, offset: number): TextEdit[] {
+  const start = text.lastIndexOf('\n', offset - 1) + 1;
+  let end = text.indexOf('\n', offset);
+  end = end < 0 ? text.length : end + 1;
+  return [{ file, offset: start, length: end - start, newText: '' }];
 }
