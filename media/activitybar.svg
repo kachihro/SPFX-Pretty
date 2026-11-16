@@ -1,6 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-  <rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/>
-  <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>
-  <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/>
-  <path d="M17.25 13.2l1.05 2.7 2.7 1.05-2.7 1.05-1.05 2.7-1.05-2.7-2.7-1.05 2.7-1.05z" fill="currentColor" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <defs>
+    <mask id="label">
+      <rect width="24" height="24" fill="#fff"/>
+      <text x="12" y="20.9" text-anchor="middle" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="6.2" font-weight="700" letter-spacing="-0.1" fill="#000">SPFx</text>
+    </mask>
+  </defs>
+  <!-- frame -->
+  <path d="M4.5 2.75h15a1.75 1.75 0 0 1 1.75 1.75v10.25h-1.5V4.5a.25.25 0 0 0-.25-.25h-15a.25.25 0 0 0-.25.25v10.25h-1.5V4.5A1.75 1.75 0 0 1 4.5 2.75z" fill="currentColor"/>
+  <!-- web part tiles -->
+  <rect x="6.6" y="5.9" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
+  <rect x="12.8" y="5.9" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
+  <rect x="6.6" y="10.4" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
+  <path d="M15.1 10.1l.55 1.35 1.35.55-1.35.55-.55 1.35-.55-1.35-1.35-.55 1.35-.55z" fill="currentColor"/>
+  <!-- SPFx label band (text knocked out) -->
+  <rect x="2.75" y="15.6" width="18.5" height="6.4" rx="1.6" fill="currentColor" mask="url(#label)"/>
 </svg>

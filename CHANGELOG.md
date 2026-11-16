@@ -3,6 +3,7 @@
 ## 0.6.2 - 17/11/2026
 - New setting spfxPretty.location: Activity Bar, Explorer sidebar (next to Outline / Timeline) or both
 - New command "SPFX Pretty: Show Findings Panel" jumps to it wherever it is
+- New Activity Bar icon in the M365 style: web part tiles with an "SPFx" label
 
 ## 0.6.1 - 17/11/2026
 - Examples in settings, docs and hints use Kachihro
