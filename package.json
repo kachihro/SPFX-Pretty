@@ -68,6 +68,11 @@
           "pattern": "^#[0-9a-fA-F]{6}$",
           "description": "Brand colour used when generating icons (hex, e.g. #0F6CBD)."
         },
+        "spfxPretty.appNamePrefix": {
+          "type": "string",
+          "default": "",
+          "description": "Optional prefix for every app name so your organisation's apps sort together in the App Catalog and Site Contents (e.g. 'Contoso - ')."
+        },
         "spfxPretty.toolboxGroup": {
           "type": "string",
           "default": "",

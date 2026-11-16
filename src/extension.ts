@@ -44,8 +44,8 @@ export function activate(context: vscode.ExtensionContext): void {
     { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
   ));
 
-  const run = async (fix: Fix): Promise<void> => {
-    if (await applyFix(fix)) { rescan(); }
+  const run = async (fix: Fix | undefined): Promise<void> => {
+    if (fix && await applyFix(fix)) { rescan(); }
   };
 
   context.subscriptions.push(

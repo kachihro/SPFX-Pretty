@@ -76,8 +76,24 @@ test('scan finds the classic scaffold problems', () => {
   const brd3 = issues(r).filter(f => f.ruleId === 'BRD003').map(f => f.message);
   assert.ok(!brd3.some(m => m.includes('#ff0000')));
   assert.ok(!brd3.some(m => m.includes('#323130')));
-  assert.equal(r.components.length, 4);
+  assert.equal(r.components.length, 5);
+  for (const id of ['DEF001', 'DEF002', 'DEF003', 'DEF005', 'DEF006', 'PRP001', 'PRP002', 'PRP003', 'PRP004']) {
+    assert.ok(ids.has(id), `expected ${id}`);
+  }
+  const unused = issues(r).filter(f => f.ruleId === 'PRP001').map(f => f.message).join('|');
+  assert.ok(unused.includes('"listName"') && unused.includes('"showFooter"'));
+  assert.ok(!unused.includes('"description"'), 'used property not flagged');
+  // where people see it
+  assert.deepEqual(issues(r).find(f => f.ruleId === 'SOL001')!.surfaces, ['App Catalog', 'Add an app', 'Site Contents']);
+  assert.equal(r.preview.packageFile, 'hello-world.sppkg');
+  assert.equal(r.preview.propertyPanes[0].group, 'Group Name');
   assert.ok(r.score < 30);
+});
+
+test('app name prefix', () => {
+  const dir = copyFixture();
+  applyAllSafeFixes(dir, { appNamePrefix: 'PlanB - ' });
+  assert.equal(new JsoncDoc(path.join(dir, 'config', 'package-solution.json')).get(['solution', 'name']), 'PlanB - Hello World');
 });
 
 test('disabled rules are skipped (.spfxprettyrc.json)', () => {
@@ -111,6 +127,9 @@ test('fix-all makes the project nicer and is idempotent', () => {
   assert.ok(scss.includes('"[theme:bodyBackground, default: #f3f2f1]"'));
   assert.ok(scss.includes('var(--fontFamilyCustomFont1300, var(--fontFamilyBase))'));
   assert.ok(scss.includes('$ms-font-family-fallbacks'), 'Teams fallback font untouched');
+  assert.equal(wp.get(['preconfiguredEntries', 0, 'properties', 'description']), 'Hello World', 'default property value made nice');
+  const xml = fs.readFileSync(path.join(dir, 'sharepoint', 'assets', 'elements.xml'), 'utf8');
+  assert.ok(xml.includes('Title="Banner"'));
 
   assert.ok(fs.existsSync(path.join(dir, 'teams', 'a1b2c3d4-0000-4000-8000-000000000001_color.png')));
   assert.equal(applyAllSafeFixes(dir).length, 0, 'second run finds nothing to do');

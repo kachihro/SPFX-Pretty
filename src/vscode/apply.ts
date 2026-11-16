@@ -7,6 +7,7 @@ export function readConfig(): Partial<ProjectConfig> {
   return {
     brandColour: c.get<string>('brandColour') || '#0F6CBD',
     toolboxGroup: c.get<string>('toolboxGroup') || '',
+    appNamePrefix: c.get<string>('appNamePrefix') || '',
     disabledRules: c.get<string[]>('disabledRules') || [],
     developer: {
       name: c.get<string>('developer.name') || '',

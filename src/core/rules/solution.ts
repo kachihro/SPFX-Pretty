@@ -21,12 +21,12 @@ export function solutionRules(ctx: RuleContext): void {
   const name: string | undefined = solution.name;
   const problems = titleProblems(name);
   if (problems.length) {
-    const nice = toNiceTitle(name || path.basename(root));
+    const nice = `${config.appNamePrefix ?? ''}${toNiceTitle(name || path.basename(root))}`;
     const fixes: Fix[] = [{ title: `Rename solution to "${nice}"`, safe: true, edits: doc.set(['solution', 'name'], nice) }];
     ctx.issue({
       ruleId: 'SOL001', severity: 'warning', category: 'Title', file, ...doc.locate(['solution', 'name']),
-      message: `App Catalog title "${name ?? ''}" ${problems.join(', ')}.`,
-      detail: 'solution.name is the title shown in the App Catalog and in "Add an app". Changing it is safe - SharePoint tracks the package by solution.id.',
+      message: `App name "${name ?? ''}" ${problems.join(', ')} - this is exactly what people read in the App Catalog and Site Contents.`,
+      detail: 'solution.name is the app title in the App Catalog, "Add an app" and Site Contents. Changing it is safe - SharePoint tracks the package by solution.id. Upload the new .sppkg over the old one to update the title.',
       fixes,
     });
   } else {
@@ -134,7 +134,7 @@ export function solutionRules(ctx: RuleContext): void {
   if (!solution.iconPath) {
     ctx.issue({
       ruleId: 'SOL010', severity: 'warning', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
-      message: 'No App Catalog icon - the app shows the generic SharePoint placeholder.',
+      message: 'No app icon - the App Catalog, "Add an app" and Site Contents all show the generic placeholder.',
       detail: `Set solution.iconPath (relative to ./${packageDirRel}) to a ${APP_ICON_SIZE}x${APP_ICON_SIZE} PNG.`,
       fixes: [makeIconFix(`Generate ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand icon at ${packageDirRel}/${APP_ICON_RELATIVE}`)],
     });

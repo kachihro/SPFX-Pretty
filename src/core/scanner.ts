@@ -5,24 +5,63 @@ import { RuleContext } from './rules/context';
 import { solutionRules } from './rules/solution';
 import { componentRules } from './rules/components';
 import { brandingRules } from './rules/branding';
+import { defaultsRules } from './rules/defaults';
+import { propertyRules } from './rules/properties';
 import { applyEditsToText } from './jsonc';
-import { Finding, Fix, ProjectConfig, ScanResult } from './types';
+import { Finding, Fix, PreviewData, ProjectConfig, ScanResult, Surface } from './types';
+
+const CATALOG: Surface[] = ['App Catalog', 'Add an app', 'Site Contents'];
+/** Where people see what each rule is about. */
+export const RULE_SURFACES: Record<string, Surface[]> = {
+  SOL001: CATALOG, SOL002: CATALOG, SOL010: CATALOG, SOL011: CATALOG, SOL012: CATALOG, SOL014: CATALOG,
+  SOL003: ['Site features'], DEF003: ['Site features'],
+  SOL004: ['App Catalog'], SOL005: ['App Catalog', 'Add an app'], SOL006: ['App Catalog'], SOL007: ['App Catalog'], SOL008: ['App Catalog'], SOL013: ['App Catalog'],
+  DEF004: ['App Catalog'],
+  CMP001: ['Toolbox'], CMP002: ['Toolbox'], CMP003: ['Toolbox'], CMP004: ['Toolbox'], CMP005: ['Toolbox'], CMP006: ['Toolbox'],
+  CMD001: ['Command bar'], CMD002: ['Command bar'],
+  DEF001: ['Web part on page'], DEF002: ['Property pane'], DEF005: ['Tenant Wide Extensions'], DEF006: ['Web part on page'],
+  TMS001: ['Teams'], TMS002: ['Teams'],
+  PRP001: ['Property pane'], PRP002: ['Web part on page'], PRP003: ['Property pane'], PRP004: ['Property pane'],
+};
 
 export function scanProject(root: string, config?: Partial<ProjectConfig>): ScanResult {
   const project = loadProject(root, config);
   const ctx = new RuleContext(project);
   solutionRules(ctx);
   componentRules(ctx);
+  defaultsRules(ctx);
+  propertyRules(ctx);
   brandingRules(ctx);
+  for (const f of ctx.findings) { f.surfaces = RULE_SURFACES[f.ruleId]; }
 
   const total = ctx.findings.reduce((s, f) => s + (f.weight ?? 1), 0);
   const good = ctx.findings.filter(f => f.severity === 'pass').reduce((s, f) => s + (f.weight ?? 1), 0);
   const score = total === 0 ? 100 : Math.round((good / total) * 100);
 
   const order = { error: 0, warning: 1, info: 2, pass: 3 };
-  const findings = ctx.findings.sort((a, b) => order[a.severity] - order[b.severity] || a.ruleId.localeCompare(b.ruleId));
+  const catOrder = { Title: 0, Icon: 1, Defaults: 2, Properties: 3, Metadata: 4, Teams: 5, Branding: 6 };
+  const findings = ctx.findings.sort((a, b) => order[a.severity] - order[b.severity] || catOrder[a.category] - catOrder[b.category] || a.ruleId.localeCompare(b.ruleId));
+
+  const zipped: string | undefined = project.solutionDoc?.get(['paths', 'zippedPackage']);
+  const preview: PreviewData = {
+    packageFile: zipped ? path.basename(zipped) : 'ClientSolution.sppkg',
+    skipFeatureDeployment: project.solutionDoc?.get(['solution', 'skipFeatureDeployment']) === true,
+    propertyPanes: project.components.filter(c => c.kind === 'WebPart').map(c => {
+      const loc = path.join(c.folder, 'loc', 'en-us.js');
+      const text = fs.existsSync(loc) ? fs.readFileSync(loc, 'utf8') : '';
+      const val = (k: string) => new RegExp(`["']?${k}["']?\\s*:\\s*["']([^"']*)["']`).exec(text)?.[1];
+      return {
+        component: c.title || c.alias,
+        header: val('PropertyPaneDescription'),
+        group: val('BasicGroupName'),
+        label: val('DescriptionFieldLabel'),
+        defaults: Object.fromEntries(Object.entries<any>(c.doc.get(['preconfiguredEntries', 0, 'properties']) ?? {}).filter(([, v]) => typeof v === 'string')),
+      };
+    }),
+  };
 
   return {
+    preview,
     root,
     spfxVersion: project.spfxVersion,
     solution: project.solution,

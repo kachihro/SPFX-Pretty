@@ -5,7 +5,12 @@
 
 export type Severity = 'error' | 'warning' | 'info' | 'pass';
 
-export type Category = 'Title' | 'Icon' | 'Metadata' | 'Branding' | 'Teams';
+export type Category = 'Title' | 'Icon' | 'Defaults' | 'Properties' | 'Metadata' | 'Teams' | 'Branding';
+
+/** Places in Microsoft 365 where people actually see the value a finding is about. */
+export type Surface =
+  | 'App Catalog' | 'Add an app' | 'Site Contents' | 'Site features'
+  | 'Toolbox' | 'Web part on page' | 'Property pane' | 'Command bar' | 'Teams' | 'Tenant Wide Extensions';
 
 /** A text replacement inside an existing file (offsets are 0-based character offsets). */
 export interface TextEdit {
@@ -44,6 +49,8 @@ export interface Finding {
   /** Which component this relates to (web part title / alias), if any */
   component?: string;
   fixes: Fix[];
+  /** Where people see this (filled in by the scanner from the rule id). */
+  surfaces?: Surface[];
   /** Importance used for the niceness score (3 = big deal, 1 = polish). */
   weight?: number;
 }
@@ -95,6 +102,8 @@ export interface SolutionInfo {
 export interface ProjectConfig {
   brandColour: string;
   toolboxGroup: string;
+  /** Optional prefix so all your org's apps sort together, e.g. "Contoso - " */
+  appNamePrefix: string;
   developer: {
     name: string;
     websiteUrl: string;
@@ -108,6 +117,7 @@ export interface ProjectConfig {
 export const DEFAULT_CONFIG: ProjectConfig = {
   brandColour: '#0F6CBD',
   toolboxGroup: '',
+  appNamePrefix: '',
   developer: { name: '', websiteUrl: '', privacyUrl: '', termsOfUseUrl: '', mpnId: 'Undefined-1.0.0' },
   disabledRules: [],
 };
@@ -120,4 +130,14 @@ export interface ScanResult {
   findings: Finding[];
   /** 0-100 "niceness" score */
   score: number;
+  preview: PreviewData;
+}
+
+/** Extra values used to draw the App Catalog / Site Contents / property pane previews. */
+export interface PreviewData {
+  /** File name shown in the App Catalog "Name" column */
+  packageFile: string;
+  /** true = deployed tenant-wide: hidden from "Add an app" and Site Contents */
+  skipFeatureDeployment: boolean;
+  propertyPanes: { component: string; header?: string; group?: string; label?: string; defaults: Record<string, string> }[];
 }
