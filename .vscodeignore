@@ -14,3 +14,6 @@ planb-check/**
 *.zip
 *.vsix
 .vscode/**
+media/report.png
+media/report-small.jpg
+*.bundle

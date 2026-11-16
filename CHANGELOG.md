@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3 - 17/11/2026
+- Report screenshot embedded in the README so it shows on the installed extension page
+
 ## 0.5.2 - 17/11/2026
 - Shorter extension page with a report screenshot; full rule list moved to docs/RULES.md
 
