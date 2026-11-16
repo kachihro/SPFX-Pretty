@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 - 17/11/2026
+- Fix buttons inside the report panels: App Catalog, each toolbox tile, each property pane card, versions
+- "Fix all (N)" on each section header applies that section's safe fixes
+
 ## 0.4.0 - 17/11/2026
 - Report: coloured section panels with header bars and counts, sticky jump bar, colour-coded check groups
 - Property pane preview labels each default value with its property name and flags a missing About section

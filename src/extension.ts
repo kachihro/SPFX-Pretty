@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { JsoncDoc, applyEditsToText } from './core/jsonc';
 import { glyphForKind, makePngIcon, makeSvgIcon, svgDataUri } from './core/icons';
 import { componentName, kindLabel, loadProject } from './core/project';
-import { renderReportHtml } from './core/reportHtml';
+import { renderReportHtml, sectionMatcher } from './core/reportHtml';
 import { issues, scanProject } from './core/scanner';
 import { themingSnippet } from './core/snippets';
 import { titleProblems, toNiceTitle } from './core/titles';
@@ -159,8 +159,17 @@ export function activate(context: vscode.ExtensionContext): void {
       panel = vscode.window.createWebviewPanel('spfxPretty.report', 'SPFX-Pretty', vscode.ViewColumn.Active, { enableScripts: true, retainContextWhenHidden: true });
       panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.png');
       panel.onDidDispose(() => { panel = undefined; });
-      panel.webview.onDidReceiveMessage(async (msg: { type: string; idx: number; fix?: number }) => {
+      panel.webview.onDidReceiveMessage(async (msg: { type: string; idx: number; fix?: number; section?: string }) => {
         const r = currentResult(scans);
+        if (msg.type === 'fixSection' && r) {
+          await vscode.workspace.saveAll(false);
+          const match = sectionMatcher(msg.section ?? 'checks');
+          const n = await applySafeFixes(scans, f => f.file.startsWith(r.root) && match(f));
+          rescan();
+          refreshPanel(scans);
+          vscode.window.setStatusBarMessage(`SPFX-Pretty: applied ${n} fix${n === 1 ? '' : 'es'} ✨`, 5000);
+          return;
+        }
         const f = r?.findings[msg.idx];
         if (!f) { return; }
         if (msg.type === 'open') { await vscode.commands.executeCommand('spfxPretty.openFinding', f); }

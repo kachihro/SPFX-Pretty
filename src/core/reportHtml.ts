@@ -32,12 +32,6 @@ const DEFAULT_APP_ICON = '<svg viewBox="0 0 48 48" width="100%" height="100%"><r
 
 function idx(c: Ctx, f: Finding): number { return c.r.findings.indexOf(f); }
 
-function fixButton(c: Ctx, f: Finding | undefined, label?: string): string {
-  if (!f || !f.fixes.length) { return ''; }
-  if (!c.opts.interactive) { return `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`; }
-  return `<button class="fix" data-idx="${idx(c, f)}" data-fix="0">${esc(label ?? f.fixes[0].title)}</button>`;
-}
-
 /** Suggested value from a fix title like 'Rename solution to "Hello World"'. */
 function suggestion(f: Finding | undefined): string | undefined {
   return f?.fixes[0] ? /"([^"]+)"/.exec(f.fixes[0].title)?.[1] : undefined;
@@ -45,6 +39,33 @@ function suggestion(f: Finding | undefined): string | undefined {
 
 function surfaceIssues(c: Ctx, s: Surface): Finding[] {
   return c.r.findings.filter(f => f.severity !== 'pass' && f.surfaces?.includes(s));
+}
+
+/** Small fix buttons (first fix of each finding) shown inside a preview panel. */
+function actions(c: Ctx, list: Finding[], max = 6): string {
+  const withFix = list.filter(f => f.severity !== 'pass' && f.fixes.length);
+  const manual = list.filter(f => f.severity !== 'pass' && !f.fixes.length).length;
+  if (!withFix.length && !manual) { return ''; }
+  if (!c.opts.interactive) {
+    return withFix.length ? `<div class="acts">${withFix.slice(0, max).map(f => `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`).join('')}</div>` : '';
+  }
+  const btns = withFix.slice(0, max).map(f =>
+    `<button class="fix mini ${f.severity}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${esc(f.fixes[0].title)}</button>`).join('');
+  const more = withFix.length > max ? `<span class="hint">+${withFix.length - max} more in All checks</span>` : '';
+  const hand = manual ? `<span class="hint">${manual} need${manual === 1 ? 's' : ''} a human touch - see All checks</span>` : '';
+  return `<div class="acts">${btns}${more}${hand}</div>`;
+}
+
+/** Which findings belong to each report section (used for counts and "Fix all"). */
+export function sectionMatcher(id: string): (f: Finding) => boolean {
+  const on = (...s: Surface[]) => (f: Finding) => !!f.surfaces?.some(x => s.includes(x));
+  switch (id) {
+    case 'where': return on('App Catalog', 'Add an app', 'Site Contents');
+    case 'toolbox': return on('Toolbox');
+    case 'pane': return on('Property pane', 'Web part on page');
+    case 'versions': return f => f.category === 'Versions';
+    default: return () => true;
+  }
 }
 
 function appIcon(c: Ctx, size: number): string {
@@ -70,9 +91,8 @@ function appSurfaces(c: Ctx): string {
   const name = s?.name ?? '(no name)';
   const nameCell = `<span class="${nameIssue ? 'ugly' : ''}">${esc(name)}</span>`;
   const better = suggestion(nameIssue);
-  const fixRow = (nameIssue || iconIssue)
-    ? `<div class="suggest">${better ? `Suggested name: <b>${esc(better)}</b> ` : ''}${fixButton(c, nameIssue, 'Rename')}${fixButton(c, iconIssue, 'Add brand icon')}</div>`
-    : '';
+  const whereIssues = c.r.findings.filter(f => f.severity !== 'pass' && sectionMatcher('where')(f));
+  const fixRow = `${better ? `<div class="suggest">Suggested name: <b>${esc(better)}</b></div>` : ''}${actions(c, whereIssues, 8)}`;
   const hidden = c.r.preview.skipFeatureDeployment;
   const hiddenNote = hidden
     ? '<div class="note info">skipFeatureDeployment is true: when deployed to all sites the app is <b>not</b> listed in "Add an app" or Site Contents. If an admin unticks "add to all sites", it shows here.</div>'
@@ -122,7 +142,8 @@ function toolbox(c: Ctx): string {
     const better = suggestion(titleIssue);
     return `<div class="tbx-item" title="${esc(comp.description ?? '')}">${toolboxIcon(comp)}
       <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
-      ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div></div>`;
+      ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div>
+      ${actions(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)), 3)}</div>`;
   }).join('');
   return `<div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
 }
@@ -140,6 +161,7 @@ function propertyPanes(c: Ctx): string {
       ${props.length ? `<div class="pp-note">Default values when the web part is added:</div>` : ''}
       ${props.map(([k, v]) => `<label class="pp-k">${esc(k)}</label><div class="pp-in ${v ? '' : 'empty'}">${v ? esc(v) : '(empty)'}</div>`).join('')}
       ${c.r.findings.some(f => f.ruleId === 'ABT001' && f.severity !== 'pass' && f.component === p.component) ? '<div class="pp-about-missing">No About section (version, developer, packages)</div>' : ''}
+      ${actions(c, c.r.findings.filter(f => f.component === p.component && (sectionMatcher('pane')(f) || f.ruleId === 'ABT001')), 4)}
     </div>`;
   };
   return `<div class="surfaces">${panes.map(card).join('')}</div>`;
@@ -179,7 +201,7 @@ function upgradeSection(c: Ctx): string {
         ${row('Node', u.compat.node.current.map(n => 'v' + n).join(', '), u.compat.node.target.map(n => 'v' + n).join(', '), nodeOk)}
         ${row('TypeScript', u.compat.typescript.current, u.compat.typescript.target, true)}
       </tbody></table>
-      ${verIssues.length ? `<div class="note bad">${verIssues.length} version issue${verIssues.length === 1 ? '' : 's'} - see Checks &rarr; Versions</div>` : '<div class="note ok">&#x2714; Versions line up</div>'}
+      ${verIssues.length ? `<div class="note bad">${verIssues.length} version issue${verIssues.length === 1 ? '' : 's'}</div>${actions(c, verIssues, 4)}` : '<div class="note ok">&#x2714; Versions line up</div>'}
     </div>
     ${u.steps.length ? `<div class="panel"><div class="ph">Upgrade plan</div><ol class="steps">${u.steps.map(st => `<li>${chip(st.effort)} <b>${esc(st.title)}</b><div class="sub">${esc(st.detail)}${st.link ? ` <a href="${esc(st.link)}">Docs</a>` : ''}</div></li>`).join('')}</ol>
       <div class="sub" style="margin-top:8px">Detailed file-by-file report (CLI for Microsoft 365):</div><code class="cmd">${esc(u.command)}</code></div>` : ''}
@@ -187,11 +209,12 @@ function upgradeSection(c: Ctx): string {
 }
 
 /** A coloured section panel with a header bar, subtitle and an issue count badge. */
-function section(id: string, title: string, sub: string, colour: string, inner: string, count?: number): string {
+function section(id: string, title: string, sub: string, colour: string, inner: string, count?: number, safeFixes = 0, interactive = false): string {
   if (!inner.trim()) { return ''; }
+  const fixAll = interactive && safeFixes ? `<button class="fixsec" data-sec="${id}" title="Apply the safe fixes in this section">&#x2728; Fix all (${safeFixes})</button>` : '';
   const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
   return `<section class="sec" id="${id}" style="--c:${colour}">
-    <div class="sh"><div><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div>${badge}</div>
+    <div class="sh"><div><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></div>
     <div class="sb">${inner}</div>
   </section>`;
 }
@@ -217,14 +240,15 @@ export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
       ${ok.length ? `<details><summary>${ok.length} looking nice</summary><ul>${ok.map(f => findingRow(c, f)).join('')}</ul></details>` : ''}
     </section>`;
   }).join('');
-  const countOn = (...surfaces: Surface[]) => issues.filter(f => f.surfaces?.some(x => surfaces.includes(x))).length;
   const nav: [string, string, number | undefined][] = [
-    ['where', 'Where people see it', countOn('App Catalog', 'Add an app', 'Site Contents')],
-    ['toolbox', 'Toolbox', countOn('Toolbox')],
-    ['pane', 'Property pane', countOn('Property pane', 'Web part on page')],
-    ['versions', 'Version & upgrade', issues.filter(f => f.category === 'Versions').length],
+    ['where', 'Where people see it', issues.filter(sectionMatcher('where')).length],
+    ['toolbox', 'Toolbox', issues.filter(sectionMatcher('toolbox')).length],
+    ['pane', 'Property pane', issues.filter(sectionMatcher('pane')).length],
+    ['versions', 'Version & upgrade', issues.filter(sectionMatcher('versions')).length],
     ['checks', 'All checks', issues.length],
   ];
+  const safe = (id: string) => issues.filter(sectionMatcher(id)).filter(f => f.fixes.some(x => x.safe)).length;
+  const ia = opts.interactive;
 
   const csp = opts.cspSource !== undefined
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${opts.cspSource} data: https:; style-src 'unsafe-inline'; script-src 'nonce-${opts.nonce}';">`
@@ -263,7 +287,7 @@ table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .ugly-b{border-color:var(--bad)!important;color:var(--bad)!important}
 .note{font-size:12px;margin-top:8px}.note.ok{color:var(--good)}.note.bad{color:var(--bad)}.note.info{color:var(--sub);margin-top:10px}
 .suggest{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .tbx-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:6px;border:1px solid var(--line);text-align:center;font-size:12.5px;min-width:0;word-break:break-word}
 .tbx-img{width:40px;height:28px;object-fit:contain}
 .tbx-font{min-width:40px;height:28px;display:grid;place-items:center;padding:0 4px;border:1px dashed var(--sub);border-radius:4px;font-size:10px;color:var(--sub)}
@@ -286,6 +310,14 @@ html{scroll-behavior:smooth}
 .sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .sbadge.ok{background:rgba(255,255,255,.22)}
 .sb{padding:14px 16px}
+.shr{display:flex;gap:8px;align-items:center}
+button.fixsec{background:#fff;color:var(--c);border:none;font-weight:600;border-radius:999px;padding:3px 12px}
+button.fixsec:hover{filter:brightness(.92)}
+.acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;align-items:center}
+.tbx-item .acts{justify-content:center}
+button.mini{font-size:11px;padding:2px 8px;border-radius:999px;text-align:left;max-width:100%;white-space:normal;line-height:1.35}
+button.mini.error{background:var(--bad);border-color:var(--bad)}button.mini.warning{background:var(--warn);border-color:var(--warn)}
+button:disabled{opacity:.6;cursor:default}
 .cat{margin:0 0 14px;padding:12px 14px;border-radius:8px;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 6%,var(--card))}
 .cat:last-child{margin-bottom:0}
 .cat h3 .count{color:var(--c)}
@@ -316,12 +348,12 @@ details summary{cursor:pointer;color:var(--sub);margin:6px 0}
 
 <nav class="jump">${nav.map(([id, label, n]) => `<a href="#${id}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</a>`).join('')}</nav>
 
-${section('where', 'Where people see your app', 'App Catalog, Add an app and Site Contents', '#0f6cbd', appSurfaces(c), nav[0][2])}
-${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolbox(c), nav[1][2])}
-${section('pane', 'Property pane', 'what authors see when they edit the web part', '#038387', propertyPanes(c), nav[2][2])}
-${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and what an upgrade involves', '#ca5010', upgradeSection(c), nav[3][2])}
+${section('where', 'Where people see your app', 'App Catalog, Add an app and Site Contents', '#0f6cbd', appSurfaces(c), nav[0][2], safe('where'), ia)}
+${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolbox(c), nav[1][2], safe('toolbox'), ia)}
+${section('pane', 'Property pane', 'what authors see when they edit the web part', '#038387', propertyPanes(c), nav[2][2], safe('pane'), ia)}
+${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and what an upgrade involves', '#ca5010', upgradeSection(c), nav[3][2], safe('versions'), ia)}
 ${others.length ? section('others', 'Other components', 'extensions and libraries', '#5c5c5c', `<div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>`) : ''}
-${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX-Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2])}
+${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX-Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
 </div>
 ${opts.interactive ? `<script nonce="${opts.nonce}">
 const vscode = acquireVsCodeApi();
@@ -329,6 +361,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.classList.contains('fix')) { b.disabled = true; b.textContent = 'Applying...'; vscode.postMessage({ type: 'fix', idx: +b.dataset.idx, fix: +b.dataset.fix }); }
   if (b.classList.contains('open')) { vscode.postMessage({ type: 'open', idx: +b.dataset.idx }); }
+  if (b.classList.contains('fixsec')) { b.disabled = true; b.textContent = 'Fixing...'; vscode.postMessage({ type: 'fixSection', section: b.dataset.sec }); }
 });
 </script>` : ''}
 </body></html>`;
