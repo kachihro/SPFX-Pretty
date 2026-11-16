@@ -1,9 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { RuleContext } from './context';
-import { isPlaceholderDescription, titleProblems, toNiceTitle } from '../titles';
+import { isPlaceholderDescription, titleProblems } from '../titles';
 import { makePngIcon, readPngSize } from '../icons';
 import { Fix } from '../types';
+import { companyIconSet } from '../imageTools';
+import { JsoncDoc } from '../jsonc';
+import { cmp } from '../versions';
 
 export const APP_ICON_SIZE = 96;
 export const APP_ICON_RELATIVE = 'images/AppIcon.png';
@@ -21,7 +24,7 @@ export function solutionRules(ctx: RuleContext): void {
   const name: string | undefined = solution.name;
   const problems = titleProblems(name);
   if (problems.length) {
-    const nice = `${config.appNamePrefix ?? ''}${toNiceTitle(name || path.basename(root))}`;
+    const nice = `${config.appNamePrefix ?? ''}${ctx.nice(name || path.basename(root))}`;
     const fixes: Fix[] = [{ title: `Rename solution to "${nice}"`, safe: true, edits: doc.set(['solution', 'name'], nice) }];
     ctx.issue({
       ruleId: 'SOL001', severity: 'warning', category: 'Title', file, ...doc.locate(['solution', 'name']),
@@ -36,7 +39,7 @@ export function solutionRules(ctx: RuleContext): void {
   // ---- SOL002: optional solution.title should agree with the name ----
   const title = doc.get(['solution', 'title']);
   if (typeof title === 'string' && titleProblems(title).length) {
-    const nice = toNiceTitle(title);
+    const nice = ctx.nice(title);
     ctx.issue({
       ruleId: 'SOL002', severity: 'info', category: 'Title', file, ...doc.locate(['solution', 'title']),
       message: `solution.title "${title}" ${titleProblems(title).join(', ')}.`,
@@ -49,7 +52,7 @@ export function solutionRules(ctx: RuleContext): void {
   features.forEach((f, i) => {
     const ft: string | undefined = f?.title;
     if (ft && (/client-side-solution/i.test(ft) || /^[a-z0-9-]+ Feature$/.test(ft))) {
-      const nice = `${toNiceTitle(name && !titleProblems(name).length ? name : ft)} Feature`;
+      const nice = `${ctx.nice(name && !titleProblems(name).length ? name : ft)} Feature`;
       ctx.issue({
         ruleId: 'SOL003', severity: 'info', category: 'Title', file, ...doc.locate(['solution', 'features', i, 'title']),
         message: `Feature title "${ft}" is the generator default (visible in Site Settings > Manage site features).`,
@@ -122,21 +125,46 @@ export function solutionRules(ctx: RuleContext): void {
   // ---- SOL010-012: the .sppkg icon ----
   const packageDirRel: string = doc.get(['paths', 'packageDir']) ?? 'sharepoint';
   const packageDir = path.join(root, packageDirRel);
-  const makeIconFix = (title: string): Fix => {
-    const iconRel = solution.iconPath || APP_ICON_RELATIVE;
+  const iconFixes = (generatedTitle: string): Fix[] => {
+    // Write our own file so an existing source asset (e.g. assets/planb-logo.png) is never overwritten
+    const iconRel = solution.iconPath && !solution.iconFile ? solution.iconPath : APP_ICON_RELATIVE;
+    const target = path.join(packageDir, iconRel);
+    const fixes: Fix[] = [];
+    const setPath = (rel: string) => solution.iconPath === rel ? [] : doc.set(['solution', 'iconPath'], rel);
+    // 1. The company logo from settings / .spfxprettyrc.json, resized to 96x96
+    const logo = companyLogo(root, config.companyIcon);
+    if (logo) {
+      try {
+        const png = companyIconSet(fs.readFileSync(logo)).app96;
+        fixes.push({ title: `Use company logo (${path.basename(logo)}) as the ${APP_ICON_SIZE}x${APP_ICON_SIZE} app icon`, safe: true,
+          edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
+      } catch { /* unreadable logo: fall through to the other options */ }
+    }
+    // 2. A logo already in the project (e.g. sharepoint/assets/planb-logo.png)
+    for (const found of existingLogos(root, packageDir)) {
+      const size = readPngSize(fs.readFileSync(found));
+      if (!size || size.width !== size.height) { continue; }
+      const rel = path.relative(packageDir, found).replace(/\\/g, '/');
+      if (!rel.startsWith('..') && size.width === APP_ICON_SIZE) {
+        fixes.push({ title: `Use existing ${path.basename(found)} (${size.width}x${size.height})`, safe: true, edits: setPath(rel) });
+      } else {
+        const png = companyIconSet(fs.readFileSync(found)).app96;
+        fixes.push({ title: `Use existing ${path.basename(found)} resized to ${APP_ICON_SIZE}x${APP_ICON_SIZE}`, safe: true,
+          edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
+      }
+      break;
+    }
+    // 3. A generated brand-colour icon
     const png = makePngIcon({ size: APP_ICON_SIZE, colour: config.brandColour, glyph: 'package', rounded: true });
-    return {
-      title, safe: true,
-      edits: solution.iconPath ? [] : doc.set(['solution', 'iconPath'], iconRel),
-      creates: [{ file: path.join(packageDir, iconRel), content: png.toString('base64'), encoding: 'base64' }],
-    };
+    fixes.push({ title: generatedTitle, safe: fixes.length === 0, edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
+    return fixes;
   };
   if (!solution.iconPath) {
     ctx.issue({
       ruleId: 'SOL010', severity: 'warning', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
       message: 'No app icon - the App Catalog, "Add an app" and Site Contents all show the generic placeholder.',
       detail: `Set solution.iconPath (relative to ./${packageDirRel}) to a ${APP_ICON_SIZE}x${APP_ICON_SIZE} PNG.`,
-      fixes: [makeIconFix(`Generate ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand icon at ${packageDirRel}/${APP_ICON_RELATIVE}`)],
+      fixes: iconFixes(`Generate a ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand-colour icon at ${packageDirRel}/${APP_ICON_RELATIVE}`),
     });
   } else if (!solution.iconFile) {
     const rootLevel = fs.existsSync(path.join(root, solution.iconPath));
@@ -144,7 +172,7 @@ export function solutionRules(ctx: RuleContext): void {
       ruleId: 'SOL011', severity: 'error', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
       message: `Icon "${solution.iconPath}" not found in ./${packageDirRel}/ - packaging will fail or show no icon.`,
       detail: rootLevel ? `The file exists at the project root, but iconPath is resolved relative to ./${packageDirRel}. Move it to ./${packageDirRel}/${solution.iconPath}.` : undefined,
-      fixes: [makeIconFix('Generate a brand icon at that path')],
+      fixes: iconFixes('Generate a brand-colour icon at that path'),
     });
   } else {
     const ext = path.extname(solution.iconFile).toLowerCase();
@@ -156,20 +184,48 @@ export function solutionRules(ctx: RuleContext): void {
       ctx.issue({
         ruleId: 'SOL012', severity: 'info', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
         message: `App icon is ${size.width}x${size.height}; ${APP_ICON_SIZE}x${APP_ICON_SIZE} (square) looks crisp in the catalog.`,
-        fixes: [makeIconFix(`Replace with a generated ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand icon`)],
+        fixes: iconFixes(`Replace with a generated ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand-colour icon`),
       });
     } else {
       ctx.pass('SOL010', 'Icon', `App Catalog icon ${solution.iconPath}${size ? ` (${size.width}x${size.height})` : ''}`, file, undefined, 3);
     }
   }
 
-  // ---- SOL013: version in sync with package.json ----
+  // ---- SOL013: version in sync with package.json (never suggest a downgrade) ----
   const pv: string | undefined = packageJson?.version;
   if (pv && solution.version && !solution.version.startsWith(pv.split('-')[0])) {
+    const pv3 = pv.split('-')[0];
+    const sol3 = solution.version.split('.').slice(0, 3).join('.');
+    const pkgDoc = new JsoncDoc(path.join(root, 'package.json'));
+    const solutionNewer = cmp(sol3, pv3) > 0;
     ctx.issue({
       ruleId: 'SOL013', severity: 'info', category: 'Metadata', file, ...doc.locate(['solution', 'version']),
-      message: `Solution version ${solution.version} doesn't match package.json ${pv} - the App Catalog shows the solution version.`,
-      fixes: [{ title: `Set solution version to ${pv.split('-')[0]}.0`, safe: false, edits: doc.set(['solution', 'version'], `${pv.split('-')[0]}.0`) }],
+      message: solutionNewer
+        ? `package.json is ${pv} but the solution is ${solution.version} - web part manifests use "version": "*", so web parts report ${pv} while the App Catalog shows ${solution.version}.`
+        : `Solution version ${solution.version} is behind package.json ${pv} - the App Catalog shows the solution version.`,
+      fixes: solutionNewer
+        ? [{ title: `Set package.json version to ${sol3}`, safe: false, edits: pkgDoc.set(['version'], sol3) }]
+        : [{ title: `Set solution version to ${pv3}.0`, safe: false, edits: doc.set(['solution', 'version'], `${pv3}.0`) }],
     });
   }
+}
+
+/** Resolve the configured company logo (absolute, or relative to the project). */
+export function companyLogo(root: string, configured?: string): string | undefined {
+  if (!configured) { return undefined; }
+  const p = path.isAbsolute(configured) ? configured : path.join(root, configured);
+  return fs.existsSync(p) && /\.png$/i.test(p) ? p : undefined;
+}
+
+/** PNG logos already in the project, best candidates first. */
+export function existingLogos(root: string, packageDir: string): string[] {
+  const dirs = [path.join(packageDir, 'images'), path.join(packageDir, 'assets'), path.join(root, 'assets'), path.join(root, 'src', 'assets'), path.join(root, 'src', 'common', 'assets'), path.join(root, 'images')];
+  const found: string[] = [];
+  for (const d of dirs) {
+    if (!fs.existsSync(d)) { continue; }
+    for (const f of fs.readdirSync(d)) {
+      if (/\.png$/i.test(f) && /(logo|icon|brand)/i.test(f) && !/_(color|outline)\.png$/i.test(f)) { found.push(path.join(d, f)); }
+    }
+  }
+  return found.sort((a, b) => Number(/logo/i.test(path.basename(b))) - Number(/logo/i.test(path.basename(a))));
 }

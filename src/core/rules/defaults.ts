@@ -64,7 +64,7 @@ function defaultPropertyValues(ctx: RuleContext, c: LoadedComponent): void {
       const raw = looksLikeRawName(value, c);
       const generic = /^(description|title|value|text)$/i.test(value);
       if (!raw && !generic) { continue; }
-      const nice = raw ? toNiceTitle(value) : '';
+      const nice = raw ? ctx.nice(value) : '';
       ctx.issue({
         ruleId: 'DEF001', severity: 'warning', category: 'Defaults', file: c.doc.file, component: componentName(c),
         ...c.doc.locate(['preconfiguredEntries', i, 'properties', key]),
@@ -121,7 +121,7 @@ function featureDescription(ctx: RuleContext): void {
   if (!doc) { return; }
   const features: any[] = doc.get(['solution', 'features']) ?? [];
   const name: string = ctx.project.solution?.name ?? '';
-  const niceName = titleProblems(name).length ? toNiceTitle(name) : name;
+  const niceName = titleProblems(name).length ? ctx.nice(name) : name;
   const short = ctx.project.solution?.shortDescription;
   features.forEach((f, i) => {
     const d: string | undefined = f?.description;
@@ -164,7 +164,7 @@ function appNamePrefix(ctx: RuleContext): void {
   const name: string | undefined = ctx.project.solution?.name;
   if (!prefix || !doc || !name) { return; }
   if (name.startsWith(prefix)) { ctx.pass('SOL014', 'Title', `App name starts with "${prefix}"`, doc.file, undefined, 1); return; }
-  const base = titleProblems(name).length ? toNiceTitle(name) : name;
+  const base = titleProblems(name).length ? ctx.nice(name) : name;
   ctx.issue({
     ruleId: 'SOL014', severity: 'info', category: 'Title', file: doc.file, ...doc.locate(['solution', 'name']),
     message: `App name doesn't start with your prefix "${prefix}" - your apps won't sort together in the App Catalog / Site Contents.`,
@@ -185,7 +185,7 @@ function assetXml(ctx: RuleContext): void {
       const problems = titleProblems(title);
       if (!problems.length) { continue; }
       const offset = m.index + m[0].length - title.length - 1;
-      const nice = toNiceTitle(title);
+      const nice = ctx.nice(title);
       ctx.issue({
         ruleId: 'DEF005', severity: 'info', category: 'Defaults', file, offset, length: title.length,
         message: `${m[1]} Title "${title}" ${problems.join(', ')}${isInstance ? ' - shown in the Tenant Wide Extensions list' : ' - shown in site/list custom action listings'}.`,

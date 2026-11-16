@@ -5,7 +5,7 @@
 
 export type Severity = 'error' | 'warning' | 'info' | 'pass';
 
-export type Category = 'Title' | 'Icon' | 'Defaults' | 'Properties' | 'Metadata' | 'Teams' | 'Branding';
+export type Category = 'Title' | 'Icon' | 'Defaults' | 'Properties' | 'Versions' | 'Metadata' | 'Teams' | 'Branding';
 
 /** Places in Microsoft 365 where people actually see the value a finding is about. */
 export type Surface =
@@ -74,6 +74,7 @@ export interface ComponentInfo {
   title?: string;
   description?: string;
   group?: string;
+  groupId?: string;
   officeFabricIconFontName?: string;
   iconImageUrl?: string;
   supportedHosts: string[];
@@ -102,6 +103,12 @@ export interface SolutionInfo {
 export interface ProjectConfig {
   brandColour: string;
   toolboxGroup: string;
+  /** Latest SPFx version (from npm when online, else the bundled table). */
+  latestSpfxVersion?: string;
+  /** Company logo (PNG) used for the App Catalog icon and About panel, relative to the project or absolute. */
+  companyIcon?: string;
+  /** Extra brand spellings, e.g. ["PlanB", "SharePoint"] */
+  brandWords?: string[];
   /** Optional prefix so all your org's apps sort together, e.g. "Contoso - " */
   appNamePrefix: string;
   developer: {
@@ -131,6 +138,31 @@ export interface ScanResult {
   /** 0-100 "niceness" score */
   score: number;
   preview: PreviewData;
+  upgrade?: UpgradeAssessment;
+}
+
+export interface UpgradeStep {
+  title: string;
+  effort: 'S' | 'M' | 'L';
+  detail: string;
+  link?: string;
+}
+
+export interface UpgradeAssessment {
+  current: string;
+  latest: string;
+  toolchain: 'gulp' | 'heft';
+  /** Releases between current and latest, oldest first */
+  hops: string[];
+  steps: UpgradeStep[];
+  effort: 'None' | 'Small' | 'Medium' | 'Large';
+  /** CLI for Microsoft 365 command that produces the detailed upgrade report */
+  command: string;
+  compat: {
+    node: { current: number[]; target: number[] };
+    react: { current?: string; target?: string };
+    typescript: { current?: string; target?: string };
+  };
 }
 
 /** Extra values used to draw the App Catalog / Site Contents / property pane previews. */

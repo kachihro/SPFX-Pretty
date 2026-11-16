@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { Fix, ProjectConfig } from '../core/types';
 
+/** Latest SPFx version fetched from npm at activation (undefined = use the bundled table). */
+let latestOnline: string | undefined;
+export function setLatestOnline(v: string | undefined): void { latestOnline = v; }
+
 /** Read SPFX-Pretty settings (a project's .spfxprettyrc.json is layered on top by the core loader). */
 export function readConfig(): Partial<ProjectConfig> {
   const c = vscode.workspace.getConfiguration('spfxPretty');
@@ -8,6 +12,9 @@ export function readConfig(): Partial<ProjectConfig> {
     brandColour: c.get<string>('brandColour') || '#0F6CBD',
     toolboxGroup: c.get<string>('toolboxGroup') || '',
     appNamePrefix: c.get<string>('appNamePrefix') || '',
+    companyIcon: c.get<string>('companyIcon') || undefined,
+    brandWords: c.get<string[]>('brandWords') || [],
+    latestSpfxVersion: latestOnline,
     disabledRules: c.get<string[]>('disabledRules') || [],
     developer: {
       name: c.get<string>('developer.name') || '',

@@ -1,5 +1,6 @@
 import { LoadedProject } from '../project';
 import { Category, Finding, Fix, Severity } from '../types';
+import { toNiceTitle } from '../titles';
 
 const WEIGHT: Record<Exclude<Severity, 'pass'>, number> = { error: 3, warning: 2, info: 1 };
 
@@ -8,6 +9,9 @@ export class RuleContext {
   readonly findings: Finding[] = [];
 
   constructor(readonly project: LoadedProject) {}
+
+  /** Nice title using the project's brand spellings ("planb-x" -> "PlanB X"). */
+  nice(raw: string): string { return toNiceTitle(raw, this.project.brand); }
 
   enabled(ruleId: string): boolean {
     return !this.project.config.disabledRules.includes(ruleId);

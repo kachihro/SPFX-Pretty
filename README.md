@@ -33,6 +33,32 @@ SPFX-Pretty scans every SPFx project in your workspace, shows what isn't "nice" 
 | | BRD006 | Inline colours in TSX (`style={{ color: '#333' }}`) | ✍️ |
 | | BRD007 | Fluent UI v9 installed but no `<FluentProvider>` | 📋 Snippet |
 
+### Defaults, properties, versions and About (v0.2)
+
+| Area | Rule | What it looks for | Auto-fix |
+|---|---|---|---|
+| **Defaults** | DEF001 | Default property values like `"description": "HelloWorld"` shown the moment a web part is added | ✅ |
+| | DEF002 | Property pane text still "Description" / "Group Name" / "Description Field" | ✍️ suggestions |
+| | DEF003 | Feature description "The feature that activates elements of the x solution." | ✅ |
+| | DEF004 | No `zippedPackage` (file becomes `ClientSolution.sppkg`) | ✅ |
+| | DEF005/006 | Extension Titles in elements.xml / ClientSideInstance.xml, and the generator's **"Test message"** alert still registered | ✅ / ✍️ |
+| **Properties** | PRP001 | Property declared in the props interface but never read or shown | ✍️ |
+| | PRP002 | Manifest default for a property the code doesn't know | ✍️ |
+| | PRP003 | Property pane field targeting a property that doesn't exist (typo) | ✍️ |
+| | PRP004 | Unused localised strings | ✍️ |
+| **Versions** | VER001 | How far behind the latest SPFx (bundled table, or npm when online) | 📋 assessment |
+| | VER002 | Mixed / release-candidate / ranged `@microsoft/sp-*` versions | ✍️ |
+| | VER003 | React not exactly the version this SPFx needs (e.g. React 17 on SPFx 1.24 → needs 18.3.1) | ✍️ |
+| | VER004/005 | TypeScript / Node outside the supported range; no Node version declared | ✅ engines |
+| | VER006 | Gulp toolchain (unsupported from SPFx 1.24) | 📋 |
+| | VER007 | serve.json uses the Online workbench (retires 01/12/2026) | ✍️ |
+| | VER008-011 | .yo-rc drift, office-ui-fabric-react, @types/react mismatch, legacy ReactDom.render on React 18 | ✍️ |
+| **About** | ABT001 | Web part has no About section in the property pane | ✅ generates one (logo, title, version, developer, website, runtime packages) |
+| | ABT002 | Hard-coded About version / website / developer drifted from package-solution.json | ✅ |
+| **Toolbox** | CMP006 | Custom `groupId` - the modern toolbox ignores it and shows the web part under **Advanced** | ✅ move to one of the 7 predefined groups |
+
+Brand spellings ("PlanB", "SharePoint") are learnt from your developer name and existing nice titles, so suggestions keep your casing.
+
 Each component type is handled on its own terms:
 - **Web Parts**: toolbox title, description, icon, group, Teams icons, theme variants, Brand Center fonts
 - **Adaptive Card Extensions**: toolbox title, description, icon (catches the default SharePoint logo)
@@ -48,6 +74,8 @@ All commands are under **SPFX-Pretty** in the Command Palette (`Ctrl+Shift+P`):
 - **Make Titles Nice**: walks through every visible title (catalog, toolbox, commands) with a suggestion you can tweak
 - **Generate Icons**: pick a brand colour, then generate the .sppkg icon, toolbox SVGs, command icons and Teams icons
 - **Apply All Safe Fixes**: everything that doesn't need a human
+- **Upload Company Logo**: pick a PNG once - it becomes the App Catalog / Add an app / Site Contents icon (96x96), the Teams colour + outline icons, and optionally toolbox icons. It's remembered for every project.
+- **Version Check & Upgrade Assessment**: a Markdown plan (current vs latest, React/Node/TypeScript, steps with effort) ready for a DevOps PBI, plus the CLI for Microsoft 365 command for the file-by-file report
 - **Show Theme-Aware Web Part Snippet**: `onThemeChanged()` + CSS variables + Brand Center SCSS, tailored to your web part (React 17 or 18, with or without Fluent v9)
 
 Quick fixes also appear on the lightbulb (`Ctrl+.`) right in the manifest or SCSS file.
@@ -91,7 +119,7 @@ The same engine ships as a CLI:
 npx spfx-pretty . --min-score 80 --fail-on warning --html $(Build.ArtifactStagingDirectory)\spfx-pretty.html
 ```
 
-Options: `--fix` (apply safe fixes), `--json`, `--html <file>`, `--min-score <n>`, `--fail-on error|warning|info`.
+Options: `--fix` (apply safe fixes), `--json`, `--html <file>`, `--upgrade-md <file>`, `--company-icon <logo.png>`, `--online` or `--latest <version>`, `--min-score <n>`, `--fail-on error|warning|info`.
 
 Azure DevOps step:
 

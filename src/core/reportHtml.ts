@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { componentName, kindLabel } from './project';
+import { MODERN_GROUPS } from './rules/components';
 import { Category, ComponentInfo, Finding, ScanResult, Surface } from './types';
 
 export interface ReportOptions {
@@ -12,18 +13,22 @@ export interface ReportOptions {
 
 const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-const CATEGORY_ORDER: Category[] = ['Title', 'Icon', 'Defaults', 'Properties', 'Metadata', 'Teams', 'Branding'];
+const CATEGORY_ORDER: Category[] = ['Title', 'Icon', 'Defaults', 'Properties', 'Versions', 'Metadata', 'Teams', 'Branding'];
 const CATEGORY_BLURB: Record<Category, string> = {
   Title: 'The names people read in the App Catalog, Site Contents, the toolbox and the command bar',
   Icon: 'App icon (App Catalog, Add an app, Site Contents), toolbox icons and command icons',
   Defaults: 'Generator text that is still showing: default property values, property pane labels, sample alerts, package file name',
   Properties: 'Web part properties that are declared but unused, leftover manifest defaults, property pane typos, unused loc strings',
+  Versions: 'SPFx, React, TypeScript and Node versions, toolchain, and what an upgrade involves',
   Metadata: 'Descriptions, developer details, categories and screenshots on the app details page',
   Teams: 'Icons Teams needs when a web part is used as a tab or personal app',
   Branding: 'Theme colours, section backgrounds and Brand Center fonts inside your components',
 };
 
 interface Ctx { r: ScanResult; opts: ReportOptions; }
+
+/** Approximation of the generic teal "no icon" app tile SharePoint shows. */
+const DEFAULT_APP_ICON = '<svg viewBox="0 0 48 48" width="100%" height="100%"><rect width="48" height="48" fill="#03787c"/><path d="M27 9l11 6.3v12.6L27 34.2 16 27.9V15.3z" fill="#fff" opacity=".9"/><path d="M17 26.5l6 3.5v7l-6 3.5-6-3.5v-7z" fill="#fff" stroke="#03787c" stroke-width="1.5"/></svg>';
 
 function idx(c: Ctx, f: Finding): number { return c.r.findings.indexOf(f); }
 
@@ -46,7 +51,7 @@ function appIcon(c: Ctx, size: number): string {
   const s = c.r.solution;
   return s?.iconDataUri
     ? `<img class="appicon" style="width:${size}px;height:${size}px" src="${esc(s.iconDataUri)}" alt="">`
-    : `<span class="appicon placeholder" style="width:${size}px;height:${size}px" title="No iconPath - SharePoint shows a generic icon">?</span>`;
+    : `<span class="appicon placeholder" style="width:${size}px;height:${size}px" title="No iconPath - SharePoint shows its generic app icon">${DEFAULT_APP_ICON}</span>`;
 }
 
 function issueNote(c: Ctx, s: Surface): string {
@@ -76,11 +81,12 @@ function appSurfaces(c: Ctx): string {
   return `<div class="surfaces">
   <div class="panel"><div class="ph">App Catalog <span class="sub">Apps for SharePoint</span></div>
     <table class="sp"><thead><tr><th></th><th>Title</th><th>Name</th><th>Version</th></tr></thead>
-    <tbody><tr><td>${appIcon(c, 24)}</td><td>${nameCell}</td><td class="${fileIssue ? 'ugly' : ''}">${esc(c.r.preview.packageFile)}</td><td>${esc(s?.version ?? '')}</td></tr></tbody></table>
+    <tbody><tr><td>${appIcon(c, 24)}</td><td>${nameCell}</td><td class="${fileIssue ? 'ugly' : ''}">${esc(c.r.preview.packageFile.replace(/\.sppkg$/i, ''))}</td><td>${esc(s?.version ?? '')}</td></tr></tbody></table>
     ${issueNote(c, 'App Catalog')}
   </div>
   <div class="panel"><div class="ph">Add an app <span class="sub">From your organisation</span></div>
-    <div class="tile${hidden ? ' dim' : ''}">${appIcon(c, 64)}<div class="tname">${nameCell}</div><div class="tdesc ${descIssue ? 'ugly' : ''}">${esc(s?.shortDescription ?? 'No description')}</div><div class="link">App details</div></div>
+    <div class="tile${hidden ? ' dim' : ''}">${appIcon(c, 64)}<div class="tname">${nameCell}</div><div class="tdesc">My organization</div><div class="addbtn">Add</div></div>
+    <div class="tdesc2 ${descIssue ? 'ugly' : ''}" title="Short description (app details)">${esc(s?.shortDescription ?? 'No description')}</div>
     ${issueNote(c, 'Add an app')}
   </div>
   <div class="panel"><div class="ph">Site Contents <span class="sub">after it's added to a site</span></div>
@@ -101,6 +107,13 @@ function toolboxIcon(comp: ComponentInfo): string {
   return '<span class="tbx-font ugly-b">?</span>';
 }
 
+/** The modern toolbox section the component really appears in. */
+function effectiveGroup(comp: ComponentInfo): string {
+  if (comp.kind !== 'WebPart') { return kindLabel(comp.kind); }
+  const g = MODERN_GROUPS.find(x => x.id === comp.groupId?.toLowerCase());
+  return g ? g.name : `Advanced${comp.group ? ` (custom "${comp.group}" ignored)` : ''}`;
+}
+
 function toolbox(c: Ctx): string {
   const list = c.r.components.filter(x => x.kind === 'WebPart' || x.kind === 'AdaptiveCardExtension');
   if (!list.length) { return ''; }
@@ -109,7 +122,7 @@ function toolbox(c: Ctx): string {
     const better = suggestion(titleIssue);
     return `<div class="tbx-item" title="${esc(comp.description ?? '')}">${toolboxIcon(comp)}
       <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
-      ${better ? `<div class="kind">→ ${esc(better)}</div>` : `<div class="kind">${esc(comp.group ?? kindLabel(comp.kind))}</div>`}</div>`;
+      ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div></div>`;
   }).join('');
   return `<h2>Toolbox <span class="sub">when someone adds a web part</span></h2><div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
 }
@@ -143,6 +156,33 @@ function findingRow(c: Ctx, f: Finding): string {
     <div class="where">${(f.surfaces ?? []).map(s => `<span class="chip">${esc(s)}</span>`).join('')}<span>${esc(rel)}${f.component ? ` &middot; ${esc(f.component)}` : ''}</span> <code class="rule">${esc(f.ruleId)}</code></div>
     ${f.severity !== 'pass' ? `<div class="actions">${buttons}</div>` : ''}
   </div></li>`;
+}
+
+function upgradeSection(c: Ctx): string {
+  const u = c.r.upgrade;
+  if (!u) { return ''; }
+  const upToDate = !u.hops.length;
+  const chip = (e: string) => `<span class="effort e${e}">${e === 'S' ? 'Small' : e === 'M' ? 'Medium' : 'Large'}</span>`;
+  const row = (label: string, cur: string | undefined, target: string | undefined, ok: boolean) =>
+    `<tr><td>${esc(label)}</td><td class="${ok ? '' : 'bad'}">${esc(cur ?? '-')}</td><td>${esc(target ?? '-')}</td><td>${ok ? '&#x2714;' : '&#x26A0;'}</td></tr>`;
+  const nodeOk = !u.compat.node.target.length || u.compat.node.current.some(n => u.compat.node.target.includes(n));
+  const reactOk = !u.compat.react.current || u.compat.react.current === u.compat.react.target;
+  const verIssues = c.r.findings.filter(f => f.category === 'Versions' && f.severity !== 'pass');
+  return `<h2>Version &amp; upgrade</h2>
+  <div class="surfaces">
+    <div class="panel">
+      <div class="ph">SPFx ${esc(u.current)} ${upToDate ? '<span class="ok">&#x2714; latest</span>' : `&rarr; ${esc(u.latest)}`}</div>
+      <div class="sub">${esc(u.toolchain === 'gulp' ? 'Gulp toolchain (legacy)' : 'Heft toolchain')}${upToDate ? '' : ` &middot; ${u.hops.length} release${u.hops.length === 1 ? '' : 's'} behind &middot; overall effort: <b>${esc(u.effort)}</b>`}</div>
+      <table class="compat"><thead><tr><th></th><th>Project</th><th>${upToDate ? 'Needed' : esc(u.latest)}</th><th></th></tr></thead><tbody>
+        ${row('React', u.compat.react.current, u.compat.react.target, reactOk)}
+        ${row('Node', u.compat.node.current.map(n => 'v' + n).join(', '), u.compat.node.target.map(n => 'v' + n).join(', '), nodeOk)}
+        ${row('TypeScript', u.compat.typescript.current, u.compat.typescript.target, true)}
+      </tbody></table>
+      ${verIssues.length ? `<div class="note bad">${verIssues.length} version issue${verIssues.length === 1 ? '' : 's'} - see Checks &rarr; Versions</div>` : '<div class="note ok">&#x2714; Versions line up</div>'}
+    </div>
+    ${u.steps.length ? `<div class="panel"><div class="ph">Upgrade plan</div><ol class="steps">${u.steps.map(st => `<li>${chip(st.effort)} <b>${esc(st.title)}</b><div class="sub">${esc(st.detail)}${st.link ? ` <a href="${esc(st.link)}">Docs</a>` : ''}</div></li>`).join('')}</ol>
+      <div class="sub" style="margin-top:8px">Detailed file-by-file report (CLI for Microsoft 365):</div><code class="cmd">${esc(u.command)}</code></div>` : ''}
+  </div>`;
 }
 
 export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
@@ -191,10 +231,10 @@ table.sp th{font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px so
 table.sp th:first-child{width:40px}
 table.sp td{padding:8px;vertical-align:middle;word-break:break-word}
 .tile{background:var(--sp);color:var(--sptext);border:1px solid #e1dfdd;border-radius:4px;padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;max-width:220px;margin:0 auto}
-.tname{font-weight:600;word-break:break-word}.tdesc{font-size:12px;color:#605e5c}.link{font-size:12px;color:#0f6cbd}
+.tile{align-items:flex-start;text-align:left}.tname{font-weight:600;font-size:16px;word-break:break-word}.tdesc{font-size:12px;color:#605e5c}.addbtn{border:1px solid #8a8886;border-radius:4px;padding:4px 18px;font-size:13px;margin-top:6px}.tdesc2{font-size:12px;color:var(--sub);margin:8px auto 0;max-width:220px}
 .dim{opacity:.55}
 .appicon{border-radius:6px;display:inline-grid;place-items:center;vertical-align:middle}
-.appicon.placeholder{background:#edebe9;color:#a19f9d;font-weight:600;outline:2px dashed var(--bad);outline-offset:1px}
+.appicon.placeholder{overflow:hidden;outline:2px dashed var(--bad);outline-offset:2px}
 .ugly{background:var(--uglybg);color:var(--bad);border-radius:3px;padding:0 3px;text-decoration:wavy underline var(--bad);text-underline-offset:3px}
 table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .ugly-b{border-color:var(--bad)!important;color:var(--bad)!important}
@@ -208,6 +248,11 @@ table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .pp .pp-h{font-size:13px;margin-bottom:10px;display:inline-block}.pp .pp-g{font-weight:600;margin:6px 0;display:inline-block}
 .pp .pp-l{font-size:12.5px;margin:6px 0 4px;display:block;width:fit-content}
 .pp-in{border:1px solid var(--sub);border-radius:3px;padding:4px 8px;font-size:13px;min-height:28px;margin-bottom:6px}
+table.compat{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}table.compat td,table.compat th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left}table.compat td.bad{color:var(--bad);font-weight:600}
+.ok{color:var(--good);font-size:13px;font-weight:400}
+ol.steps{margin:0;padding-left:20px}ol.steps li{margin-bottom:10px}
+.effort{display:inline-block;font-size:11px;padding:0 7px;border-radius:999px;color:#fff}.eS{background:var(--good)}.eM{background:var(--warn)}.eL{background:var(--bad)}
+code.cmd{display:block;font-size:11.5px;padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:4px;word-break:break-all;white-space:pre-wrap;margin-top:4px}
 .cat{margin:18px 0}.blurb{margin:0 0 8px;color:var(--sub);font-size:12.5px}
 .count{font-size:12px;font-weight:400;color:var(--sub)}
 ul{list-style:none;margin:0;padding:0}
@@ -234,6 +279,7 @@ details summary{cursor:pointer;color:var(--sub);margin:6px 0}
 ${appSurfaces(c)}
 ${toolbox(c)}
 ${propertyPanes(c)}
+${upgradeSection(c)}
 ${others.length ? `<h2>Other components</h2><div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>` : ''}
 
 <h2>Checks</h2>

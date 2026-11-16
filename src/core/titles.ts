@@ -43,10 +43,51 @@ export function stripNoise(raw: string): string {
   return s;
 }
 
-export function toNiceTitle(raw: string): string {
-  const words = splitWords(stripNoise(raw));
+/**
+ * Brand spellings, keyed by lower-case-without-spaces: { "planb": "PlanB", "contoso": "Contoso" }.
+ * Built from the developer name, existing component titles and the brandWords setting.
+ */
+export type BrandWords = Map<string, string>;
+
+export function buildBrandWords(sources: (string | undefined)[], explicit: string[] = []): BrandWords {
+  const map: BrandWords = new Map();
+  const add = (display: string) => {
+    const key = display.replace(/\s+/g, '').toLowerCase();
+    if (key.length >= 2 && !map.has(key)) { map.set(key, display); }
+  };
+  explicit.forEach(add);
+  // Mixed-case tokens like "PlanB", "SharePoint", "iPhone" keep their spelling - these win over phrases
+  for (const s of sources) {
+    for (const t of (s ?? '').split(/[\s\-_]+/)) { if (/[a-z][A-Z]|^[A-Z]{2,}[a-z]/.test(t)) { add(t); } }
+  }
+  for (const s of sources) {
+    if (!s) { continue; }
+    // Multi-word brand phrases ("Plan B" from "Plan B Consulting")
+    const words = s.replace(/\b(Consulting|Pty|Ltd|Limited|Inc|LLC|Group|Solutions|Services|Corporation|Corp)\b\.?/gi, '').trim().split(/\s+/);
+    if (words.length > 1 && words.length <= 3 && words.every(w => /^[A-Z0-9]/.test(w))) { add(words.join(' ')); }
+  }
+  return map;
+}
+
+export function toNiceTitle(raw: string, brand?: BrandWords): string {
+  let words = splitWords(stripNoise(raw));
+  // Re-join word runs that spell a brand ("plan", "b" -> "Plan B"; "planb" -> "PlanB")
+  if (brand?.size) {
+    const out: string[] = [];
+    for (let i = 0; i < words.length; i++) {
+      let matched = false;
+      for (let n = 3; n >= 1 && !matched; n--) {
+        const key = words.slice(i, i + n).join('').toLowerCase();
+        const hit = i + n <= words.length ? brand.get(key) : undefined;
+        if (hit) { out.push('\u0000' + hit); i += n - 1; matched = true; }
+      }
+      if (!matched) { out.push(words[i]); }
+    }
+    words = out;
+  }
   return words
     .map((w, i) => {
+      if (w.startsWith('\u0000')) { return w.slice(1); }
       const lower = w.toLowerCase();
       if (KEEP_UPPER.has(lower)) { return lower === 'spfx' ? 'SPFx' : lower === 'm365' ? 'M365' : lower === 'o365' ? 'O365' : lower.toUpperCase(); }
       if (i > 0 && SMALL_WORDS.has(lower)) { return lower; }

@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RuleContext } from './context';
 import { LoadedComponent, componentName, walk } from '../project';
+import { componentSources, sharedSourceFiles } from '../sources';
 import { TextEdit } from '../types';
 
 /**
@@ -79,6 +80,7 @@ export function brandingRules(ctx: RuleContext): void {
     if (c.kind === 'WebPart') { themeVariantRules(ctx, c); }
     styleRules(ctx, c);
   }
+  sharedInlineColours(ctx);
   fluentProviderRule(ctx);
 }
 
@@ -99,7 +101,7 @@ function themeVariantRules(ctx: RuleContext, c: LoadedComponent): void {
     });
     return;
   }
-  const ts = sourceFiles(c, /\.tsx?$/).map(f => fs.readFileSync(f, 'utf8')).join('\n');
+  const ts = componentSources(ctx.project, c).files.map(s => s.text).join('\n');
   const usesProvider = /onThemeChanged\s*\(/.test(ts) || (/ThemeProvider/.test(ts) && /themeChangedEvent|tryGetTheme/.test(ts));
   if (!usesProvider) {
     ctx.issue({
@@ -201,6 +203,21 @@ function styleRules(ctx: RuleContext, c: LoadedComponent): void {
         ruleId: 'BRD006', severity: 'info', category: 'Branding', file, component: who,
         offset: m.index, length: m[0].length,
         message: `Inline ${m[1]} ${m[2]} - use semanticColors from the theme variant (e.g. theme.semanticColors.bodyText).`,
+      });
+    }
+  }
+}
+
+/** BRD006 for shared code (src/common etc.) - reported once, not per component. */
+function sharedInlineColours(ctx: RuleContext): void {
+  for (const s of sharedSourceFiles(ctx.project)) {
+    const re = /\b(color|backgroundColor|background|borderColor|fill)\s*:\s*['"`](#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))['"`]/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(s.text))) {
+      ctx.issue({
+        ruleId: 'BRD006', severity: 'info', category: 'Branding', file: s.file, component: 'shared code',
+        offset: m.index, length: m[0].length,
+        message: `Inline ${m[1]} ${m[2]} in shared code - use the theme (semanticColors / palette) so it works on dark section backgrounds.`,
       });
     }
   }

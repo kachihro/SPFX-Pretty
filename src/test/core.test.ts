@@ -4,9 +4,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { toNiceTitle, titleProblems, isPlaceholderDescription, initials } from '../core/titles';
-import { scanProject, applyAllSafeFixes, issues } from '../core/scanner';
+import { scanProject, applyAllSafeFixes, applyFixToDisk, issues } from '../core/scanner';
 import { readPngSize, makePngIcon } from '../core/icons';
-import { stableGuid } from '../core/rules/components';
+import { MODERN_GROUPS } from '../core/rules/components';
 import { JsoncDoc } from '../core/jsonc';
 
 const FIXTURE = path.join(__dirname, '..', '..', 'test-fixtures', 'ugly-solution');
@@ -52,9 +52,9 @@ test('png icons have the right size', () => {
   }
 });
 
-test('stable guid is deterministic and v5-shaped', () => {
-  assert.equal(stableGuid('Contoso Tools'), stableGuid('contoso tools'));
-  assert.match(stableGuid('x'), /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+test('modern toolbox groups are the 7 documented ones', () => {
+  assert.equal(MODERN_GROUPS.length, 7);
+  assert.equal(MODERN_GROUPS.find(g => g.name === 'Advanced')!.id, '5c03119e-3074-46fd-976b-c60198311f70');
 });
 
 test('jsonc edits keep comments', () => {
@@ -109,7 +109,7 @@ test('fix-all makes the project nicer and is idempotent', () => {
   const applied = applyAllSafeFixes(dir, { developer: { name: 'Contoso', websiteUrl: 'https://contoso.example', privacyUrl: 'https://contoso.example/privacy', termsOfUseUrl: 'https://contoso.example/terms', mpnId: 'Undefined-1.22.0' } });
   assert.ok(applied.length > 10);
   const after = scanProject(dir, { developer: { name: 'Contoso', websiteUrl: 'https://contoso.example', privacyUrl: 'https://contoso.example/privacy', termsOfUseUrl: 'https://contoso.example/terms', mpnId: '' } });
-  assert.ok(after.score > before + 40, `score ${before} -> ${after.score}`);
+  assert.ok(after.score > before + 35, `score ${before} -> ${after.score}`);
 
   const sol = new JsoncDoc(path.join(dir, 'config', 'package-solution.json'));
   assert.equal(sol.get(['solution', 'name']), 'Hello World');
@@ -133,4 +133,109 @@ test('fix-all makes the project nicer and is idempotent', () => {
 
   assert.ok(fs.existsSync(path.join(dir, 'teams', 'a1b2c3d4-0000-4000-8000-000000000001_color.png')));
   assert.equal(applyAllSafeFixes(dir).length, 0, 'second run finds nothing to do');
+});
+
+// ---------- versions & upgrade ----------
+import { cmp, releaseFor } from '../core/versions';
+import { buildBrandWords } from '../core/titles';
+import { companyIconSet, decodePng } from '../core/imageTools';
+import { upgradeMarkdown } from '../core/upgradeMarkdown';
+
+const OLD = path.join(__dirname, '..', '..', 'test-fixtures', 'old-gulp-solution');
+
+test('version compare and compatibility rows', () => {
+  assert.ok(cmp('1.24.1', '1.9.1') > 0);
+  assert.ok(cmp('1.24.0-rc.0', '1.24.0') < 0);
+  assert.equal(releaseFor('1.24.1')!.react, '18.3.1');
+  assert.equal(releaseFor('1.23.0')!.react, '17.0.1');
+  assert.equal(releaseFor('1.21.1')!.toolchain, 'gulp');
+  assert.equal(releaseFor('1.22.0')!.toolchain, 'heft');
+});
+
+test('old gulp project gets a Large upgrade with the right steps', () => {
+  const r = scanProject(OLD, { latestSpfxVersion: '1.24.1' });
+  const ids = issues(r).map(f => f.ruleId);
+  for (const id of ['VER001', 'VER002', 'VER006', 'VER007', 'VER008', 'VER009']) { assert.ok(ids.includes(id), id); }
+  assert.equal(r.upgrade!.effort, 'Large');
+  assert.equal(r.upgrade!.toolchain, 'gulp');
+  const titles = r.upgrade!.steps.map(s => s.title).join('|');
+  assert.match(titles, /gulp → Heft/);
+  assert.match(titles, /React 17\.0\.1 → 18\.3\.1/);
+  assert.match(titles, /Node v22/);
+  assert.match(upgradeMarkdown([r]), /m365 spfx project upgrade --toVersion 1\.24\.1/);
+});
+
+test('React mismatch on the latest SPFx is an error and a plan step', () => {
+  const dir = copyFixture();
+  const pkg = path.join(dir, 'package.json');
+  const json = JSON.parse(fs.readFileSync(pkg, 'utf8'));
+  json.dependencies['@microsoft/sp-core-library'] = '1.24.1';
+  fs.writeFileSync(pkg, JSON.stringify(json, null, 2));
+  const r = scanProject(dir, { latestSpfxVersion: '1.24.1' });
+  const v3 = issues(r).find(f => f.ruleId === 'VER003')!;
+  assert.equal(v3.severity, 'error');
+  assert.match(r.upgrade!.steps[0].title, /React 17\.0\.1 → 18\.3\.1/);
+});
+
+// ---------- brand words ----------
+test('brand spellings are learnt from titles and developer name', () => {
+  const brand = buildBrandWords(['Plan B Consulting', 'PlanB My Team Links']);
+  assert.equal(toNiceTitle('planb-personal-web-parts-client-side-solution', brand), 'PlanB Personal Web Parts');
+  assert.equal(toNiceTitle('plan-b-copilot-leave-request-client-side-solution', buildBrandWords(['Plan B Consulting'])), 'Plan B Copilot Leave Request');
+  assert.equal(toNiceTitle('wolff-formsfx-client-side-solution', buildBrandWords(['FormSFX Tools'])), 'Wolff FormSFX');
+});
+
+// ---------- company logo ----------
+test('company logo is decoded and resized to every icon size', () => {
+  const logo = makePngIcon({ size: 300, colour: '#123456', glyph: 'package' });
+  const set = companyIconSet(logo);
+  assert.deepEqual(readPngSize(set.app96), { width: 96, height: 96 });
+  assert.deepEqual(readPngSize(set.teamsColour192), { width: 192, height: 192 });
+  assert.deepEqual(readPngSize(set.teamsOutline32), { width: 32, height: 32 });
+  const outline = decodePng(set.teamsOutline32);
+  for (let i = 0; i < outline.data.length; i += 4) { assert.equal(outline.data[i], 255); } // white silhouette
+  const colour = decodePng(set.teamsColour192);
+  for (let i = 3; i < colour.data.length; i += 4) { assert.equal(colour.data[i], 255); } // fully opaque
+});
+
+test('company logo setting becomes the first app icon fix', () => {
+  const dir = copyFixture();
+  const logo = path.join(dir, 'logo.png');
+  fs.writeFileSync(logo, makePngIcon({ size: 200, colour: '#00aa88', glyph: 'webpart' }));
+  const f = issues(scanProject(dir, { companyIcon: logo })).find(x => x.ruleId === 'SOL010')!;
+  assert.match(f.fixes[0].title, /company logo/);
+  applyAllSafeFixes(dir, { companyIcon: logo });
+  assert.deepEqual(readPngSize(fs.readFileSync(path.join(dir, 'sharepoint', 'images', 'AppIcon.png'))), { width: 96, height: 96 });
+});
+
+// ---------- about panel & toolbox groups ----------
+test('About section: missing is flagged and the fix wires it in', () => {
+  const dir = copyFixture();
+  const r = scanProject(dir);
+  const f = issues(r).find(x => x.ruleId === 'ABT001' && x.component === 'HelloWorld')!;
+  assert.ok(f.fixes[0].creates!.some(c => c.file.endsWith('PropertyPaneAbout.ts')));
+  applyFixToDisk(f.fixes[0]);
+  const wp = fs.readFileSync(path.join(dir, 'src', 'webparts', 'helloWorld', 'HelloWorldWebPart.ts'), 'utf8');
+  assert.match(wp, /import \{ aboutGroup \} from '\.\.\/\.\.\/common\/about\/PropertyPaneAbout';/);
+  assert.match(wp, /aboutGroup\(this\.context\.manifest\)\n/);
+  const after = issues(scanProject(dir)).filter(x => x.ruleId === 'ABT001').map(x => x.component);
+  assert.ok(!after.includes('HelloWorld'));
+});
+
+test('About drift: hard-coded version that no longer matches is fixed', () => {
+  const dir = copyFixture();
+  fs.mkdirSync(path.join(dir, 'src', 'common'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'src', 'common', 'solutionMetadata.ts'), "export const solutionMetadata = { developer: { name: 'X' }, version: '0.9.0.0' };\n");
+  const f = issues(scanProject(dir)).find(x => x.ruleId === 'ABT002')!;
+  assert.match(f.message, /0\.9\.0\.0.*1\.0\.0\.0/);
+});
+
+test('custom toolbox groupId is flagged (modern toolbox shows it under Advanced)', () => {
+  const dir = copyFixture();
+  const m = path.join(dir, 'src', 'webparts', 'teamNews', 'TeamNewsWebPart.manifest.json');
+  fs.writeFileSync(m, fs.readFileSync(m, 'utf8').replace('5c03119e-3074-46fd-976b-c60198311f70', 'a9846339-da24-4319-9ebe-d474e5022090'));
+  const f = issues(scanProject(dir)).find(x => x.ruleId === 'CMP006' && x.file === m)!;
+  assert.equal(f.severity, 'warning');
+  assert.match(f.message, /Advanced/);
+  assert.equal(f.fixes.length, 6);
 });

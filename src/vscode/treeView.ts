@@ -9,8 +9,8 @@ type Node =
   | { type: 'passes'; result: ScanResult; items: Finding[] }
   | { type: 'finding'; result: ScanResult; finding: Finding };
 
-const CATS: Category[] = ['Title', 'Icon', 'Defaults', 'Properties', 'Metadata', 'Teams', 'Branding'];
-const CAT_ICON: Record<Category, string> = { Title: 'symbol-text', Icon: 'symbol-color', Defaults: 'symbol-constant', Properties: 'symbol-property', Metadata: 'info', Branding: 'paintcan', Teams: 'organization' };
+const CATS: Category[] = ['Title', 'Icon', 'Defaults', 'Properties', 'Versions', 'Metadata', 'Teams', 'Branding'];
+const CAT_ICON: Record<Category, string> = { Title: 'symbol-text', Icon: 'symbol-color', Defaults: 'symbol-constant', Properties: 'symbol-property', Versions: 'versions', Metadata: 'info', Branding: 'paintcan', Teams: 'organization' };
 
 export class FindingsTree implements vscode.TreeDataProvider<Node> {
   private readonly emitter = new vscode.EventEmitter<void>();

@@ -2,11 +2,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loadProject } from './project';
 import { RuleContext } from './rules/context';
+import { clearSourceCache } from './sources';
 import { solutionRules } from './rules/solution';
 import { componentRules } from './rules/components';
 import { brandingRules } from './rules/branding';
 import { defaultsRules } from './rules/defaults';
 import { propertyRules } from './rules/properties';
+import { versionRules } from './rules/versions';
+import { aboutRules } from './rules/about';
 import { applyEditsToText } from './jsonc';
 import { Finding, Fix, PreviewData, ProjectConfig, ScanResult, Surface } from './types';
 
@@ -21,16 +24,21 @@ export const RULE_SURFACES: Record<string, Surface[]> = {
   CMD001: ['Command bar'], CMD002: ['Command bar'],
   DEF001: ['Web part on page'], DEF002: ['Property pane'], DEF005: ['Tenant Wide Extensions'], DEF006: ['Web part on page'],
   TMS001: ['Teams'], TMS002: ['Teams'],
+  VER001: ['App Catalog'], VER003: ['Property pane'], VER011: ['Web part on page'],
+  ABT001: ['Property pane'], ABT002: ['Property pane'],
   PRP001: ['Property pane'], PRP002: ['Web part on page'], PRP003: ['Property pane'], PRP004: ['Property pane'],
 };
 
 export function scanProject(root: string, config?: Partial<ProjectConfig>): ScanResult {
+  clearSourceCache();
   const project = loadProject(root, config);
   const ctx = new RuleContext(project);
   solutionRules(ctx);
   componentRules(ctx);
   defaultsRules(ctx);
   propertyRules(ctx);
+  const upgrade = versionRules(ctx);
+  aboutRules(ctx);
   brandingRules(ctx);
   for (const f of ctx.findings) { f.surfaces = RULE_SURFACES[f.ruleId]; }
 
@@ -39,7 +47,7 @@ export function scanProject(root: string, config?: Partial<ProjectConfig>): Scan
   const score = total === 0 ? 100 : Math.round((good / total) * 100);
 
   const order = { error: 0, warning: 1, info: 2, pass: 3 };
-  const catOrder = { Title: 0, Icon: 1, Defaults: 2, Properties: 3, Metadata: 4, Teams: 5, Branding: 6 };
+  const catOrder = { Title: 0, Icon: 1, Defaults: 2, Properties: 3, Versions: 4, Metadata: 5, Teams: 6, Branding: 7 };
   const findings = ctx.findings.sort((a, b) => order[a.severity] - order[b.severity] || catOrder[a.category] - catOrder[b.category] || a.ruleId.localeCompare(b.ruleId));
 
   const zipped: string | undefined = project.solutionDoc?.get(['paths', 'zippedPackage']);
@@ -61,6 +69,7 @@ export function scanProject(root: string, config?: Partial<ProjectConfig>): Scan
   };
 
   return {
+    upgrade,
     preview,
     root,
     spfxVersion: project.spfxVersion,

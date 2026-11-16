@@ -1,0 +1,19 @@
+{
+  "name": "contoso-old-news",
+  "version": "1.0.0",
+  "engines": { "node": ">=16.13.0 <17.0.0" },
+  "scripts": { "build": "gulp bundle", "test": "gulp test" },
+  "dependencies": {
+    "@microsoft/sp-core-library": "1.18.2",
+    "@microsoft/sp-webpart-base": "1.18.2",
+    "@microsoft/sp-property-pane": "1.17.4",
+    "office-ui-fabric-react": "7.204.0",
+    "react": "^17.0.1",
+    "react-dom": "17.0.1"
+  },
+  "devDependencies": {
+    "@microsoft/sp-build-web": "1.18.2",
+    "gulp": "4.0.2",
+    "typescript": "4.7.4"
+  }
+}

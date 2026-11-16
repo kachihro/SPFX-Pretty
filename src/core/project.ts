@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { JsoncDoc } from './jsonc';
 import { ComponentInfo, ComponentKind, DEFAULT_CONFIG, ProjectConfig, SolutionInfo } from './types';
+import { BrandWords, buildBrandWords, titleProblems } from './titles';
 
 const SKIP_DIRS = new Set(['node_modules', '.git', 'lib', 'lib-commonjs', 'lib-esm', 'dist', 'temp', 'release', 'out', '.heft']);
 
@@ -38,6 +39,8 @@ export interface LoadedProject {
   solution?: SolutionInfo;
   components: LoadedComponent[];
   config: ProjectConfig;
+  /** Brand spellings learnt from the developer name, component titles and settings */
+  brand: BrandWords;
 }
 
 function readJsonSafe(file: string): any {
@@ -98,7 +101,15 @@ export function loadProject(root: string, overrides?: Partial<ProjectConfig>): L
     .map(file => loadComponent(file))
     .filter((c): c is LoadedComponent => !!c);
 
-  return { root, spfxVersion, packageJson, solutionDoc, solution, components, config };
+  const brand = buildBrandWords([
+    config.developer.name,
+    solutionDoc?.value?.solution?.developer?.name,
+    solutionDoc?.value?.solution?.title,
+    ...((solutionDoc?.value?.solution?.features ?? []) as any[]).map(f => f?.title),
+    // only learn from titles that are already nice - "HelloWorld" is not a brand
+    ...components.map(c => c.title).filter(t => t && !titleProblems(t).length),
+  ], config.brandWords ?? []);
+  return { root, spfxVersion, packageJson, solutionDoc, solution, components, config, brand };
 }
 
 function kindOf(m: any): ComponentKind {
@@ -136,6 +147,7 @@ function loadComponent(file: string): LoadedComponent | undefined {
     title: entry.title?.default,
     description: entry.description?.default,
     group: entry.group?.default,
+    groupId: entry.groupId,
     officeFabricIconFontName: entry.officeFabricIconFontName,
     iconImageUrl: entry.iconImageUrl,
     supportedHosts: Array.isArray(m.supportedHosts) ? m.supportedHosts : [],

@@ -1,0 +1,4 @@
+{ "id": "11111111-2222-4333-8444-000000000001", "alias": "OldNewsWebPart", "componentType": "WebPart", "version": "*", "manifestVersion": 2,
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [{ "groupId": "cf066440-0614-43d6-98ae-0b31cf14c7c3", "group": { "default": "Contoso" },
+    "title": { "default": "Old News" }, "description": { "default": "Shows company news." }, "officeFabricIconFontName": "News", "properties": { "title": "News" } }] }

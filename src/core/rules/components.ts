@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { RuleContext } from './context';
@@ -12,17 +11,25 @@ import { JsoncDoc, applyEditsToText } from '../jsonc';
 const SCAFFOLD_FLUENT_ICONS = new Set(['Page', 'Edit', 'Add']);
 /** Generic product logo the ACE generator uses as the toolbox icon. */
 const SCAFFOLD_IMAGE = /brand-icons\/product\/svg\/sharepoint_|sharepointlogo/i;
-/** The generator's default modern toolbox group ("Other"). */
-const OTHER_GROUP_ID = '5c03119e-3074-46fd-976b-c60198311f70';
+/** The 7 predefined modern toolbox groups (Microsoft Learn, "Predefined modern groups"). */
+export const MODERN_GROUPS = [
+  { name: 'Text, media, and content', id: 'cf066440-0614-43d6-98ae-0b31cf14c7c3', words: /text|media|image|video|content|news|gallery|carousel|banner|hero/i },
+  { name: 'Discovery', id: '1edbd9a8-0bfb-4aa2-9afd-14b8c45dd489', words: /search|find|discover|feed|recent|links?|directory|apps?|my /i },
+  { name: 'Communication and collaboration', id: '75e22ed5-fa14-4829-850a-c890608aca2d', words: /team|people|chat|comment|social|share|birthday|announce|staff|contact/i },
+  { name: 'Planning and process', id: '1bc7927e-4a5e-4520-b540-71305c79c20a', words: /task|plan|process|event|calendar|leave|request|approv|form|workflow/i },
+  { name: 'Business and intelligence', id: '4aca9e90-eff5-4fa1-bac7-728f5f157b66', words: /chart|report|kpi|dashboard|stat|data|bi\b|metric/i },
+  { name: 'Site tools', id: '070951d7-94da-4db8-b06e-9d581f1f55b1', words: /site|nav|menu|admin|settings|tool/i },
+  { name: 'Advanced', id: '5c03119e-3074-46fd-976b-c60198311f70', words: /^$/ },
+] as const;
+const ADVANCED_ID = '5c03119e-3074-46fd-976b-c60198311f70';
+
+function suggestGroup(title: string): typeof MODERN_GROUPS[number] {
+  return MODERN_GROUPS.find(g => g.words.test(title)) ?? MODERN_GROUPS[1];
+}
 
 /** Hosts that surface the web part in Microsoft Teams (need Teams colour/outline icons). */
 const TEAMS_HOSTS = ['TeamsTab', 'TeamsPersonalApp', 'TeamsMeetingApp'];
 
-/** Deterministic GUID from a name, so every project using "Contoso Tools" lands in the same toolbox group. */
-export function stableGuid(name: string): string {
-  const h = crypto.createHash('sha1').update(`spfx-pretty:${name.toLowerCase()}`).digest('hex');
-  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${((parseInt(h[16], 16) & 0x3) | 0x8).toString(16)}${h.slice(17, 20)}-${h.slice(20, 32)}`;
-}
 
 export function componentRules(ctx: RuleContext): void {
   for (const c of ctx.project.components) {
@@ -80,7 +87,7 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
     // ---- CMP001: toolbox title ----
     const problems = titleProblems(title);
     if (problems.length) {
-      const nice = toNiceTitle(title || c.alias);
+      const nice = ctx.nice(title || c.alias);
       ctx.issue({
         ruleId: 'CMP001', severity: 'warning', category: 'Title', file: doc.file, component: who,
         ...doc.locate(['preconfiguredEntries', i, 'title', 'default']),
@@ -145,25 +152,47 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
       ctx.pass('CMP003', 'Icon', `"${who}" has a custom toolbox icon${fluent ? ` (Fluent "${fluent}")` : ''}`, doc.file, who, 3);
     }
 
-    // ---- CMP006: toolbox group (only if the team has chosen one) ----
-    const wanted = ctx.project.config.toolboxGroup?.trim();
-    if (wanted && c.kind === 'WebPart') {
-      const group: string | undefined = entry?.group?.default;
-      if (group !== wanted) {
-        const groupId = stableGuid(wanted);
-        const edits = chainSet(doc.file, doc.text, [
-          [['preconfiguredEntries', i, 'group'], { default: wanted }],
-          [['preconfiguredEntries', i, 'groupId'], groupId],
-        ]);
+    // ---- CMP006: modern toolbox group ----
+    // Only the 7 predefined groupIds create a section in the modern toolbox; anything else lands in "Advanced".
+    // The "group" name is only used by the classic page web part picker.
+    if (c.kind === 'WebPart') {
+      const groupId: string | undefined = entry?.groupId;
+      const groupName: string | undefined = entry?.group?.default;
+      const predefined = MODERN_GROUPS.find(g => g.id === groupId?.toLowerCase());
+      const wanted = ctx.project.config.toolboxGroup?.trim();
+      const wantedGroup = MODERN_GROUPS.find(g => g.name.toLowerCase() === wanted?.toLowerCase());
+      const moveTo = (g: typeof MODERN_GROUPS[number]): Fix => ({
+        title: `Move to "${g.name}"`, safe: false,
+        edits: chainSet(doc.file, doc.text, [
+          [['preconfiguredEntries', i, 'groupId'], g.id],
+          [['preconfiguredEntries', i, 'group'], { default: g.name }],
+        ]),
+      });
+      const ordered = [...MODERN_GROUPS].sort((a, b) => Number(b === (wantedGroup ?? suggestGroup(who))) - Number(a === (wantedGroup ?? suggestGroup(who))));
+      if (!predefined) {
+        ctx.issue({
+          ruleId: 'CMP006', severity: 'warning', category: 'Metadata', file: doc.file, component: who,
+          ...doc.locate(['preconfiguredEntries', i, 'groupId']),
+          message: `"${who}" uses a custom groupId${groupName ? ` ("${groupName}")` : ''} - the modern toolbox ignores it and shows the web part under "Advanced".`,
+          detail: 'Only the 7 predefined modern groups get their own toolbox section; the "group" name is only used on classic pages. Pick the closest predefined group, and use a consistent title prefix (e.g. "PlanB …") so your web parts sit together.',
+          fixes: ordered.filter(g => g.id !== ADVANCED_ID).map(moveTo),
+        });
+      } else if (wantedGroup && predefined !== wantedGroup) {
         ctx.issue({
           ruleId: 'CMP006', severity: 'info', category: 'Metadata', file: doc.file, component: who,
-          ...doc.locate(['preconfiguredEntries', i, 'group']),
-          message: `"${who}" is in toolbox group "${group ?? '(none)'}"${entry?.groupId === OTHER_GROUP_ID ? ' (the generic "Other" section)' : ''}, not "${wanted}".`,
-          detail: 'Grouping your organisation\'s web parts makes them easy to find. The groupId is generated from the group name so every project agrees.',
-          fixes: [{ title: `Move to toolbox group "${wanted}"`, safe: true, edits }],
+          ...doc.locate(['preconfiguredEntries', i, 'groupId']),
+          message: `"${who}" is in "${predefined.name}", not your preferred toolbox group "${wantedGroup.name}".`,
+          fixes: [moveTo(wantedGroup)],
+        });
+      } else if (predefined.id === ADVANCED_ID) {
+        ctx.issue({
+          ruleId: 'CMP006', severity: 'info', category: 'Metadata', file: doc.file, component: who,
+          ...doc.locate(['preconfiguredEntries', i, 'groupId']),
+          message: `"${who}" is in "Advanced" (the catch-all) - authors browse the other groups first.`,
+          fixes: ordered.filter(g => g.id !== ADVANCED_ID).slice(0, 3).map(moveTo),
         });
       } else {
-        ctx.pass('CMP006', 'Metadata', `"${who}" in toolbox group "${wanted}"`, doc.file, who, 1);
+        ctx.pass('CMP006', 'Metadata', `"${who}" in toolbox group "${predefined.name}"`, doc.file, who, 1);
       }
     }
   });
@@ -185,7 +214,7 @@ function commandSetRules(ctx: RuleContext, c: LoadedComponent): void {
     const title: string | undefined = item?.title?.default;
     const problems = titleProblems(title);
     if (problems.length) {
-      const nice = toNiceTitle(title || key.replace(/^COMMAND_/, ''));
+      const nice = ctx.nice(title || key.replace(/^COMMAND_/, ''));
       ctx.issue({
         ruleId: 'CMD001', severity: 'warning', category: 'Title', file: doc.file, component: c.alias,
         ...doc.locate(['items', key, 'title', 'default']),

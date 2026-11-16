@@ -11,7 +11,7 @@ import { LoadedComponent, componentName, walk } from '../project';
  *  PRP004 localised string declared in mystrings.d.ts but never used
  */
 
-interface SourceFile { file: string; text: string; }
+import { SourceFile, allSources, componentSources } from '../sources';
 
 /** Find `interface IName { a: string; b?: number; }` and return member names with offsets. */
 function interfaceMembers(src: SourceFile[], name: string): { file: string; members: { name: string; offset: number }[]; offset: number } | undefined {
@@ -58,29 +58,38 @@ function usedProperties(src: SourceFile[]): Set<string> {
 function paneTargets(src: SourceFile[]): { name: string; file: string; offset: number }[] {
   const out: { name: string; file: string; offset: number }[] = [];
   for (const s of src) {
-    for (const m of s.text.matchAll(/\bProperty(?:Pane|Field)\w*\s*\(\s*['"]([^'"]+)['"]/g)) {
-      out.push({ name: m[1], file: s.file, offset: m.index! + m[0].lastIndexOf(m[1]) });
+    for (const m of s.text.matchAll(/\b(Property(?:Pane|Field)\w*)\s*\(\s*['"]([^'"]+)['"]/g)) {
+      if (DISPLAY_ONLY.test(m[1])) { continue; }
+      out.push({ name: m[2], file: s.file, offset: m.index! + m[0].lastIndexOf(m[2]) });
     }
   }
   return out;
 }
 
+/** Property pane fields that only display something - their key isn't a real property. */
+const DISPLAY_ONLY = /(Label|Link|HorizontalRule|About|Heading|Header|Info|Markdown|Separator|Spacer|Description|Image|Logo|Version|Help|Message)\w*$/;
+
 const BASE_CLASS = /extends\s+(?:BaseClientSideWebPart|BaseAdaptiveCardExtension|BaseApplicationCustomizer|BaseListViewCommandSet|BaseFieldCustomizer|BaseFormCustomizer)\s*<\s*([A-Za-z_$][\w$]*)/;
 
 export function propertyRules(ctx: RuleContext): void {
+  const reported = new Set<string>();
   for (const c of ctx.project.components) {
     if (c.kind === 'Library' || c.kind === 'Unknown') { continue; }
-    const src: SourceFile[] = walk(c.folder, f => /\.tsx?$/.test(f) && !/\.d\.ts$/.test(f))
-      .map(file => ({ file, text: fs.readFileSync(file, 'utf8') }));
-    if (!src.length) { continue; }
-    checkProps(ctx, c, src);
-    checkLocStrings(ctx, c, src);
+    const { files, propsType } = componentSources(ctx.project, c);
+    if (!files.length) { continue; }
+    checkProps(ctx, c, files, propsType, reported);
+    checkLocStrings(ctx, path.join(c.folder, 'loc'), files, componentName(c));
   }
+  // Shared loc folders (e.g. src/common/loc) are used by every component
+  const compFolders = ctx.project.components.map(c => c.folder + path.sep);
+  const sharedLoc = [...new Set(walk(path.join(ctx.project.root, 'src'), f => /\.d\.ts$/.test(f))
+    .map(f => path.dirname(f)).filter(d => path.basename(d) === 'loc' && !compFolders.some(cf => (d + path.sep).startsWith(cf))))];
+  for (const dir of sharedLoc) { checkLocStrings(ctx, dir, allSources(ctx.project.root), 'shared'); }
 }
 
-function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]): void {
+function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[], propsType: string | undefined, reported: Set<string>): void {
   const who = componentName(c);
-  const base = src.map(s => BASE_CLASS.exec(s.text)?.[1]).find(Boolean);
+  const base = propsType ?? src.map(s => BASE_CLASS.exec(s.text)?.[1]).find(Boolean);
   if (!base) { return; }
   const iface = interfaceMembers(src, base);
   // Everything except the interface declaration itself counts as usage.
@@ -94,6 +103,8 @@ function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]): vo
     for (const m of iface.members) {
       if (used.has(m.name)) { continue; }
       problems++;
+      if (reported.has(`${iface.file}:${m.offset}`)) { continue; }
+      reported.add(`${iface.file}:${m.offset}`);
       const fixes = m.name in defaults
         ? [{ title: `Remove "${m.name}" default from the manifest`, safe: false, edits: c.doc.set(['preconfiguredEntries', 0, 'properties', m.name], undefined) }]
         : [];
@@ -122,6 +133,8 @@ function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]): vo
     for (const t of paneTargets(src)) {
       if (declared.has(t.name)) { continue; }
       problems++;
+      if (reported.has(`${t.file}:${t.offset}`)) { continue; }
+      reported.add(`${t.file}:${t.offset}`);
       ctx.issue({
         ruleId: 'PRP003', severity: 'warning', category: 'Properties', file: t.file, component: who,
         offset: t.offset, length: t.name.length,
@@ -134,8 +147,8 @@ function checkProps(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]): vo
   }
 }
 
-function checkLocStrings(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]): void {
-  const dts = walk(path.join(c.folder, 'loc'), f => /\.d\.ts$/.test(f))[0];
+function checkLocStrings(ctx: RuleContext, locDir: string, src: SourceFile[], who: string): void {
+  const dts = walk(locDir, f => /\.d\.ts$/.test(f))[0];
   if (!dts) { return; }
   const text = fs.readFileSync(dts, 'utf8');
   const iface = /interface\s+(\w+)/.exec(text)?.[1];
@@ -148,7 +161,7 @@ function checkLocStrings(ctx: RuleContext, c: LoadedComponent, src: SourceFile[]
   const unused = members.filter(m => ![...aliases].some(a => new RegExp(`\\b${a}\\s*(?:\\?\\.|\\.)\\s*${m.name}\\b|\\b${a}\\s*\\[\\s*['"]${m.name}['"]`).test(all)));
   for (const m of unused) {
     ctx.issue({
-      ruleId: 'PRP004', severity: 'info', category: 'Properties', file: dts, component: componentName(c),
+      ruleId: 'PRP004', severity: 'info', category: 'Properties', file: dts, component: who,
       offset: m.offset, length: m.name.length,
       message: `Localised string "${m.name}" is never used - remove it from ${path.basename(dts)} and every loc/*.js file.`,
     });

@@ -9,7 +9,9 @@ import { issues, scanProject } from './core/scanner';
 import { themingSnippet } from './core/snippets';
 import { titleProblems, toNiceTitle } from './core/titles';
 import { Finding, Fix, ScanResult } from './core/types';
-import { applyFix, readConfig } from './vscode/apply';
+import { applyFix, readConfig, setLatestOnline } from './vscode/apply';
+import { registerExtraCommands } from './vscode/extraCommands';
+import { fetchLatestSpfxVersion } from './core/versions';
 import { ScanManager } from './vscode/scanManager';
 import { FindingsTree, findingFromNode } from './vscode/treeView';
 
@@ -171,6 +173,12 @@ export function activate(context: vscode.ExtensionContext): void {
   const cfgWatch = vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration('spfxPretty')) { debounce(rescan); } });
   context.subscriptions.push(watcher, cfgWatch);
 
+  registerExtraCommands(context, scans, rescan, pickProject);
+
+  // Ask npm for the latest SPFx version (only the package name is sent); fall back to the bundled table.
+  if (vscode.workspace.getConfiguration('spfxPretty').get('checkLatestOnline', true)) {
+    fetchLatestSpfxVersion().then(v => { if (v) { setLatestOnline(v); rescan(); } });
+  }
   rescan();
 }
 
@@ -200,7 +208,7 @@ function refreshPanel(scans: ScanManager): void {
   panel.webview.html = renderReportHtml(r, { interactive: true, nonce, cspSource: panel.webview.cspSource });
 }
 
-async function pickProject(results: ScanResult[]): Promise<ScanResult | undefined> {
+export async function pickProject(results: ScanResult[]): Promise<ScanResult | undefined> {
   if (results.length <= 1) {
     if (!results.length) { vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found.'); }
     return results[0];
