@@ -10,7 +10,7 @@ export class RuleContext {
 
   constructor(readonly project: LoadedProject) {}
 
-  /** Nice title using the project's brand spellings ("planb-x" -> "PlanB X"). */
+  /** Nice title using the project's brand spellings ("kachihro-x" -> "Kachihro X"). */
   nice(raw: string): string { return toNiceTitle(raw, this.project.brand); }
 
   enabled(ruleId: string): boolean {

@@ -129,9 +129,9 @@ export interface ProjectConfig {
   latestSpfxVersion?: string;
   /** Company logo (PNG) used for the App Catalog icon and About panel, relative to the project or absolute. */
   companyIcon?: string;
-  /** Extra brand spellings, e.g. ["PlanB", "SharePoint"] */
+  /** Extra brand spellings, e.g. ["Kachihro", "SharePoint"] */
   brandWords?: string[];
-  /** Optional prefix so all your org's apps sort together, e.g. "Contoso - " */
+  /** Optional prefix so all your org's apps sort together, e.g. "Kachihro - " */
   appNamePrefix: string;
   developer: {
     name: string;

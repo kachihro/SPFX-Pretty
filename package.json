@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -113,7 +113,7 @@
           "type": "array",
           "items": { "type": "string" },
           "default": [],
-          "description": "Brand spellings to keep in suggested titles, e.g. [\"PlanB\", \"SharePoint\"]. Also learnt from your web part titles and developer name."
+          "description": "Brand spellings to keep in suggested titles, e.g. [\"Kachihro\", \"SharePoint\"]. Also learnt from your web part titles and developer name."
         },
         "spfxPretty.checkLatestOnline": {
           "type": "boolean",
@@ -123,7 +123,7 @@
         "spfxPretty.appNamePrefix": {
           "type": "string",
           "default": "",
-          "description": "Optional prefix for every app name so your organisation's apps sort together in the App Catalog and Site Contents (e.g. 'Contoso - ')."
+          "description": "Optional prefix for every app name so your organisation's apps sort together in the App Catalog and Site Contents (e.g. 'Kachihro - ')."
         },
         "spfxPretty.toolboxGroup": {
           "type": "string",

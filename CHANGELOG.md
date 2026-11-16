@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.1 - 17/11/2026
+- Examples in settings, docs and hints use Kachihro
+
 ## 0.6.0 - 17/11/2026
 - Renamed to "SPFX Pretty" (no hyphen) everywhere you see it; the extension ID stays spfx-pretty so it updates in place
 - Transparent black/white box-shadows are no longer reported as hard-coded colours

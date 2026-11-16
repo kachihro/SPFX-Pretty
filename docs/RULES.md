@@ -57,15 +57,15 @@ or by right-clicking a finding > **Ignore This Rule**.
 ```json
 {
   "brandColour": "#7A3E9D",
-  "appNamePrefix": "PlanB - ",
-  "brandWords": ["PlanB"],
+  "appNamePrefix": "Kachihro - ",
+  "brandWords": ["Kachihro"],
   "toolboxGroup": "Discovery",
-  "companyIcon": "sharepoint/assets/planb-logo.png",
+  "companyIcon": "sharepoint/assets/kachihro-logo.png",
   "developer": {
-    "name": "Plan B Consulting",
-    "websiteUrl": "https://www.planbconsulting.com.au/",
-    "privacyUrl": "https://www.planbconsulting.com.au/",
-    "termsOfUseUrl": "https://www.planbconsulting.com.au/"
+    "name": "Kachihro",
+    "websiteUrl": "https://<your-website>/",
+    "privacyUrl": "https://<your-website>/",
+    "termsOfUseUrl": "https://<your-website>/"
   },
   "disabledRules": ["SOL008"]
 }

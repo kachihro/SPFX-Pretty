@@ -129,7 +129,7 @@ export function solutionRules(ctx: RuleContext): void {
   const packageDirRel: string = doc.get(['paths', 'packageDir']) ?? 'sharepoint';
   const packageDir = path.join(root, packageDirRel);
   const iconFixes = (generatedTitle: string): Fix[] => {
-    // Write our own file so an existing source asset (e.g. assets/planb-logo.png) is never overwritten
+    // Write our own file so an existing source asset (e.g. assets/kachihro-logo.png) is never overwritten
     const iconRel = solution.iconPath && !solution.iconFile ? solution.iconPath : APP_ICON_RELATIVE;
     const target = path.join(packageDir, iconRel);
     const fixes: Fix[] = [];
@@ -143,7 +143,7 @@ export function solutionRules(ctx: RuleContext): void {
           edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
       } catch { /* unreadable logo: fall through to the other options */ }
     }
-    // 2. A logo already in the project (e.g. sharepoint/assets/planb-logo.png)
+    // 2. A logo already in the project (e.g. sharepoint/assets/kachihro-logo.png)
     for (const found of existingLogos(root, packageDir)) {
       const size = readPngSize(fs.readFileSync(found));
       if (!size || size.width !== size.height) { continue; }

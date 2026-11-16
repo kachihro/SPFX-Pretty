@@ -44,7 +44,7 @@ export function stripNoise(raw: string): string {
 }
 
 /**
- * Brand spellings, keyed by lower-case-without-spaces: { "planb": "PlanB", "contoso": "Contoso" }.
+ * Brand spellings, keyed by lower-case-without-spaces: { "kachihro": "Kachihro", "sharepoint": "SharePoint" }.
  * Built from the developer name, existing component titles and the brandWords setting.
  */
 export type BrandWords = Map<string, string>;
@@ -56,7 +56,7 @@ export function buildBrandWords(sources: (string | undefined)[], explicit: strin
     if (key.length >= 2 && !map.has(key)) { map.set(key, display); }
   };
   explicit.forEach(add);
-  // Mixed-case tokens like "PlanB", "SharePoint", "iPhone" keep their spelling - these win over phrases
+  // Mixed-case tokens like "SharePoint", "iPhone", "PowerApps" keep their spelling - these win over phrases
   for (const s of sources) {
     for (const t of (s ?? '').split(/[\s\-_]+/)) { if (/[a-z][A-Z]|^[A-Z]{2,}[a-z]/.test(t)) { add(t); } }
   }
@@ -71,7 +71,7 @@ export function buildBrandWords(sources: (string | undefined)[], explicit: strin
 
 export function toNiceTitle(raw: string, brand?: BrandWords): string {
   let words = splitWords(stripNoise(raw));
-  // Re-join word runs that spell a brand ("plan", "b" -> "Plan B"; "planb" -> "PlanB")
+  // Re-join word runs that spell a brand ("share", "point" -> "SharePoint"; "kachihro" -> "Kachihro")
   if (brand?.size) {
     const out: string[] = [];
     for (let i = 0; i < words.length; i++) {

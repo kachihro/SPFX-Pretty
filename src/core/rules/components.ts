@@ -188,7 +188,7 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
           ruleId: 'CMP006', severity: 'warning', category: 'Metadata', file: doc.file, component: who,
           ...doc.locate(['preconfiguredEntries', i, 'groupId']),
           message: `"${who}" uses a custom groupId${groupName ? ` ("${groupName}")` : ''} - the modern toolbox ignores it and shows the web part under "Advanced".`,
-          detail: 'Only the 7 predefined modern groups get their own toolbox section; the "group" name is only used on classic pages. Pick the closest predefined group, and use a consistent title prefix (e.g. "PlanB …") so your web parts sit together.',
+          detail: 'Only the 7 predefined modern groups get their own toolbox section; the "group" name is only used on classic pages. Pick the closest predefined group, and use a consistent title prefix (e.g. "Kachihro …") so your web parts sit together.',
           fixes: [chooser(groupName ? `custom "${groupName}"` : undefined), ...ordered.filter(g => g.id !== ADVANCED_ID).map(moveTo)],
         });
       } else if (wantedGroup && predefined !== wantedGroup) {
@@ -203,7 +203,7 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
           ruleId: 'CMP006', severity: 'info', category: 'Metadata', file: doc.file, component: who,
           ...doc.locate(['preconfiguredEntries', i, 'groupId']),
           message: `"${who}" is in "Advanced" (the catch-all) - authors browse the other groups first.`,
-          detail: 'Tip: start every title with your company name (e.g. "PlanB ...") so authors can search the toolbox for all your web parts.',
+          detail: 'Tip: start every title with your company name (e.g. "Kachihro ...") so authors can search the toolbox for all your web parts.',
           fixes: [chooser('Advanced'), ...ordered.filter(g => g.id !== ADVANCED_ID).slice(0, 3).map(moveTo)],
         });
       } else {
