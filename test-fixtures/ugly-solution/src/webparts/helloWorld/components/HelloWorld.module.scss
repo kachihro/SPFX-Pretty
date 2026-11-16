@@ -1,0 +1,30 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+.helloWorld {
+  overflow: hidden;
+  padding: 1em;
+  color: "[theme:bodyText, default: #323130]";
+  font-family: 'Segoe UI', Arial, sans-serif;
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+/* a comment with #ff0000 should be ignored */
+.welcome {
+  text-align: center;
+  background-color: #f3f2f1;
+}
+
+.title {
+  color: #0078d4;
+  border-bottom: 1px solid #edebe9;
+  font-family: Georgia, serif;
+}
+
+.links {
+  a {
+    text-decoration: none;
+    color: rgb(0, 90, 158);
+  }
+}

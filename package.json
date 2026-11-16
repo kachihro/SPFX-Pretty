@@ -1,0 +1,112 @@
+{
+  "name": "spfx-pretty",
+  "displayName": "SPFX-Pretty",
+  "description": "Make SharePoint Framework solutions look great in the App Catalog and toolbox: nice titles, icons for the .sppkg and every component, and theme-aware branding checks.",
+  "version": "0.1.0",
+  "publisher": "ChrisOC",
+  "license": "SEE LICENSE IN LICENSE",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": ["Linters", "Other"],
+  "keywords": ["SPFx", "SharePoint", "App Catalog", "web part", "branding", "icons"],
+  "main": "./out/extension.js",
+  "bin": {
+    "spfx-pretty": "./out/cli.js"
+  },
+  "activationEvents": [
+    "workspaceContains:**/config/package-solution.json"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "spfxPretty.scan", "title": "Scan Project", "category": "SPFX-Pretty", "icon": "$(refresh)" },
+      { "command": "spfxPretty.showReport", "title": "Show App Catalog Preview & Report", "category": "SPFX-Pretty", "icon": "$(preview)" },
+      { "command": "spfxPretty.makeTitlesNice", "title": "Make Titles Nice (App Catalog + Toolbox)", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.generateIcons", "title": "Generate Icons (.sppkg, Web Parts, Teams)", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.fixAll", "title": "Apply All Safe Fixes", "category": "SPFX-Pretty", "icon": "$(sparkle)" },
+      { "command": "spfxPretty.themingSnippet", "title": "Show Theme-Aware Web Part Snippet", "category": "SPFX-Pretty" },
+      { "command": "spfxPretty.applyFix", "title": "Apply Fix", "category": "SPFX-Pretty", "icon": "$(lightbulb)" },
+      { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX-Pretty" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "spfxPretty.scan", "when": "view == spfxPretty.findings", "group": "navigation@1" },
+        { "command": "spfxPretty.showReport", "when": "view == spfxPretty.findings", "group": "navigation@2" },
+        { "command": "spfxPretty.fixAll", "when": "view == spfxPretty.findings", "group": "navigation@3" }
+      ],
+      "view/item/context": [
+        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "inline" }
+      ],
+      "commandPalette": [
+        { "command": "spfxPretty.applyFix", "when": "false" },
+        { "command": "spfxPretty.openFinding", "when": "false" }
+      ]
+    },
+    "views": {
+      "explorer": [
+        { "id": "spfxPretty.findings", "name": "SPFX-Pretty", "icon": "media/icon.png" }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "spfxPretty.findings",
+        "contents": "No SharePoint Framework project found yet.\nOpen a folder that contains config/package-solution.json.\n[Scan Project](command:spfxPretty.scan)"
+      }
+    ],
+    "snippets": [
+      { "language": "typescript", "path": "./snippets/spfx-theming.code-snippets" },
+      { "language": "typescriptreact", "path": "./snippets/spfx-theming.code-snippets" },
+      { "language": "scss", "path": "./snippets/spfx-scss.code-snippets" }
+    ],
+    "configuration": {
+      "title": "SPFX-Pretty",
+      "properties": {
+        "spfxPretty.brandColour": {
+          "type": "string",
+          "default": "#0F6CBD",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Brand colour used when generating icons (hex, e.g. #0F6CBD)."
+        },
+        "spfxPretty.toolboxGroup": {
+          "type": "string",
+          "default": "",
+          "description": "Your organisation's web part toolbox group name (e.g. 'Contoso Tools'). Leave empty to skip the group check."
+        },
+        "spfxPretty.developer.name": { "type": "string", "default": "", "description": "Developer/company name shown in the App Catalog." },
+        "spfxPretty.developer.websiteUrl": { "type": "string", "default": "", "description": "Developer website URL." },
+        "spfxPretty.developer.privacyUrl": { "type": "string", "default": "", "description": "Privacy statement URL." },
+        "spfxPretty.developer.termsOfUseUrl": { "type": "string", "default": "", "description": "Terms of use URL." },
+        "spfxPretty.developer.mpnId": { "type": "string", "default": "Undefined-1.0.0", "description": "Microsoft Partner Network ID (or 'Undefined-x.y.z')." },
+        "spfxPretty.disabledRules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Rule IDs to skip, e.g. [\"BRD003\"]. Can also be set per project in .spfxprettyrc.json."
+        },
+        "spfxPretty.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Re-scan automatically when manifests, package-solution.json or styles are saved."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "icon": "node ./out/tools/makeExtensionIcon.js",
+    "test": "npm run compile && node --test out/test/*.test.js",
+    "package": "npm run compile && npm run icon && vsce package --allow-missing-repository",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "jsonc-parser": "3.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.10",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.2.1",
+    "typescript": "5.6.3"
+  }
+}

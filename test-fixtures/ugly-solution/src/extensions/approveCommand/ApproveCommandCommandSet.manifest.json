@@ -1,0 +1,12 @@
+{
+  "id": "a1b2c3d4-0000-4000-8000-000000000003",
+  "alias": "ApproveCommandCommandSet",
+  "componentType": "Extension",
+  "extensionType": "ListViewCommandSet",
+  "version": "*",
+  "manifestVersion": 2,
+  "items": {
+    "COMMAND_1": { "title": { "default": "Command One" }, "iconImageUrl": "icons/request.png", "type": "command" },
+    "COMMAND_2": { "title": { "default": "approve_item" }, "type": "command" }
+  }
+}

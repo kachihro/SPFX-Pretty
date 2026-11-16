@@ -1,0 +1,39 @@
+{
+  "SPFx onThemeChanged (section backgrounds)": {
+    "prefix": "spfx-theme-changed",
+    "description": "SPFX-Pretty: push the section's theme into CSS variables so the web part follows section backgrounds",
+    "body": [
+      "protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {",
+      "\tif (!currentTheme) { return; }",
+      "\tconst { semanticColors, palette } = currentTheme;",
+      "\tconst set = (name: string, value: string | undefined): void => { this.domElement.style.setProperty(name, value || null); };",
+      "\tset('--bodyText', semanticColors?.bodyText);",
+      "\tset('--bodySubtext', semanticColors?.bodySubtext);",
+      "\tset('--bodyBackground', semanticColors?.bodyBackground);",
+      "\tset('--bodyDivider', semanticColors?.bodyDivider);",
+      "\tset('--link', semanticColors?.link);",
+      "\tset('--linkHovered', semanticColors?.linkHovered);",
+      "\tset('--themePrimary', palette?.themePrimary);",
+      "\t$0",
+      "}"
+    ]
+  },
+  "SPFx ThemeProvider consumer": {
+    "prefix": "spfx-theme-provider",
+    "description": "SPFX-Pretty: consume ThemeProvider in onInit and re-render on theme change",
+    "body": [
+      "private _themeProvider: ThemeProvider;",
+      "private _themeVariant: IReadonlyTheme | undefined;",
+      "",
+      "protected onInit(): Promise<void> {",
+      "\tthis._themeProvider = this.context.serviceScope.consume(ThemeProvider.serviceKey);",
+      "\tthis._themeVariant = this._themeProvider.tryGetTheme();",
+      "\tthis._themeProvider.themeChangedEvent.add(this, (args: ThemeChangedEventArgs) => {",
+      "\t\tthis._themeVariant = args.theme;",
+      "\t\tthis.render();",
+      "\t});",
+      "\treturn super.onInit();",
+      "}"
+    ]
+  }
+}

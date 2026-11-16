@@ -1,0 +1,17 @@
+{
+  "id": "a1b2c3d4-0000-4000-8000-000000000002",
+  "alias": "TeamNewsWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "supportedHosts": ["SharePointWebPart"],
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+    "group": { "default": "Advanced" },
+    "title": { "default": "team-news-web-part" },
+    "description": { "default": "Shows the latest news from your team site." },
+    "officeFabricIconFontName": "News",
+    "iconImageUrl": "https://contoso.example/news.png",
+    "properties": {}
+  }]
+}

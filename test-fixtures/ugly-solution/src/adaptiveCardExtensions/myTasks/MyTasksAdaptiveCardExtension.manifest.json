@@ -1,0 +1,16 @@
+{
+  "id": "a1b2c3d4-0000-4000-8000-000000000004",
+  "alias": "MyTasksAdaptiveCardExtension",
+  "componentType": "AdaptiveCardExtension",
+  "version": "*",
+  "manifestVersion": 2,
+  "supportedHosts": ["Dashboard"],
+  "preconfiguredEntries": [{
+    "groupId": "bd067b1e-3ad5-4d5d-a5fe-505f07d7f59c",
+    "group": { "default": "Dashboard" },
+    "title": { "default": "MyTasks" },
+    "description": { "default": "MyTasks description" },
+    "iconImageUrl": "https://res.cdn.office.net/files/fabric-cdn-prod_20230308.001/assets/brand-icons/product/svg/sharepoint_48x1.svg",
+    "properties": { "title": "MyTasks" }
+  }]
+}

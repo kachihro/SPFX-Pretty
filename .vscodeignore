@@ -1,0 +1,10 @@
+src/**
+test-fixtures/**
+**/*.map
+out/test/**
+out/tools/**
+tsconfig.json
+.gitignore
+node_modules/@types/**
+node_modules/typescript/**
+node_modules/@vscode/**
