@@ -50,8 +50,9 @@ function readJsonSafe(file: string): any {
 export function loadProject(root: string, overrides?: Partial<ProjectConfig>): LoadedProject {
   const packageJson = readJsonSafe(path.join(root, 'package.json'));
   const yo = readJsonSafe(path.join(root, '.yo-rc.json'));
-  const spfxVersion: string | undefined = yo?.['@microsoft/generator-sharepoint']?.version
-    ?? packageJson?.dependencies?.['@microsoft/sp-core-library']?.replace(/^[~^]/, '');
+  // Installed packages are the truth; .yo-rc.json only records the generator version used to scaffold
+  const spfxVersion: string | undefined = packageJson?.dependencies?.['@microsoft/sp-core-library']?.replace(/^[~^]/, '')
+    ?? yo?.['@microsoft/generator-sharepoint']?.version;
 
   // Project-level config file wins over editor settings, so the CLI and the team agree.
   const rc = readJsonSafe(path.join(root, '.spfxprettyrc.json')) ?? {};

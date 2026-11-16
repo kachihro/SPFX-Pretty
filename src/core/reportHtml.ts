@@ -124,7 +124,7 @@ function toolbox(c: Ctx): string {
       <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
       ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div></div>`;
   }).join('');
-  return `<h2>Toolbox <span class="sub">when someone adds a web part</span></h2><div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
+  return `<div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
 }
 
 function propertyPanes(c: Ctx): string {
@@ -137,10 +137,12 @@ function propertyPanes(c: Ctx): string {
       ${p.header !== undefined ? `<div class="pp-h ${isDef(p.header, /^Description$/) ? 'ugly' : ''}">${esc(p.header)}</div>` : ''}
       ${p.group !== undefined ? `<div class="pp-g ${isDef(p.group, /^Group Name$/) ? 'ugly' : ''}">${esc(p.group)}</div>` : ''}
       ${p.label !== undefined ? `<div class="pp-l ${isDef(p.label, /^Description Field$/) ? 'ugly' : ''}">${esc(p.label)}</div>` : ''}
-      ${props.map(([k, v]) => `<div class="pp-in" title="Default value of ${esc(k)}">${esc(v) || '&nbsp;'}</div>`).join('')}
+      ${props.length ? `<div class="pp-note">Default values when the web part is added:</div>` : ''}
+      ${props.map(([k, v]) => `<label class="pp-k">${esc(k)}</label><div class="pp-in ${v ? '' : 'empty'}">${v ? esc(v) : '(empty)'}</div>`).join('')}
+      ${c.r.findings.some(f => f.ruleId === 'ABT001' && f.severity !== 'pass' && f.component === p.component) ? '<div class="pp-about-missing">No About section (version, developer, packages)</div>' : ''}
     </div>`;
   };
-  return `<h2>Property pane <span class="sub">what authors see when they edit the web part</span></h2><div class="surfaces">${panes.map(card).join('')}</div>`;
+  return `<div class="surfaces">${panes.map(card).join('')}</div>`;
 }
 
 function findingRow(c: Ctx, f: Finding): string {
@@ -168,8 +170,7 @@ function upgradeSection(c: Ctx): string {
   const nodeOk = !u.compat.node.target.length || u.compat.node.current.some(n => u.compat.node.target.includes(n));
   const reactOk = !u.compat.react.current || u.compat.react.current === u.compat.react.target;
   const verIssues = c.r.findings.filter(f => f.category === 'Versions' && f.severity !== 'pass');
-  return `<h2>Version &amp; upgrade</h2>
-  <div class="surfaces">
+  return `<div class="surfaces">
     <div class="panel">
       <div class="ph">SPFx ${esc(u.current)} ${upToDate ? '<span class="ok">&#x2714; latest</span>' : `&rarr; ${esc(u.latest)}`}</div>
       <div class="sub">${esc(u.toolchain === 'gulp' ? 'Gulp toolchain (legacy)' : 'Heft toolchain')}${upToDate ? '' : ` &middot; ${u.hops.length} release${u.hops.length === 1 ? '' : 's'} behind &middot; overall effort: <b>${esc(u.effort)}</b>`}</div>
@@ -185,6 +186,18 @@ function upgradeSection(c: Ctx): string {
   </div>`;
 }
 
+/** A coloured section panel with a header bar, subtitle and an issue count badge. */
+function section(id: string, title: string, sub: string, colour: string, inner: string, count?: number): string {
+  if (!inner.trim()) { return ''; }
+  const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
+  return `<section class="sec" id="${id}" style="--c:${colour}">
+    <div class="sh"><div><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div>${badge}</div>
+    <div class="sb">${inner}</div>
+  </section>`;
+}
+
+const SEV_RANK = { error: 3, warning: 2, info: 1, pass: 0 } as const;
+
 export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
   const c: Ctx = { r, opts };
   const issues = r.findings.filter(f => f.severity !== 'pass');
@@ -196,12 +209,22 @@ export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
     const list = issues.filter(f => f.category === cat);
     const ok = passes.filter(f => f.category === cat);
     if (!list.length && !ok.length) { return ''; }
-    return `<section class="cat"><h3>${esc(cat)} <span class="count">${list.length ? `${list.length} to polish` : 'all nice'}</span></h3>
+    const worst = list.reduce((m, f) => Math.max(m, SEV_RANK[f.severity]), 0);
+    const colour = worst === 3 ? 'var(--bad)' : worst === 2 ? 'var(--warn)' : worst === 1 ? 'var(--info)' : 'var(--good)';
+    return `<section class="cat" style="--c:${colour}"><h3>${esc(cat)} <span class="count">${list.length ? `${list.length} to polish` : '&#x2714; all nice'}</span></h3>
       <p class="blurb">${esc(CATEGORY_BLURB[cat])}</p>
       <ul>${list.map(f => findingRow(c, f)).join('')}</ul>
       ${ok.length ? `<details><summary>${ok.length} looking nice</summary><ul>${ok.map(f => findingRow(c, f)).join('')}</ul></details>` : ''}
     </section>`;
   }).join('');
+  const countOn = (...surfaces: Surface[]) => issues.filter(f => f.surfaces?.some(x => surfaces.includes(x))).length;
+  const nav: [string, string, number | undefined][] = [
+    ['where', 'Where people see it', countOn('App Catalog', 'Add an app', 'Site Contents')],
+    ['toolbox', 'Toolbox', countOn('Toolbox')],
+    ['pane', 'Property pane', countOn('Property pane', 'Web part on page')],
+    ['versions', 'Version & upgrade', issues.filter(f => f.category === 'Versions').length],
+    ['checks', 'All checks', issues.length],
+  ];
 
   const csp = opts.cspSource !== undefined
     ? `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${opts.cspSource} data: https:; style-src 'unsafe-inline'; script-src 'nonce-${opts.nonce}';">`
@@ -253,7 +276,23 @@ table.compat{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
 ol.steps{margin:0;padding-left:20px}ol.steps li{margin-bottom:10px}
 .effort{display:inline-block;font-size:11px;padding:0 7px;border-radius:999px;color:#fff}.eS{background:var(--good)}.eM{background:var(--warn)}.eL{background:var(--bad)}
 code.cmd{display:block;font-size:11.5px;padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:4px;word-break:break-all;white-space:pre-wrap;margin-top:4px}
-.cat{margin:18px 0}.blurb{margin:0 0 8px;color:var(--sub);font-size:12.5px}
+html{scroll-behavior:smooth}
+.jump{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;padding:10px 0;margin:8px 0 0;background:var(--bg)}
+.jump a{font-size:12.5px;text-decoration:none;color:var(--text);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 12px}
+.jump a b{color:var(--bad);font-weight:600;margin-left:2px}
+.sec{margin:20px 0;border-radius:10px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));background:color-mix(in srgb,var(--c) 7%,var(--bg));overflow:hidden;scroll-margin-top:52px}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--c);color:#fff}
+.st{font-size:16px;font-weight:600}.ss{font-size:12.5px;opacity:.85;margin-left:4px}
+.sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.sbadge.ok{background:rgba(255,255,255,.22)}
+.sb{padding:14px 16px}
+.cat{margin:0 0 14px;padding:12px 14px;border-radius:8px;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 6%,var(--card))}
+.cat:last-child{margin-bottom:0}
+.cat h3 .count{color:var(--c)}
+.pp-note{font-size:12px;color:var(--sub);margin:10px 0 4px}
+.pp-k{display:block;font-size:12px;color:var(--sub);margin:6px 0 2px;font-family:Consolas,monospace}
+.pp-in.empty{color:var(--sub);font-style:italic}
+.pp-about-missing{margin-top:10px;font-size:12px;border:1px dashed var(--warn);color:var(--warn);border-radius:4px;padding:6px 8px}.blurb{margin:0 0 8px;color:var(--sub);font-size:12.5px}
 .count{font-size:12px;font-weight:400;color:var(--sub)}
 ul{list-style:none;margin:0;padding:0}
 .f{display:flex;gap:10px;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-left-width:4px;border-radius:6px;margin-bottom:6px}
@@ -272,18 +311,17 @@ details summary{cursor:pointer;color:var(--sub);margin:6px 0}
 <div class="top">
   <div class="score" title="Niceness score"><span>${r.score}</span></div>
   <div><h1>${esc(r.solution?.name ?? path.basename(r.root))}</h1>
-  <div class="sub">SPFx ${esc(r.spfxVersion ?? '?')} &middot; ${r.components.length} component${r.components.length === 1 ? '' : 's'} &middot; ${issues.length} thing${issues.length === 1 ? '' : 's'} to polish &middot; ${passes.length} looking nice</div></div>
+  <div class="sub">SPFx ${esc(r.upgrade?.current ?? r.spfxVersion ?? '?')} &middot; ${r.components.length} component${r.components.length === 1 ? '' : 's'} &middot; ${issues.length} thing${issues.length === 1 ? '' : 's'} to polish &middot; ${passes.length} looking nice</div></div>
 </div>
 
-<h2>Where people see your app</h2>
-${appSurfaces(c)}
-${toolbox(c)}
-${propertyPanes(c)}
-${upgradeSection(c)}
-${others.length ? `<h2>Other components</h2><div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>` : ''}
+<nav class="jump">${nav.map(([id, label, n]) => `<a href="#${id}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</a>`).join('')}</nav>
 
-<h2>Checks</h2>
-${checks || '<p>Nothing to check - is this an SPFx project?</p>'}
+${section('where', 'Where people see your app', 'App Catalog, Add an app and Site Contents', '#0f6cbd', appSurfaces(c), nav[0][2])}
+${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolbox(c), nav[1][2])}
+${section('pane', 'Property pane', 'what authors see when they edit the web part', '#038387', propertyPanes(c), nav[2][2])}
+${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and what an upgrade involves', '#ca5010', upgradeSection(c), nav[3][2])}
+${others.length ? section('others', 'Other components', 'extensions and libraries', '#5c5c5c', `<div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>`) : ''}
+${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX-Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2])}
 </div>
 ${opts.interactive ? `<script nonce="${opts.nonce}">
 const vscode = acquireVsCodeApi();

@@ -1,7 +1,13 @@
 # Changelog
 
+## 0.4.0 - 17/11/2026
+- Report: coloured section panels with header bars and counts, sticky jump bar, colour-coded check groups
+- Property pane preview labels each default value with its property name and flags a missing About section
+- Header shows the installed SPFx version (not the .yo-rc.json scaffold version)
+- Unused office-ui-fabric-react dependency is reported as "remove it"
+
 ## 0.3.1 - 17/11/2026
-- Scan Project opens the report straight away (setting: spfxPretty.showReportAfterScan)
+- Scan Project, and clicking the SPFX-Pretty Activity Bar icon, open the report straight away (setting: spfxPretty.showReportAfterScan)
 
 ## 0.3.0 - 17/11/2026
 - Own Activity Bar icon with an errors + warnings badge

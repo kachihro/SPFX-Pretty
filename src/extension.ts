@@ -22,6 +22,12 @@ export function activate(context: vscode.ExtensionContext): void {
   const tree = new FindingsTree(scans);
   const view = vscode.window.createTreeView('spfxPretty.findings', { treeDataProvider: tree, showCollapseAll: true });
   context.subscriptions.push(scans, view);
+  // Clicking the SPFX-Pretty icon on the activity bar opens the report straight away
+  view.onDidChangeVisibility(e => {
+    if (e.visible && !panel && scans.all.length && vscode.workspace.getConfiguration('spfxPretty').get('showReportAfterScan', true)) {
+      vscode.commands.executeCommand('spfxPretty.showReport');
+    }
+  });
   // Badge on the SPFX-Pretty activity bar icon: errors + warnings across all projects
   scans.onDidChange(() => {
     const all = scans.all.flatMap(r => r.findings);

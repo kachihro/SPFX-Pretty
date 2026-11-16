@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX-Pretty",
   "description": "Make SharePoint Framework solutions look great in the App Catalog and toolbox: nice titles, icons for the .sppkg and every component, and theme-aware branding checks.",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -141,7 +141,7 @@
         "spfxPretty.showReportAfterScan": {
           "type": "boolean",
           "default": true,
-          "description": "Open the App Catalog preview & report as soon as you run 'Scan Project'. Off = show a notification with a 'Show report' button instead."
+          "description": "Open the App Catalog preview & report straight away: after 'Scan Project' and when you click the SPFX-Pretty icon in the Activity Bar. Off = show a notification with a 'Show report' button instead."
         },
         "spfxPretty.scanOnSave": {
           "type": "boolean",

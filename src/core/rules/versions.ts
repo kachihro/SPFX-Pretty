@@ -207,7 +207,7 @@ export function versionRules(ctx: RuleContext): UpgradeAssessment | undefined {
   if (f.deps['office-ui-fabric-react'] || f.fabricImports.length) {
     ctx.issue({
       ruleId: 'VER009', severity: 'warning', category: 'Versions', file: pkg, ...loc(depPath('office-ui-fabric-react')),
-      message: `office-ui-fabric-react is used${f.fabricImports.length ? ` in ${f.fabricImports.length} file(s)` : ''} - it was renamed @fluentui/react years ago; plan the move as part of the upgrade.`,
+      message: f.fabricImports.length ? `office-ui-fabric-react is imported in ${f.fabricImports.length} file(s) - it was renamed @fluentui/react years ago; plan the move as part of the upgrade.` : 'office-ui-fabric-react is in package.json but nothing imports it - remove the dependency.',
     });
   }
 
@@ -257,7 +257,9 @@ function assess(f: ReturnType<typeof facts>, latest: string, onPrem: boolean): U
       link: 'https://learn.microsoft.com/sharepoint/dev/spfx/react-18-upgrade' });
   }
   if (f.fabricImports.length || f.deps['office-ui-fabric-react']) {
-    steps.push({ title: 'office-ui-fabric-react → @fluentui/react', effort: f.fabricImports.length > 10 ? 'M' : 'S', detail: `${f.fabricImports.length} file(s) import office-ui-fabric-react.` });
+    steps.push(f.fabricImports.length
+      ? { title: 'office-ui-fabric-react → @fluentui/react', effort: f.fabricImports.length > 10 ? 'M' : 'S', detail: `${f.fabricImports.length} file(s) import office-ui-fabric-react: ${f.fabricImports.slice(0, 5).join(', ')}.` }
+      : { title: 'Remove the unused office-ui-fabric-react dependency', effort: 'S', detail: 'package.json still lists it, but no file imports it - just remove it.' });
   }
   if (hops.length) {
     steps.push({ title: `Update all SPFx packages ${current} → ${latest}`, effort: 'S',
