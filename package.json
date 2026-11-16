@@ -37,6 +37,7 @@
       { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX Pretty", "icon": "$(sparkle)" },
       { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX Pretty", "icon": "$(eye-closed)" },
       { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.howToFix", "title": "How to Fix", "category": "SPFX Pretty", "icon": "$(question)" },
       { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX Pretty" }
     ],
     "menus": {
@@ -55,6 +56,8 @@
       "view/item/context": [
         { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "inline" },
         { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "inline" },
+        { "command": "spfxPretty.howToFix", "when": "view == spfxPretty.findings && viewItem == finding", "group": "inline" },
+        { "command": "spfxPretty.howToFix", "when": "view == spfxPretty.findings && viewItem == finding", "group": "1_fix@2" },
         { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "1_fix@1" },
         { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "1_fix@1" },
         { "command": "spfxPretty.openFinding", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "2_nav@1" },
@@ -67,6 +70,7 @@
         { "command": "spfxPretty.fixCategory", "when": "false" },
         { "command": "spfxPretty.ignoreRule", "when": "false" },
         { "command": "spfxPretty.copyMessage", "when": "false" },
+        { "command": "spfxPretty.howToFix", "when": "false" },
         { "command": "spfxPretty.filterActive", "when": "false" }
       ]
     },

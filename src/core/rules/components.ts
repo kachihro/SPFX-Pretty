@@ -106,6 +106,7 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
         ...doc.locate(['preconfiguredEntries', i, 'description', 'default']),
         message: `"${who}" description ${desc ? `"${desc}" looks like a placeholder` : 'is missing'} - it's the toolbox tooltip.`,
         detail: 'Write one short sentence describing what the author gets when they add it, e.g. "Shows upcoming events from a calendar list."',
+        fixes: [{ title: `Write the "${who}" description...`, safe: false, edits: [], ask: { prompt: `Toolbox description for "${who}" (one sentence)`, file: doc.file, jsonPath: ['preconfiguredEntries', i, 'description', 'default'], value: isPlaceholderDescription(desc, title) ? '' : desc, placeholder: 'e.g. Shows upcoming events from a calendar list' } }],
       });
     } else {
       ctx.pass('CMP002', 'Metadata', `"${who}" has a real description`, doc.file, who, 1);
@@ -169,27 +170,41 @@ function toolboxEntryRules(ctx: RuleContext, c: LoadedComponent): void {
         ]),
       });
       const ordered = [...MODERN_GROUPS].sort((a, b) => Number(b === (wantedGroup ?? suggestGroup(who))) - Number(a === (wantedGroup ?? suggestGroup(who))));
+      const company = ctx.project.config.developer.name || ctx.project.solutionDoc?.get(['solution', 'developer', 'name']) || '';
+      const chooser = (current?: string): Fix => ({
+        title: 'Choose toolbox group...', safe: false, edits: [],
+        pick: {
+          prompt: `Toolbox section for "${who}"${current ? ` (now: ${current})` : ''} - only these sections exist in the modern toolbox`,
+          options: [
+            ...ordered.filter(g => g.id !== ADVANCED_ID).map((g, n) => ({ label: g.name, description: n === 0 ? 'suggested' : undefined, fix: moveTo(g) })),
+            { label: 'Advanced', description: 'the catch-all section', fix: moveTo(MODERN_GROUPS.find(g => g.id === ADVANCED_ID)!) },
+            { label: '$(edit) Company group name (classic pages only)...', description: 'modern pages still show it under Advanced',
+              fix: { title: 'Company group name', safe: false, edits: [], ask: { prompt: 'Group name for classic pages (modern toolbox ignores it)', file: doc.file, jsonPath: ['preconfiguredEntries', i, 'group', 'default'], value: groupName ?? company } } },
+          ],
+        },
+      });
       if (!predefined) {
         ctx.issue({
           ruleId: 'CMP006', severity: 'warning', category: 'Metadata', file: doc.file, component: who,
           ...doc.locate(['preconfiguredEntries', i, 'groupId']),
           message: `"${who}" uses a custom groupId${groupName ? ` ("${groupName}")` : ''} - the modern toolbox ignores it and shows the web part under "Advanced".`,
           detail: 'Only the 7 predefined modern groups get their own toolbox section; the "group" name is only used on classic pages. Pick the closest predefined group, and use a consistent title prefix (e.g. "PlanB …") so your web parts sit together.',
-          fixes: ordered.filter(g => g.id !== ADVANCED_ID).map(moveTo),
+          fixes: [chooser(groupName ? `custom "${groupName}"` : undefined), ...ordered.filter(g => g.id !== ADVANCED_ID).map(moveTo)],
         });
       } else if (wantedGroup && predefined !== wantedGroup) {
         ctx.issue({
           ruleId: 'CMP006', severity: 'info', category: 'Metadata', file: doc.file, component: who,
           ...doc.locate(['preconfiguredEntries', i, 'groupId']),
           message: `"${who}" is in "${predefined.name}", not your preferred toolbox group "${wantedGroup.name}".`,
-          fixes: [moveTo(wantedGroup)],
+          fixes: [moveTo(wantedGroup), chooser(predefined.name)],
         });
       } else if (predefined.id === ADVANCED_ID) {
         ctx.issue({
           ruleId: 'CMP006', severity: 'info', category: 'Metadata', file: doc.file, component: who,
           ...doc.locate(['preconfiguredEntries', i, 'groupId']),
           message: `"${who}" is in "Advanced" (the catch-all) - authors browse the other groups first.`,
-          fixes: ordered.filter(g => g.id !== ADVANCED_ID).slice(0, 3).map(moveTo),
+          detail: 'Tip: start every title with your company name (e.g. "PlanB ...") so authors can search the toolbox for all your web parts.',
+          fixes: [chooser('Advanced'), ...ordered.filter(g => g.id !== ADVANCED_ID).slice(0, 3).map(moveTo)],
         });
       } else {
         ctx.pass('CMP006', 'Metadata', `"${who}" in toolbox group "${predefined.name}"`, doc.file, who, 1);

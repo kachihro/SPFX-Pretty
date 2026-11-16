@@ -43,16 +43,19 @@ function surfaceIssues(c: Ctx, s: Surface): Finding[] {
 
 /** Small fix buttons (first fix of each finding) shown inside a preview panel. */
 function actions(c: Ctx, list: Finding[], max = 6): string {
-  const withFix = list.filter(f => f.severity !== 'pass' && f.fixes.length);
-  const manual = list.filter(f => f.severity !== 'pass' && !f.fixes.length).length;
-  if (!withFix.length && !manual) { return ''; }
+  const open = list.filter(f => f.severity !== 'pass');
+  const withFix = open.filter(f => f.fixes.length);
+  const manual = open.filter(f => !f.fixes.length);
+  if (!open.length) { return ''; }
+  const short = (m: string) => (m.length > 60 ? m.slice(0, 57).replace(/\s+\S*$/, '') + '...' : m);
   if (!c.opts.interactive) {
-    return withFix.length ? `<div class="acts">${withFix.slice(0, max).map(f => `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`).join('')}</div>` : '';
+    return `<div class="acts">${withFix.slice(0, max).map(f => `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`).join('')}${manual.map(f => `<span class="hint">&#x270D; ${esc(short(f.message))}</span>`).join('')}</div>`;
   }
   const btns = withFix.slice(0, max).map(f =>
-    `<button class="fix mini ${f.severity}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${esc(f.fixes[0].title)}</button>`).join('');
+    `<button class="fix mini ${f.severity}${f.fixes[0].ask || f.fixes[0].pick ? ' ask' : ''}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${f.fixes[0].ask ? '&#x270D; ' : f.fixes[0].pick ? '&#x25BE; ' : ''}${esc(f.fixes[0].title)}</button>`).join('');
   const more = withFix.length > max ? `<span class="hint">+${withFix.length - max} more in All checks</span>` : '';
-  const hand = manual ? `<span class="hint">${manual} need${manual === 1 ? 's' : ''} a human touch - see All checks</span>` : '';
+  const hand = manual.map(f =>
+    `<button class="open mini" data-idx="${idx(c, f)}" title="${esc(f.message)}${f.detail ? '\n\n' + esc(f.detail) : ''}">&#x1F50D; ${esc(short(f.message))}</button>`).join('');
   return `<div class="acts">${btns}${more}${hand}</div>`;
 }
 
@@ -317,7 +320,7 @@ html{scroll-behavior:smooth}
 .jump button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:3px 10px}
 .st{font-size:16px;font-weight:600}.ss{font-size:12.5px;opacity:.85;margin-left:4px}
 .sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
-.sbadge.ok{background:rgba(255,255,255,.22)}
+.sbadge.ok{background:rgba(255,255,255,.22);color:#fff}
 .sb{padding:14px 16px}
 .shr{display:flex;gap:8px;align-items:center}
 button.fixsec{background:#fff;color:var(--c);border:none;font-weight:600;border-radius:999px;padding:3px 12px}
@@ -325,7 +328,9 @@ button.fixsec:hover{filter:brightness(.92)}
 .acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;align-items:center}
 .tbx-item .acts{justify-content:center}
 button.mini{font-size:11px;padding:2px 8px;border-radius:999px;text-align:left;max-width:100%;white-space:normal;line-height:1.35}
-button.mini.error{background:var(--bad);border-color:var(--bad)}button.mini.warning{background:var(--warn);border-color:var(--warn)}
+button.mini.error{background:var(--bad);border-color:var(--bad)}
+button.open.mini{background:transparent;color:var(--text);border:1px dashed var(--sub)}
+button.mini.ask{background:#fff;color:#000;border-color:var(--accent)}button.mini.warning{background:var(--warn);border-color:var(--warn)}
 button:disabled{opacity:.6;cursor:default}
 .cat{margin:0 0 14px;padding:12px 14px;border-radius:8px;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 6%,var(--card))}
 .cat:last-child{margin-bottom:0}

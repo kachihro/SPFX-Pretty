@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { Fix, ProjectConfig } from '../core/types';
+import { JsoncDoc } from '../core/jsonc';
 
 /** Latest SPFx version fetched from npm at activation (undefined = use the bundled table). */
 let latestOnline: string | undefined;
@@ -32,6 +33,18 @@ export function readConfig(): Partial<ProjectConfig> {
  * Returns false if a target file has unsaved changes (offsets would be stale).
  */
 export async function applyFix(fix: Fix): Promise<boolean> {
+  if (fix.pick) {
+    const chosen = await vscode.window.showQuickPick(fix.pick.options.map(o => ({ label: o.label, description: o.description, fix: o.fix })), { title: 'SPFX Pretty', placeHolder: fix.pick.prompt });
+    return chosen ? applyFix(chosen.fix) : false;
+  }
+  if (fix.ask) {
+    const a = fix.ask;
+    const text = await vscode.window.showInputBox({ title: 'SPFX Pretty', prompt: a.prompt, value: a.value ?? '', placeHolder: a.placeholder, validateInput: v => v.trim() ? undefined : 'Please enter some text' });
+    if (text === undefined) { return false; }
+    const doc = new JsoncDoc(a.file);
+    const value = a.asArray ? text.split(',').map(x => x.trim()).filter(Boolean) : text.trim();
+    return applyFix({ title: fix.title, safe: false, edits: doc.set(a.jsonPath, value) });
+  }
   const files = [...new Set(fix.edits.map(e => e.file))];
   const docs = await Promise.all(files.map(f => vscode.workspace.openTextDocument(vscode.Uri.file(f))));
   const dirty = docs.filter(d => d.isDirty);

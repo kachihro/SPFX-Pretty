@@ -28,7 +28,29 @@ export interface FileCreate {
   encoding: 'base64' | 'utf8';
 }
 
+/** A fix that asks the user for text (e.g. a description) and writes it into a JSON file. */
+export interface AskForText {
+  prompt: string;
+  placeholder?: string;
+  file: string;
+  jsonPath: (string | number)[];
+  /** Current value, pre-filled in the input box */
+  value?: string;
+  /** Comma-separated input becomes an array (e.g. categories) */
+  asArray?: boolean;
+}
+
+/** A fix that lets the user choose between several fixes (e.g. which toolbox group). */
+export interface PickOne {
+  prompt: string;
+  options: { label: string; description?: string; fix: Fix }[];
+}
+
 export interface Fix {
+  /** When set, the user picks one of these fixes (editor only). */
+  pick?: PickOne;
+  /** When set, the fix asks for text first (editor only - skipped by fix-all and the CLI). */
+  ask?: AskForText;
   title: string;
   /** Safe fixes are applied by "Apply All Safe Fixes". Unsafe ones need a human (e.g. wording). */
   safe: boolean;

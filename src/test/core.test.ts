@@ -237,5 +237,9 @@ test('custom toolbox groupId is flagged (modern toolbox shows it under Advanced)
   const f = issues(scanProject(dir)).find(x => x.ruleId === 'CMP006' && x.file === m)!;
   assert.equal(f.severity, 'warning');
   assert.match(f.message, /Advanced/);
-  assert.equal(f.fixes.length, 6);
+  assert.equal(f.fixes.length, 7);
+  assert.equal(f.fixes[0].title, 'Choose toolbox group...');
+  const opts = f.fixes[0].pick!.options.map(o => o.label);
+  assert.equal(opts.length, 8); // 6 sections + Advanced + company name
+  assert.ok(opts.some(o => /Company group name/.test(o)));
 });

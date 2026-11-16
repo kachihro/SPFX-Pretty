@@ -91,9 +91,10 @@ export function solutionRules(ctx: RuleContext): void {
       ruleId: 'SOL005', severity: 'warning', category: 'Metadata', file, ...doc.locate(['solution', 'metadata', 'shortDescription', 'default']),
       message: shortDesc ? `Short description "${shortDesc}" looks like a placeholder.` : 'No short description - the App Catalog tile will be blank under the title.',
       detail: 'solution.metadata.shortDescription.default appears under the title in the App Catalog. One friendly sentence is perfect.',
-      fixes: shortDesc === undefined && packageJson?.description
-        ? [{ title: 'Use the package.json description', safe: false, edits: doc.set(['solution', 'metadata', 'shortDescription'], { default: packageJson.description }) }]
-        : [],
+      fixes: [
+        { title: 'Write the short description...', safe: false, edits: [], ask: { prompt: 'Short description (one sentence, shown under the app title)', file, jsonPath: ['solution', 'metadata', 'shortDescription', 'default'], value: isPlaceholderDescription(shortDesc, name) ? '' : shortDesc, placeholder: 'e.g. Personalised links for your team' } },
+        ...(packageJson?.description ? [{ title: `Use the package.json description`, safe: false, edits: doc.set(['solution', 'metadata', 'shortDescription'], { default: packageJson.description }) }] : []),
+      ],
     });
   } else {
     ctx.pass('SOL005', 'Metadata', 'Short description set', file);
@@ -104,6 +105,7 @@ export function solutionRules(ctx: RuleContext): void {
       ruleId: 'SOL006', severity: 'info', category: 'Metadata', file, ...doc.locate(['solution', 'metadata', 'longDescription', 'default']),
       message: longDesc === shortDesc && longDesc ? 'Long description is the same as the short description.' : 'Long description is missing or a placeholder.',
       detail: 'Shown on the app details page. Describe what it does, who it is for, and any setup needed.',
+      fixes: [{ title: 'Write the long description...', safe: false, edits: [], ask: { prompt: 'Long description (what it does, who it is for, any setup)', file, jsonPath: ['solution', 'metadata', 'longDescription', 'default'], value: longDesc && !isPlaceholderDescription(longDesc, name) ? longDesc : (shortDesc && !isPlaceholderDescription(shortDesc, name) ? shortDesc : '') } }],
     });
   } else {
     ctx.pass('SOL006', 'Metadata', 'Long description set', file, undefined, 1);
@@ -112,6 +114,7 @@ export function solutionRules(ctx: RuleContext): void {
     ctx.issue({
       ruleId: 'SOL007', severity: 'info', category: 'Metadata', file, ...doc.locate(['solution', 'metadata', 'categories']),
       message: 'No categories - add at least one so people can filter for it.',
+      fixes: [{ title: 'Add categories...', safe: false, edits: [], ask: { prompt: 'Categories, comma separated', file, jsonPath: ['solution', 'metadata', 'categories'], asArray: true, placeholder: 'e.g. Productivity, Content management' } }],
     });
   }
   const screenshots = doc.get(['solution', 'metadata', 'screenshotPaths']);

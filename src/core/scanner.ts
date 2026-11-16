@@ -90,6 +90,7 @@ export function issues(result: ScanResult): Finding[] {
  * fix's offsets are relative to the file as it was when scanned.
  */
 export function applyFixToDisk(fix: Fix): void {
+  if (fix.pick || fix.ask) { return; } // interactive fixes need the editor
   const byFile = new Map<string, typeof fix.edits>();
   for (const e of fix.edits) { byFile.set(e.file, [...(byFile.get(e.file) ?? []), e]); }
   for (const [file, edits] of byFile) {

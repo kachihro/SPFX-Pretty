@@ -138,6 +138,14 @@ export function activate(context: vscode.ExtensionContext): void {
       vscode.window.showInformationMessage(`SPFX Pretty: ignoring ${f.ruleId} in this workspace (undo in Settings > SPFX Pretty > Disabled Rules).`);
     }),
 
+    vscode.commands.registerCommand('spfxPretty.howToFix', async (node: unknown) => {
+      const f = findingFromNode(node);
+      if (!f) { return; }
+      const open = 'Open the file';
+      const pick = await vscode.window.showInformationMessage(`${f.ruleId}: ${f.message}`, { modal: true, detail: `${f.detail ?? 'This one needs your judgement - SPFX Pretty can\'t safely change it automatically.'}\n\nFile: ${vscode.workspace.asRelativePath(f.file)}` }, open);
+      if (pick === open) { await vscode.commands.executeCommand('spfxPretty.openFinding', f); }
+    }),
+
     vscode.commands.registerCommand('spfxPretty.copyMessage', async (node: unknown) => {
       const f = findingFromNode(node);
       if (f) { await vscode.env.clipboard.writeText(`${f.ruleId}: ${f.message}${f.detail ? `\n${f.detail}` : ''}\n${f.file}`); }

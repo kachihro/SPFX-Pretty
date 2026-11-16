@@ -3,6 +3,10 @@
 ## 0.6.0 - 17/11/2026
 - Renamed to "SPFX Pretty" (no hyphen) everywhere you see it; the extension ID stays spfx-pretty so it updates in place
 - Transparent black/white box-shadows are no longer reported as hard-coded colours
+- "Write..." fixes ask for the text (short/long description, categories, web part description) and save it
+- "Choose toolbox group..." lists the 7 modern sections, plus a company group name for classic pages
+- Tree rows show the fix next to each finding; "How to Fix" for items that need you
+- Report: items that need you are buttons that open the exact file, instead of "N need a human touch"
 
 ## 0.5.3 - 17/11/2026
 - Report screenshot embedded in the README so it shows on the installed extension page
