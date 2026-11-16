@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -37,32 +37,35 @@
       { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX Pretty", "icon": "$(sparkle)" },
       { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX Pretty", "icon": "$(eye-closed)" },
       { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
       { "command": "spfxPretty.howToFix", "title": "How to Fix", "category": "SPFX Pretty", "icon": "$(question)" },
       { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX Pretty" }
     ],
     "menus": {
       "view/title": [
-        { "command": "spfxPretty.filter", "when": "view == spfxPretty.findings && !spfxPretty.filtered", "group": "navigation@0" },
-        { "command": "spfxPretty.filterActive", "when": "view == spfxPretty.findings && spfxPretty.filtered", "group": "navigation@0" },
-        { "command": "spfxPretty.filterErrors", "when": "view == spfxPretty.findings", "group": "1_filter@1" },
-        { "command": "spfxPretty.filterWarnings", "when": "view == spfxPretty.findings", "group": "1_filter@2" },
-        { "command": "spfxPretty.filterAll", "when": "view == spfxPretty.findings", "group": "1_filter@3" },
-        { "command": "spfxPretty.scan", "when": "view == spfxPretty.findings", "group": "navigation@1" },
-        { "command": "spfxPretty.showReport", "when": "view == spfxPretty.findings", "group": "navigation@2" },
-        { "command": "spfxPretty.fixAll", "when": "view == spfxPretty.findings", "group": "navigation@3" },
-        { "command": "spfxPretty.uploadCompanyLogo", "when": "view == spfxPretty.findings", "group": "navigation@4" },
-        { "command": "spfxPretty.upgradeAssessment", "when": "view == spfxPretty.findings", "group": "navigation@5" }
+        { "command": "spfxPretty.filter", "when": "view =~ /^spfxPretty\\.findings/ && !spfxPretty.filtered", "group": "navigation@0" },
+        { "command": "spfxPretty.filterActive", "when": "view =~ /^spfxPretty\\.findings/ && spfxPretty.filtered", "group": "navigation@0" },
+        { "command": "spfxPretty.filterErrors", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@1" },
+        { "command": "spfxPretty.filterWarnings", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@2" },
+        { "command": "spfxPretty.filterAll", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@3" },
+        { "command": "spfxPretty.scan", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@1" },
+        { "command": "spfxPretty.showReport", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@2" },
+        { "command": "spfxPretty.fixAll", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@3" },
+        { "command": "spfxPretty.uploadCompanyLogo", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@4" },
+        { "command": "spfxPretty.upgradeAssessment", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@5" }
       ],
       "view/item/context": [
-        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "inline" },
-        { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "inline" },
-        { "command": "spfxPretty.howToFix", "when": "view == spfxPretty.findings && viewItem == finding", "group": "inline" },
-        { "command": "spfxPretty.howToFix", "when": "view == spfxPretty.findings && viewItem == finding", "group": "1_fix@2" },
-        { "command": "spfxPretty.applyFix", "when": "view == spfxPretty.findings && viewItem == finding.fixable", "group": "1_fix@1" },
-        { "command": "spfxPretty.fixCategory", "when": "view == spfxPretty.findings && viewItem == category.fixable", "group": "1_fix@1" },
-        { "command": "spfxPretty.openFinding", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "2_nav@1" },
-        { "command": "spfxPretty.copyMessage", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "2_nav@2" },
-        { "command": "spfxPretty.ignoreRule", "when": "view == spfxPretty.findings && viewItem =~ /^finding/", "group": "3_ignore@1" }
+        { "command": "spfxPretty.applyFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable", "group": "inline" },
+        { "command": "spfxPretty.fixCategory", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable", "group": "inline" },
+        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
+      { "command": "spfxPretty.howToFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding", "group": "inline" },
+        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
+      { "command": "spfxPretty.howToFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding", "group": "1_fix@2" },
+        { "command": "spfxPretty.applyFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable", "group": "1_fix@1" },
+        { "command": "spfxPretty.fixCategory", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable", "group": "1_fix@1" },
+        { "command": "spfxPretty.openFinding", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "2_nav@1" },
+        { "command": "spfxPretty.copyMessage", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "2_nav@2" },
+        { "command": "spfxPretty.ignoreRule", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "3_ignore@1" }
       ],
       "commandPalette": [
         { "command": "spfxPretty.applyFix", "when": "false" },
@@ -70,7 +73,8 @@
         { "command": "spfxPretty.fixCategory", "when": "false" },
         { "command": "spfxPretty.ignoreRule", "when": "false" },
         { "command": "spfxPretty.copyMessage", "when": "false" },
-        { "command": "spfxPretty.howToFix", "when": "false" },
+        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
+      { "command": "spfxPretty.howToFix", "when": "false" },
         { "command": "spfxPretty.filterActive", "when": "false" }
       ]
     },
@@ -81,7 +85,10 @@
     },
     "views": {
       "spfxPretty": [
-        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty" }
+        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty", "when": "config.spfxPretty.location != explorer" }
+      ],
+      "explorer": [
+        { "id": "spfxPretty.findingsExplorer", "name": "SPFX Pretty", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty", "when": "config.spfxPretty.location == explorer || config.spfxPretty.location == both" }
       ]
     },
     "viewsWelcome": [
@@ -141,6 +148,13 @@
           "items": { "type": "string" },
           "default": [],
           "description": "Rule IDs to skip, e.g. [\"BRD003\"]. Can also be set per project in .spfxprettyrc.json."
+        },
+        "spfxPretty.location": {
+          "type": "string",
+          "default": "activityBar",
+          "enum": ["activityBar", "explorer", "both"],
+          "enumDescriptions": ["Its own icon on the Activity Bar (left edge)", "A section in the Explorer sidebar, alongside Outline and Timeline", "Both places"],
+          "description": "Where the SPFX Pretty findings panel lives. Tip: if you dragged it somewhere and lost it, run 'View: Reset View Locations'."
         },
         "spfxPretty.showReportAfterScan": {
           "type": "boolean",

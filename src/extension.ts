@@ -20,26 +20,33 @@ let panel: vscode.WebviewPanel | undefined;
 export function activate(context: vscode.ExtensionContext): void {
   const scans = new ScanManager();
   const tree = new FindingsTree(scans);
+  // The same findings tree can live on the Activity Bar, in the Explorer sidebar, or both (setting spfxPretty.location)
   const view = vscode.window.createTreeView('spfxPretty.findings', { treeDataProvider: tree, showCollapseAll: true });
-  context.subscriptions.push(scans, view);
+  const explorerView = vscode.window.createTreeView('spfxPretty.findingsExplorer', { treeDataProvider: tree, showCollapseAll: true });
+  context.subscriptions.push(scans, view, explorerView);
+  context.subscriptions.push(vscode.commands.registerCommand('spfxPretty.showPanel', () => {
+    const where = vscode.workspace.getConfiguration('spfxPretty').get<string>('location', 'activityBar');
+    return vscode.commands.executeCommand(where === 'explorer' ? 'spfxPretty.findingsExplorer.focus' : 'spfxPretty.findings.focus');
+  }));
   // Clicking the SPFX Pretty icon on the activity bar opens the report straight away
-  view.onDidChangeVisibility(e => {
+  const onVisible = (e: vscode.TreeViewVisibilityChangeEvent) => {
     if (e.visible && !panel && scans.all.length && vscode.workspace.getConfiguration('spfxPretty').get('showReportAfterScan', true)) {
       vscode.commands.executeCommand('spfxPretty.showReport');
     }
-  });
+  };
+  view.onDidChangeVisibility(onVisible);
   // Badge on the SPFX Pretty activity bar icon: errors + warnings across all projects
   scans.onDidChange(() => {
     const all = scans.all.flatMap(r => r.findings);
     const errors = all.filter(f => f.severity === 'error').length;
     const warnings = all.filter(f => f.severity === 'warning').length;
-    view.badge = errors + warnings ? { value: errors + warnings, tooltip: `SPFX Pretty: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}` } : undefined;
+    view.badge = explorerView.badge = errors + warnings ? { value: errors + warnings, tooltip: `SPFX Pretty: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}` } : undefined;
   });
 
   // ---- Severity filter for the tree (remembered per workspace) ----
   const applyFilter = (f: SeverityFilter) => {
     tree.filter = f;
-    view.description = f === 'all' ? undefined : FILTER_LABEL[f];
+    view.description = explorerView.description = f === 'all' ? undefined : FILTER_LABEL[f];
     vscode.commands.executeCommand('setContext', 'spfxPretty.filtered', f !== 'all');
     context.workspaceState.update('spfxPretty.filter', f);
     tree.refresh();

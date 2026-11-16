@@ -13,7 +13,7 @@
 
 ## How to use
 
-1. Open an SPFx project and click the **SPFX Pretty** icon in the Activity Bar
+1. Open an SPFx project and click the **SPFX Pretty** icon in the Activity Bar (or set **SPFX Pretty › Location** to *explorer* to have it next to Outline)
 2. The report opens - click **✨ Fix all** on a section, or a button on any item
 3. Right-click a finding in the panel for more options
 
