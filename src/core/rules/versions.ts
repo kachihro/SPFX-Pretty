@@ -253,7 +253,7 @@ function assess(f: ReturnType<typeof facts>, latest: string, onPrem: boolean): U
   if (isReact && reactNow && to && major(reactNow) !== major(to.react)) {
     const n = f.reactRender + f.unmount;
     steps.push({ title: `React ${reactNow} → ${to.react}${hops.length ? '' : ` (required by SPFx ${current} - not done yet)`}`, effort: n > 10 ? 'M' : 'S',
-      detail: `${f.reactRender} ReactDom.render call(s) and ${f.unmount} unmountComponentAtNode call(s) to switch to createRoot(...).render() / root.unmount()${f.reactRenderFiles.length ? ` in ${f.reactRenderFiles.slice(0, 5).join(', ')}${f.reactRenderFiles.length > 5 ? '…' : ''}` : ''}. Also update @types/react(-dom) and check third-party controls (e.g. @pnp/spfx-controls-react) support React ${major(to.react)}.`,
+      detail: `${n ? `${f.reactRender} ReactDom.render call(s) and ${f.unmount} unmountComponentAtNode call(s) to switch to createRoot(...).render() / root.unmount() in ${f.reactRenderFiles.slice(0, 5).join(', ')}${f.reactRenderFiles.length > 5 ? '…' : ''}.` : 'No ReactDom.render calls found - just update react and react-dom.'} Also update @types/react(-dom) and check third-party controls (e.g. @pnp/spfx-controls-react) support React ${major(to.react)}.`,
       link: 'https://learn.microsoft.com/sharepoint/dev/spfx/react-18-upgrade' });
   }
   if (f.fabricImports.length || f.deps['office-ui-fabric-react']) {

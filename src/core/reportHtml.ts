@@ -213,10 +213,11 @@ function section(id: string, title: string, sub: string, colour: string, inner: 
   if (!inner.trim()) { return ''; }
   const fixAll = interactive && safeFixes ? `<button class="fixsec" data-sec="${id}" title="Apply the safe fixes in this section">&#x2728; Fix all (${safeFixes})</button>` : '';
   const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
-  return `<section class="sec" id="${id}" style="--c:${colour}">
-    <div class="sh"><div><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></div>
+  void colour; // every section uses the same blue
+  return `<details class="sec" id="${id}" open>
+    <summary class="sh"><div><span class="chev">&#x25B8;</span><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></summary>
     <div class="sb">${inner}</div>
-  </section>`;
+  </details>`;
 }
 
 const SEV_RANK = { error: 3, warning: 2, info: 1, pass: 0 } as const;
@@ -304,8 +305,16 @@ html{scroll-behavior:smooth}
 .jump{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;padding:10px 0;margin:8px 0 0;background:var(--bg)}
 .jump a{font-size:12.5px;text-decoration:none;color:var(--text);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 12px}
 .jump a b{color:var(--bad);font-weight:600;margin-left:2px}
-.sec{margin:20px 0;border-radius:10px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));background:color-mix(in srgb,var(--c) 7%,var(--bg));overflow:hidden;scroll-margin-top:52px}
-.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--c);color:#fff}
+.sec{--c:#0f6cbd;margin:20px 0;border-radius:10px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));background:color-mix(in srgb,var(--c) 7%,var(--bg));overflow:hidden;scroll-margin-top:52px}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--c);color:#fff;cursor:pointer;list-style:none;user-select:none}
+.sh::-webkit-details-marker{display:none}
+.sh:hover{background:color-mix(in srgb,var(--c) 88%,#000)}
+.chev{display:inline-block;width:16px;transition:transform .15s}
+.sec[open] > .sh .chev{transform:rotate(90deg)}
+.sec:not([open]){background:var(--c);border-color:var(--c)}
+.sec:not([open]) > .sh{border-radius:0}
+.jump .tools{margin-left:auto;display:flex;gap:6px}
+.jump button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:3px 10px}
 .st{font-size:16px;font-weight:600}.ss{font-size:12.5px;opacity:.85;margin-left:4px}
 .sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .sbadge.ok{background:rgba(255,255,255,.22)}
@@ -346,7 +355,7 @@ details summary{cursor:pointer;color:var(--sub);margin:6px 0}
   <div class="sub">SPFx ${esc(r.upgrade?.current ?? r.spfxVersion ?? '?')} &middot; ${r.components.length} component${r.components.length === 1 ? '' : 's'} &middot; ${issues.length} thing${issues.length === 1 ? '' : 's'} to polish &middot; ${passes.length} looking nice</div></div>
 </div>
 
-<nav class="jump">${nav.map(([id, label, n]) => `<a href="#${id}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</a>`).join('')}</nav>
+<nav class="jump">${nav.map(([id, label, n]) => `<a href="#${id}" data-jump="${id}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</a>`).join('')}<span class="tools"><button type="button" data-all="open">Expand all</button><button type="button" data-all="close">Collapse all</button></span></nav>
 
 ${section('where', 'Where people see your app', 'App Catalog, Add an app and Site Contents', '#0f6cbd', appSurfaces(c), nav[0][2], safe('where'), ia)}
 ${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolbox(c), nav[1][2], safe('toolbox'), ia)}
@@ -355,14 +364,25 @@ ${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and wh
 ${others.length ? section('others', 'Other components', 'extensions and libraries', '#5c5c5c', `<div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>`) : ''}
 ${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX-Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
 </div>
-${opts.interactive ? `<script nonce="${opts.nonce}">
-const vscode = acquireVsCodeApi();
+<script${opts.nonce ? ` nonce="${opts.nonce}"` : ''}>
+const vscode = ${opts.interactive ? 'acquireVsCodeApi()' : 'null'};
+const secs = () => [...document.querySelectorAll('details.sec')];
+const save = () => { const closed = secs().filter(d => !d.open).map(d => d.id); if (vscode) { vscode.setState({ closed }); } };
+// restore which sections were collapsed (survives the refresh after a fix)
+const st = vscode && vscode.getState();
+if (st && st.closed) { st.closed.forEach(id => { const d = document.getElementById(id); if (d) d.open = false; }); }
+secs().forEach(d => d.addEventListener('toggle', save));
 document.addEventListener('click', e => {
+  const j = e.target.closest('a[data-jump]');
+  if (j) { const d = document.getElementById(j.dataset.jump); if (d) d.open = true; return; }
   const b = e.target.closest('button'); if (!b) return;
+  if (b.closest('summary')) { e.preventDefault(); } // header buttons must not fold the section
+  if (b.dataset.all) { secs().forEach(d => { d.open = b.dataset.all === 'open'; }); save(); return; }
+  if (!vscode) return;
   if (b.classList.contains('fix')) { b.disabled = true; b.textContent = 'Applying...'; vscode.postMessage({ type: 'fix', idx: +b.dataset.idx, fix: +b.dataset.fix }); }
   if (b.classList.contains('open')) { vscode.postMessage({ type: 'open', idx: +b.dataset.idx }); }
   if (b.classList.contains('fixsec')) { b.disabled = true; b.textContent = 'Fixing...'; vscode.postMessage({ type: 'fixSection', section: b.dataset.sec }); }
 });
-</script>` : ''}
+</script>
 </body></html>`;
 }

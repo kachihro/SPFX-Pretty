@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX-Pretty",
   "description": "Make SharePoint Framework solutions look great in the App Catalog and toolbox: nice titles, icons for the .sppkg and every component, and theme-aware branding checks.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
