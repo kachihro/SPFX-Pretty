@@ -1,8 +1,8 @@
 {
   "name": "spfx-pretty",
   "displayName": "SPFX-Pretty",
-  "description": "Make SharePoint Framework solutions look great in the App Catalog and toolbox: nice titles, icons for the .sppkg and every component, and theme-aware branding checks.",
-  "version": "0.5.1",
+  "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
+  "version": "0.5.2",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -156,7 +156,7 @@
     "watch": "tsc -watch -p ./",
     "icon": "node ./out/tools/makeExtensionIcon.js",
     "test": "npm run compile && node --test out/test/*.test.js",
-    "package": "npm run compile && npm run icon && vsce package --allow-missing-repository",
+    "package": "npm run compile && npm run icon && vsce package --allow-missing-repository --no-rewrite-relative-links",
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {

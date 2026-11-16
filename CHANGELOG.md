@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.2 - 17/11/2026
+- Shorter extension page with a report screenshot; full rule list moved to docs/RULES.md
+
 ## 0.5.1 - 17/11/2026
 - Report sections all use the same blue panel and are collapsible (click the header); Expand all / Collapse all; collapsed state survives refreshes
 
