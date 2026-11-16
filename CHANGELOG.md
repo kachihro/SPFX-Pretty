@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.1 - 17/11/2026
+- Scan Project opens the report straight away (setting: spfxPretty.showReportAfterScan)
+
 ## 0.3.0 - 17/11/2026
 - Own Activity Bar icon with an errors + warnings badge
 - Severity filter (All / Errors + warnings / Errors only), remembered per workspace

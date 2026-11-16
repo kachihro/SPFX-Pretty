@@ -86,14 +86,20 @@ export function activate(context: vscode.ExtensionContext): void {
   };
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('spfxPretty.scan', () => {
+    vscode.commands.registerCommand('spfxPretty.scan', async () => {
       const results = rescan();
       if (!results.length) {
         vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found (looking for config/package-solution.json).');
         return;
       }
       const n = results.reduce((s, r) => s + issues(r).length, 0);
-      vscode.window.showInformationMessage(`SPFX-Pretty: ${results.map(r => `${r.solution?.name ?? path.basename(r.root)} ${r.score}/100`).join(', ')}${n ? ` - ${n} thing${n === 1 ? '' : 's'} to polish ✨` : ' - everything looks lovely! 🎉'}`);
+      const summary = `SPFX-Pretty: ${results.map(r => `${r.solution?.name ?? path.basename(r.root)} ${r.score}/100`).join(', ')}${n ? ` - ${n} thing${n === 1 ? '' : 's'} to polish ✨` : ' - everything looks lovely! 🎉'}`;
+      if (vscode.workspace.getConfiguration('spfxPretty').get('showReportAfterScan', true)) {
+        await vscode.commands.executeCommand('spfxPretty.showReport');
+        vscode.window.setStatusBarMessage(summary, 6000);
+      } else {
+        vscode.window.showInformationMessage(summary, 'Show report').then(p => p && vscode.commands.executeCommand('spfxPretty.showReport'));
+      }
     }),
 
     vscode.commands.registerCommand('spfxPretty.applyFix', async (node: unknown, fixIndex?: number) => {
