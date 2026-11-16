@@ -23,13 +23,13 @@ export function registerExtraCommands(context: vscode.ExtensionContext, scans: S
 
     vscode.commands.registerCommand('spfxPretty.upgradeAssessment', async () => {
       const results = scans.all.length ? scans.all : rescan();
-      if (!results.length) { vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found.'); return; }
+      if (!results.length) { vscode.window.showInformationMessage('SPFX Pretty: no SPFx project found.'); return; }
       const doc = await vscode.workspace.openTextDocument({ language: 'markdown', content: upgradeMarkdown(results) });
       await vscode.window.showTextDocument(doc, { preview: false });
       const withSteps = results.filter(r => r.upgrade?.steps.length);
       if (!withSteps.length) { return; }
       const run = 'Run detailed CLI report';
-      if (await vscode.window.showInformationMessage('SPFX-Pretty: want the file-by-file upgrade report from CLI for Microsoft 365? (runs npx in a terminal)', run) === run) {
+      if (await vscode.window.showInformationMessage('SPFX Pretty: want the file-by-file upgrade report from CLI for Microsoft 365? (runs npx in a terminal)', run) === run) {
         const r = withSteps.length === 1 ? withSteps[0] : await pickProject(withSteps);
         if (!r?.upgrade) { return; }
         const term = vscode.window.createTerminal({ name: 'SPFx upgrade report', cwd: r.root });
@@ -58,7 +58,7 @@ async function uploadCompanyLogo(context: vscode.ExtensionContext, root: string)
 
   let icons: ReturnType<typeof companyIconSet>;
   try { icons = companyIconSet(fs.readFileSync(logoFile)); }
-  catch (e) { vscode.window.showErrorMessage(`SPFX-Pretty: ${(e as Error).message}`); return; }
+  catch (e) { vscode.window.showErrorMessage(`SPFX Pretty: ${(e as Error).message}`); return; }
 
   const project = loadProject(root, readConfig());
   const teamsParts = project.components.filter(c => c.supportedHosts.some(h => /^Teams/.test(h)));
@@ -108,7 +108,7 @@ async function uploadCompanyLogo(context: vscode.ExtensionContext, root: string)
       if (path.resolve(logoFile) !== store.fsPath) { await vscode.workspace.fs.copy(vscode.Uri.file(logoFile), store, { overwrite: true }); }
       await cfg.update('companyIcon', store.fsPath, vscode.ConfigurationTarget.Global);
     }
-    vscode.window.showInformationMessage(`SPFX-Pretty: company logo applied 🎨 (${creates.length} icon file${creates.length === 1 ? '' : 's'})`, 'Show preview')
+    vscode.window.showInformationMessage(`SPFX Pretty: company logo applied 🎨 (${creates.length} icon file${creates.length === 1 ? '' : 's'})`, 'Show preview')
       .then(p => p && vscode.commands.executeCommand('spfxPretty.showReport'));
   }
 }

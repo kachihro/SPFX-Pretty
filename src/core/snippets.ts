@@ -17,7 +17,7 @@ export function themingSnippet(o: SnippetOptions): string {
   const r18 = (o.reactMajor ?? 0) >= 18;
   const lines: string[] = [];
   lines.push(`// ============================================================================`);
-  lines.push(`// SPFX-Pretty: theme + brand aware ${o.className}`);
+  lines.push(`// SPFX Pretty: theme + brand aware ${o.className}`);
   lines.push(`// 1) Manifest:  "supportsThemeVariants": true`);
   lines.push(`// 2) Paste the members below into ${o.className}`);
   lines.push(`// 3) Use var(--bodyText) etc. and Brand Center fonts in your .module.scss (see bottom)`);

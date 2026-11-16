@@ -1,8 +1,8 @@
 {
   "name": "spfx-pretty",
-  "displayName": "SPFX-Pretty",
+  "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "icon": "media/icon.png",
@@ -20,24 +20,24 @@
   ],
   "contributes": {
     "commands": [
-      { "command": "spfxPretty.scan", "title": "Scan Project", "category": "SPFX-Pretty", "icon": "$(refresh)" },
-      { "command": "spfxPretty.showReport", "title": "Show App Catalog Preview & Report", "category": "SPFX-Pretty", "icon": "$(preview)" },
-      { "command": "spfxPretty.makeTitlesNice", "title": "Make Titles Nice (App Catalog + Toolbox)", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.generateIcons", "title": "Generate Icons (.sppkg, Web Parts, Teams)", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.fixAll", "title": "Apply All Safe Fixes", "category": "SPFX-Pretty", "icon": "$(sparkle)" },
-      { "command": "spfxPretty.uploadCompanyLogo", "title": "Upload Company Logo (App Catalog, Teams, Toolbox)", "category": "SPFX-Pretty", "icon": "$(file-media)" },
-      { "command": "spfxPretty.upgradeAssessment", "title": "Version Check & Upgrade Assessment", "category": "SPFX-Pretty", "icon": "$(versions)" },
-      { "command": "spfxPretty.themingSnippet", "title": "Show Theme-Aware Web Part Snippet", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.filter", "title": "Filter by Severity...", "category": "SPFX-Pretty", "icon": "$(filter)" },
-      { "command": "spfxPretty.filterActive", "title": "Filter by Severity (filtered)...", "category": "SPFX-Pretty", "icon": "$(filter-filled)" },
-      { "command": "spfxPretty.filterErrors", "title": "Show Errors Only", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.filterWarnings", "title": "Show Errors and Warnings", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.filterAll", "title": "Show All Findings", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.applyFix", "title": "Apply Fix...", "category": "SPFX-Pretty", "icon": "$(lightbulb)" },
-      { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX-Pretty", "icon": "$(sparkle)" },
-      { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX-Pretty", "icon": "$(eye-closed)" },
-      { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX-Pretty" },
-      { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX-Pretty" }
+      { "command": "spfxPretty.scan", "title": "Scan Project", "category": "SPFX Pretty", "icon": "$(refresh)" },
+      { "command": "spfxPretty.showReport", "title": "Show App Catalog Preview & Report", "category": "SPFX Pretty", "icon": "$(preview)" },
+      { "command": "spfxPretty.makeTitlesNice", "title": "Make Titles Nice (App Catalog + Toolbox)", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.generateIcons", "title": "Generate Icons (.sppkg, Web Parts, Teams)", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.fixAll", "title": "Apply All Safe Fixes", "category": "SPFX Pretty", "icon": "$(sparkle)" },
+      { "command": "spfxPretty.uploadCompanyLogo", "title": "Upload Company Logo (App Catalog, Teams, Toolbox)", "category": "SPFX Pretty", "icon": "$(file-media)" },
+      { "command": "spfxPretty.upgradeAssessment", "title": "Version Check & Upgrade Assessment", "category": "SPFX Pretty", "icon": "$(versions)" },
+      { "command": "spfxPretty.themingSnippet", "title": "Show Theme-Aware Web Part Snippet", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.filter", "title": "Filter by Severity...", "category": "SPFX Pretty", "icon": "$(filter)" },
+      { "command": "spfxPretty.filterActive", "title": "Filter by Severity (filtered)...", "category": "SPFX Pretty", "icon": "$(filter-filled)" },
+      { "command": "spfxPretty.filterErrors", "title": "Show Errors Only", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.filterWarnings", "title": "Show Errors and Warnings", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.filterAll", "title": "Show All Findings", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.applyFix", "title": "Apply Fix...", "category": "SPFX Pretty", "icon": "$(lightbulb)" },
+      { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX Pretty", "icon": "$(sparkle)" },
+      { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX Pretty", "icon": "$(eye-closed)" },
+      { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX Pretty" },
+      { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX Pretty" }
     ],
     "menus": {
       "view/title": [
@@ -72,12 +72,12 @@
     },
     "viewsContainers": {
       "activitybar": [
-        { "id": "spfxPretty", "title": "SPFX-Pretty", "icon": "media/activitybar.svg" }
+        { "id": "spfxPretty", "title": "SPFX Pretty", "icon": "media/activitybar.svg" }
       ]
     },
     "views": {
       "spfxPretty": [
-        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX-Pretty" }
+        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty" }
       ]
     },
     "viewsWelcome": [
@@ -92,7 +92,7 @@
       { "language": "scss", "path": "./snippets/spfx-scss.code-snippets" }
     ],
     "configuration": {
-      "title": "SPFX-Pretty",
+      "title": "SPFX Pretty",
       "properties": {
         "spfxPretty.brandColour": {
           "type": "string",
@@ -141,7 +141,7 @@
         "spfxPretty.showReportAfterScan": {
           "type": "boolean",
           "default": true,
-          "description": "Open the App Catalog preview & report straight away: after 'Scan Project' and when you click the SPFX-Pretty icon in the Activity Bar. Off = show a notification with a 'Show report' button instead."
+          "description": "Open the App Catalog preview & report straight away: after 'Scan Project' and when you click the SPFX Pretty icon in the Activity Bar. Off = show a notification with a 'Show report' button instead."
         },
         "spfxPretty.scanOnSave": {
           "type": "boolean",

@@ -63,7 +63,7 @@ export function versionRules(ctx: RuleContext): UpgradeAssessment | undefined {
       message: gapMinor === 0
         ? `SPFx ${f.current} - patch ${latest} is available.`
         : `SPFx ${f.current} is ${gapMinor} minor version${gapMinor === 1 ? '' : 's'} behind ${latest}${f.usesGulp ? ' and still on the gulp toolchain' : ''}.`,
-      detail: `Run "SPFX-Pretty: Upgrade Assessment" for the steps, or: npx -p @pnp/cli-microsoft365@latest m365 spfx project upgrade --toVersion ${latest} --output md`,
+      detail: `Run "SPFX Pretty: Upgrade Assessment" for the steps, or: npx -p @pnp/cli-microsoft365@latest m365 spfx project upgrade --toVersion ${latest} --output md`,
     });
   }
 

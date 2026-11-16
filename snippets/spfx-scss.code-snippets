@@ -1,12 +1,12 @@
 {
   "Theme colour token": {
     "prefix": "spfx-theme-color",
-    "description": "SPFX-Pretty: theme-aware colour (follows site theme + section background)",
+    "description": "SPFX Pretty: theme-aware colour (follows site theme + section background)",
     "body": ["${1|color,background-color,border-color|}: \"[theme:${2|bodyText,bodySubtext,bodyBackground,bodyDivider,link,linkHovered,themePrimary,themeDark,themeLighter,neutralLight|}, default: ${3:#323130}]\";"]
   },
   "Brand Center font": {
     "prefix": "spfx-brand-font",
-    "description": "SPFX-Pretty: SharePoint Brand Center font slot with fallback",
+    "description": "SPFX Pretty: SharePoint Brand Center font slot with fallback",
     "body": ["font-family: var(--fontFamily${1|CustomFont800,CustomFont1300,CustomFont1100,CustomFont1000,CustomFont700,CustomFont600,CustomFont500,CustomFont200|}, var(--fontFamilyBase));"]
   }
 }

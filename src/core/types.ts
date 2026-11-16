@@ -1,5 +1,5 @@
 /**
- * Core types for SPFX-Pretty. Nothing in /core depends on the VS Code API,
+ * Core types for SPFX Pretty. Nothing in /core depends on the VS Code API,
  * so the same engine powers the extension and the CLI (handy for pipelines).
  */
 

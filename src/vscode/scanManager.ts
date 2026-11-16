@@ -47,7 +47,7 @@ export class ScanManager implements vscode.Disposable {
         if (f.severity === 'pass') { continue; }
         const range = rangeFromDisk(f);
         const d = new vscode.Diagnostic(range, f.message + (f.detail ? `\n${f.detail}` : ''), SEVERITY[f.severity]);
-        d.source = 'SPFX-Pretty';
+        d.source = 'SPFX Pretty';
         d.code = f.ruleId;
         byFile.set(f.file, [...(byFile.get(f.file) ?? []), d]);
       }

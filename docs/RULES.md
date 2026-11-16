@@ -1,4 +1,4 @@
-# SPFX-Pretty rules
+# SPFX Pretty rules
 
 Every rule can be switched off with `spfxPretty.disabledRules` (settings) or `disabledRules` in `.spfxprettyrc.json`,
 or by right-clicking a finding > **Ignore This Rule**.
@@ -82,7 +82,7 @@ Options: `--fix`, `--json`, `--html <file>`, `--upgrade-md <file>`, `--company-i
 
 ```yaml
 - pwsh: npx --yes spfx-pretty . --min-score 70 --html "$(Build.ArtifactStagingDirectory)/spfx-pretty.html"
-  displayName: SPFX-Pretty checks
+  displayName: SPFX Pretty checks
 - publish: $(Build.ArtifactStagingDirectory)/spfx-pretty.html
   artifact: spfx-pretty-report
 ```

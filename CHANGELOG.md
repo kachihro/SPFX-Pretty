@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0 - 17/11/2026
+- Renamed to "SPFX Pretty" (no hyphen) everywhere you see it; the extension ID stays spfx-pretty so it updates in place
+- Transparent black/white box-shadows are no longer reported as hard-coded colours
+
 ## 0.5.3 - 17/11/2026
 - Report screenshot embedded in the README so it shows on the installed extension page
 
@@ -20,7 +24,7 @@
 - Unused office-ui-fabric-react dependency is reported as "remove it"
 
 ## 0.3.1 - 17/11/2026
-- Scan Project, and clicking the SPFX-Pretty Activity Bar icon, open the report straight away (setting: spfxPretty.showReportAfterScan)
+- Scan Project, and clicking the SPFX Pretty Activity Bar icon, open the report straight away (setting: spfxPretty.showReportAfterScan)
 
 ## 0.3.0 - 17/11/2026
 - Own Activity Bar icon with an errors + warnings badge

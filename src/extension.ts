@@ -22,18 +22,18 @@ export function activate(context: vscode.ExtensionContext): void {
   const tree = new FindingsTree(scans);
   const view = vscode.window.createTreeView('spfxPretty.findings', { treeDataProvider: tree, showCollapseAll: true });
   context.subscriptions.push(scans, view);
-  // Clicking the SPFX-Pretty icon on the activity bar opens the report straight away
+  // Clicking the SPFX Pretty icon on the activity bar opens the report straight away
   view.onDidChangeVisibility(e => {
     if (e.visible && !panel && scans.all.length && vscode.workspace.getConfiguration('spfxPretty').get('showReportAfterScan', true)) {
       vscode.commands.executeCommand('spfxPretty.showReport');
     }
   });
-  // Badge on the SPFX-Pretty activity bar icon: errors + warnings across all projects
+  // Badge on the SPFX Pretty activity bar icon: errors + warnings across all projects
   scans.onDidChange(() => {
     const all = scans.all.flatMap(r => r.findings);
     const errors = all.filter(f => f.severity === 'error').length;
     const warnings = all.filter(f => f.severity === 'warning').length;
-    view.badge = errors + warnings ? { value: errors + warnings, tooltip: `SPFX-Pretty: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}` } : undefined;
+    view.badge = errors + warnings ? { value: errors + warnings, tooltip: `SPFX Pretty: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}` } : undefined;
   });
 
   // ---- Severity filter for the tree (remembered per workspace) ----
@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext): void {
       { f: 'errors', label: '$(error) Errors only', description: 'just the must-fix items' },
     ];
     items.forEach(i => { i.picked = i.f === tree.filter; if (i.f === tree.filter) { i.label += '  $(check)'; } });
-    const pick = await vscode.window.showQuickPick(items, { title: 'SPFX-Pretty: show which findings?' });
+    const pick = await vscode.window.showQuickPick(items, { title: 'SPFX Pretty: show which findings?' });
     if (pick) { applyFilter(pick.f); }
   };
   context.subscriptions.push(
@@ -76,10 +76,10 @@ export function activate(context: vscode.ExtensionContext): void {
       provideCodeActions(doc, range) {
         if (doc.isDirty) { return []; }
         return scans.findingFor(doc.uri.fsPath, range, doc).flatMap(f => f.fixes.map((fix, i) => {
-          const a = new vscode.CodeAction(`SPFX-Pretty: ${fix.title}`, vscode.CodeActionKind.QuickFix);
+          const a = new vscode.CodeAction(`SPFX Pretty: ${fix.title}`, vscode.CodeActionKind.QuickFix);
           a.command = { command: 'spfxPretty.applyFix', title: fix.title, arguments: [f, i] };
           a.isPreferred = i === 0;
-          a.diagnostics = vscode.languages.getDiagnostics(doc.uri).filter(d => d.source === 'SPFX-Pretty' && d.code === f.ruleId && d.range.intersection(range));
+          a.diagnostics = vscode.languages.getDiagnostics(doc.uri).filter(d => d.source === 'SPFX Pretty' && d.code === f.ruleId && d.range.intersection(range));
           return a;
         }));
       },
@@ -95,11 +95,11 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('spfxPretty.scan', async () => {
       const results = rescan();
       if (!results.length) {
-        vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found (looking for config/package-solution.json).');
+        vscode.window.showInformationMessage('SPFX Pretty: no SPFx project found (looking for config/package-solution.json).');
         return;
       }
       const n = results.reduce((s, r) => s + issues(r).length, 0);
-      const summary = `SPFX-Pretty: ${results.map(r => `${r.solution?.name ?? path.basename(r.root)} ${r.score}/100`).join(', ')}${n ? ` - ${n} thing${n === 1 ? '' : 's'} to polish ✨` : ' - everything looks lovely! 🎉'}`;
+      const summary = `SPFX Pretty: ${results.map(r => `${r.solution?.name ?? path.basename(r.root)} ${r.score}/100`).join(', ')}${n ? ` - ${n} thing${n === 1 ? '' : 's'} to polish ✨` : ' - everything looks lovely! 🎉'}`;
       if (vscode.workspace.getConfiguration('spfxPretty').get('showReportAfterScan', true)) {
         await vscode.commands.executeCommand('spfxPretty.showReport');
         vscode.window.setStatusBarMessage(summary, 6000);
@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
       await vscode.workspace.saveAll(false);
       const n = await applySafeFixes(scans, f => f.category === cat.category && f.file.startsWith(cat.root));
       rescan();
-      vscode.window.showInformationMessage(`SPFX-Pretty: applied ${n} ${cat.category} fix${n === 1 ? '' : 'es'} ✨${n ? '' : ' - the rest need a human touch (right-click an item for its options)'}`);
+      vscode.window.showInformationMessage(`SPFX Pretty: applied ${n} ${cat.category} fix${n === 1 ? '' : 'es'} ✨${n ? '' : ' - the rest need a human touch (right-click an item for its options)'}`);
     }),
 
     vscode.commands.registerCommand('spfxPretty.ignoreRule', async (node: unknown) => {
@@ -135,7 +135,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const list = cfg.get<string[]>('disabledRules') ?? [];
       if (!list.includes(f.ruleId)) { await cfg.update('disabledRules', [...list, f.ruleId], vscode.ConfigurationTarget.Workspace); }
       rescan();
-      vscode.window.showInformationMessage(`SPFX-Pretty: ignoring ${f.ruleId} in this workspace (undo in Settings > SPFX-Pretty > Disabled Rules).`);
+      vscode.window.showInformationMessage(`SPFX Pretty: ignoring ${f.ruleId} in this workspace (undo in Settings > SPFX Pretty > Disabled Rules).`);
     }),
 
     vscode.commands.registerCommand('spfxPretty.copyMessage', async (node: unknown) => {
@@ -154,9 +154,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
     vscode.commands.registerCommand('spfxPretty.showReport', () => {
       const results = scans.all.length ? scans.all : rescan();
-      if (!results.length) { vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found.'); return; }
+      if (!results.length) { vscode.window.showInformationMessage('SPFX Pretty: no SPFx project found.'); return; }
       if (panel) { panel.reveal(); refreshPanel(scans); return; }
-      panel = vscode.window.createWebviewPanel('spfxPretty.report', 'SPFX-Pretty', vscode.ViewColumn.Active, { enableScripts: true, retainContextWhenHidden: true });
+      panel = vscode.window.createWebviewPanel('spfxPretty.report', 'SPFX Pretty', vscode.ViewColumn.Active, { enableScripts: true, retainContextWhenHidden: true });
       panel.iconPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'icon.png');
       panel.onDidDispose(() => { panel = undefined; });
       panel.webview.onDidReceiveMessage(async (msg: { type: string; idx: number; fix?: number; section?: string }) => {
@@ -167,7 +167,7 @@ export function activate(context: vscode.ExtensionContext): void {
           const n = await applySafeFixes(scans, f => f.file.startsWith(r.root) && match(f));
           rescan();
           refreshPanel(scans);
-          vscode.window.setStatusBarMessage(`SPFX-Pretty: applied ${n} fix${n === 1 ? '' : 'es'} ✨`, 5000);
+          vscode.window.setStatusBarMessage(`SPFX Pretty: applied ${n} fix${n === 1 ? '' : 'es'} ✨`, 5000);
           return;
         }
         const f = r?.findings[msg.idx];
@@ -181,7 +181,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('spfxPretty.fixAll', async () => {
       const results = scans.all.length ? scans.all : rescan();
       const safe = results.flatMap(r => issues(r)).filter(f => f.fixes.some(x => x.safe));
-      if (!safe.length) { vscode.window.showInformationMessage('SPFX-Pretty: no automatic fixes left - the rest need a human touch (descriptions etc.).'); return; }
+      if (!safe.length) { vscode.window.showInformationMessage('SPFX Pretty: no automatic fixes left - the rest need a human touch (descriptions etc.).'); return; }
       const go = 'Apply all';
       const detail = safe.slice(0, 15).map(f => `• ${f.fixes.find(x => x.safe)!.title}`).join('\n') + (safe.length > 15 ? `\n…and ${safe.length - 15} more` : '');
       if (await vscode.window.showInformationMessage(`Apply ${safe.length} safe fix${safe.length === 1 ? '' : 'es'}?`, { modal: true, detail }, go) !== go) { return; }
@@ -189,7 +189,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const applied = await applySafeFixes(scans, () => true);
       rescan();
       const score = scans.all.map(r => `${r.score}/100`).join(', ');
-      vscode.window.showInformationMessage(`SPFX-Pretty: applied ${applied} fix${applied === 1 ? '' : 'es'} - niceness now ${score} ✨`, 'Show report')
+      vscode.window.showInformationMessage(`SPFX Pretty: applied ${applied} fix${applied === 1 ? '' : 'es'} - niceness now ${score} ✨`, 'Show report')
         .then(p => p && vscode.commands.executeCommand('spfxPretty.showReport'));
     }),
 
@@ -220,7 +220,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!root) { return; }
       const project = loadProject(root.root, readConfig());
       const webparts = project.components.filter(c => c.kind === 'WebPart');
-      if (!webparts.length) { vscode.window.showInformationMessage('SPFX-Pretty: no web parts in this project.'); return; }
+      if (!webparts.length) { vscode.window.showInformationMessage('SPFX Pretty: no web parts in this project.'); return; }
       const pick = webparts.length === 1 ? { c: webparts[0] } : await vscode.window.showQuickPick(
         webparts.map(c => ({ label: componentName(c), description: c.alias, c })), { title: 'Which web part?' });
       if (!pick) { return; }
@@ -291,13 +291,13 @@ function refreshPanel(scans: ScanManager): void {
   if (!r) { return; }
   panelRoot = r.root;
   const nonce = crypto.randomBytes(16).toString('base64');
-  panel.title = `SPFX-Pretty: ${r.solution?.name ?? path.basename(r.root)}`;
+  panel.title = `SPFX Pretty: ${r.solution?.name ?? path.basename(r.root)}`;
   panel.webview.html = renderReportHtml(r, { interactive: true, nonce, cspSource: panel.webview.cspSource });
 }
 
 export async function pickProject(results: ScanResult[]): Promise<ScanResult | undefined> {
   if (results.length <= 1) {
-    if (!results.length) { vscode.window.showInformationMessage('SPFX-Pretty: no SPFx project found.'); }
+    if (!results.length) { vscode.window.showInformationMessage('SPFX Pretty: no SPFx project found.'); }
     return results[0];
   }
   const pick = await vscode.window.showQuickPick(results.map(r => ({ label: r.solution?.name ?? path.basename(r.root), description: vscode.workspace.asRelativePath(r.root), r })), { title: 'Which SPFx project?' });
@@ -331,7 +331,7 @@ async function makeTitlesNice(result: ScanResult): Promise<void> {
     const doc = new JsoncDoc(item.file); // re-read: earlier renames may have changed the file
     if (await applyFix({ title: 'Rename', safe: true, edits: doc.set(item.path, value.trim()) })) { changed++; }
   }
-  vscode.window.showInformationMessage(`SPFX-Pretty: renamed ${changed} title${changed === 1 ? '' : 's'} ✨`);
+  vscode.window.showInformationMessage(`SPFX Pretty: renamed ${changed} title${changed === 1 ? '' : 's'} ✨`);
 }
 
 /** Offer every icon fix (sppkg, toolbox, commands, Teams) and apply the chosen ones. */
@@ -368,7 +368,7 @@ async function generateIcons(root: string, colour: string): Promise<void> {
       });
     });
   }
-  if (!items.length) { vscode.window.showInformationMessage('SPFX-Pretty: every icon is already in place 🎨'); return; }
+  if (!items.length) { vscode.window.showInformationMessage('SPFX Pretty: every icon is already in place 🎨'); return; }
   const chosen = await vscode.window.showQuickPick(items, { canPickMany: true, title: `Generate icons in ${colour}`, matchOnDescription: true });
   if (!chosen?.length) { return; }
   let n = 0;
@@ -376,6 +376,6 @@ async function generateIcons(root: string, colour: string): Promise<void> {
     const fix = item.make();
     if (fix && await applyFix(fix)) { n++; }
   }
-  vscode.window.showInformationMessage(`SPFX-Pretty: generated ${n} icon set${n === 1 ? '' : 's'} 🎨`, 'Show preview')
+  vscode.window.showInformationMessage(`SPFX Pretty: generated ${n} icon set${n === 1 ? '' : 's'} 🎨`, 'Show preview')
     .then(p => p && vscode.commands.executeCommand('spfxPretty.showReport'));
 }

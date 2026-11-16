@@ -1,7 +1,7 @@
 {
   "SPFx onThemeChanged (section backgrounds)": {
     "prefix": "spfx-theme-changed",
-    "description": "SPFX-Pretty: push the section's theme into CSS variables so the web part follows section backgrounds",
+    "description": "SPFX Pretty: push the section's theme into CSS variables so the web part follows section backgrounds",
     "body": [
       "protected onThemeChanged(currentTheme: IReadonlyTheme | undefined): void {",
       "\tif (!currentTheme) { return; }",
@@ -20,7 +20,7 @@
   },
   "SPFx ThemeProvider consumer": {
     "prefix": "spfx-theme-provider",
-    "description": "SPFX-Pretty: consume ThemeProvider in onInit and re-render on theme change",
+    "description": "SPFX Pretty: consume ThemeProvider in onInit and re-render on theme change",
     "body": [
       "private _themeProvider: ThemeProvider;",
       "private _themeVariant: IReadonlyTheme | undefined;",

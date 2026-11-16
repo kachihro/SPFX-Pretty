@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SPFX-Pretty CLI - run the same checks in Azure DevOps / GitHub pipelines.
+ * SPFX Pretty CLI - run the same checks in Azure DevOps / GitHub pipelines.
  *
  *   npx spfx-pretty [projectDir] [--fix] [--json] [--html report.html] [--upgrade-md upgrade.md]
  *                   [--company-icon logo.png] [--online | --latest 1.24.1] [--min-score 80] [--fail-on warning|error]

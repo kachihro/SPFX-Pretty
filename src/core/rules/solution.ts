@@ -77,8 +77,8 @@ export function solutionRules(ctx: RuleContext): void {
     ctx.issue({
       ruleId: 'SOL004', severity: 'warning', category: 'Metadata', file, ...doc.locate(['solution', 'developer']),
       message: `Developer details missing: ${devMissing.join(', ')}.`,
-      detail: 'The developer block is shown on the app details page in the App Catalog and is required for Teams / Viva Connections. Set your defaults once in Settings > SPFX-Pretty > Developer (or .spfxprettyrc.json).',
-      fixes: canFill ? [{ title: 'Fill developer details from SPFX-Pretty settings', safe: true, edits: doc.set(['solution', 'developer'], merged) }] : [],
+      detail: 'The developer block is shown on the app details page in the App Catalog and is required for Teams / Viva Connections. Set your defaults once in Settings > SPFX Pretty > Developer (or .spfxprettyrc.json).',
+      fixes: canFill ? [{ title: 'Fill developer details from SPFX Pretty settings', safe: true, edits: doc.set(['solution', 'developer'], merged) }] : [],
     });
   } else {
     ctx.pass('SOL004', 'Metadata', `Developer details set (${dev.name})`, file);

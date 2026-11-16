@@ -108,7 +108,7 @@ function themeVariantRules(ctx: RuleContext, c: LoadedComponent): void {
       ruleId: 'BRD002', severity: 'warning', category: 'Branding', file: doc.file, component: who,
       ...doc.locate(['supportsThemeVariants']),
       message: `"${who}" opts in to theme variants but never handles theme changes - colours won't follow the section background.`,
-      detail: 'Override onThemeChanged() (or consume ThemeProvider) and push semanticColors into CSS variables. Run "SPFX-Pretty: Show Theme-Aware Web Part Snippet" for code tailored to this web part.',
+      detail: 'Override onThemeChanged() (or consume ThemeProvider) and push semanticColors into CSS variables. Run "SPFX Pretty: Show Theme-Aware Web Part Snippet" for code tailored to this web part.',
     });
   } else {
     ctx.pass('BRD001', 'Branding', `"${who}" follows section backgrounds (theme variants + theme change handling)`, doc.file, who, 3);
@@ -137,6 +137,8 @@ function styleRules(ctx: RuleContext, c: LoadedComponent): void {
         HEX_OR_RGB.lastIndex = 0;
         let hm: RegExpExecArray | null;
         while ((hm = HEX_OR_RGB.exec(value))) {
+          // transparent black/white shadows work on any background - not a branding problem
+          if (/shadow/i.test(prop) && /^rgba\(\s*(0\s*,\s*0\s*,\s*0|255\s*,\s*255\s*,\s*255)\s*,/i.test(hm[0])) { continue; }
           hardColours++;
           const slot = themeSlotFor(prop, hm[0], l.selector);
           const token = `"[theme:${slot}, default: ${hm[0]}]"`;

@@ -5,7 +5,7 @@ import { Fix, ProjectConfig } from '../core/types';
 let latestOnline: string | undefined;
 export function setLatestOnline(v: string | undefined): void { latestOnline = v; }
 
-/** Read SPFX-Pretty settings (a project's .spfxprettyrc.json is layered on top by the core loader). */
+/** Read SPFX Pretty settings (a project's .spfxprettyrc.json is layered on top by the core loader). */
 export function readConfig(): Partial<ProjectConfig> {
   const c = vscode.workspace.getConfiguration('spfxPretty');
   return {
@@ -38,7 +38,7 @@ export async function applyFix(fix: Fix): Promise<boolean> {
   if (dirty.length) {
     const save = 'Save and retry';
     const pick = await vscode.window.showWarningMessage(
-      `SPFX-Pretty: ${dirty.map(d => vscode.workspace.asRelativePath(d.uri)).join(', ')} has unsaved changes. Save first so the fix lands in the right spot.`, save);
+      `SPFX Pretty: ${dirty.map(d => vscode.workspace.asRelativePath(d.uri)).join(', ')} has unsaved changes. Save first so the fix lands in the right spot.`, save);
     if (pick === save) { await Promise.all(dirty.map(d => d.save())); }
     return false;
   }

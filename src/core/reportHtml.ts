@@ -257,7 +257,7 @@ export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
 
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">${csp}
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SPFX-Pretty Report</title>
+<title>SPFX Pretty Report</title>
 <style>
 :root{--bg:#f5f5f5;--card:#fff;--text:#242424;--sub:#616161;--line:#e0e0e0;--good:#107c10;--warn:#bc4b09;--bad:#c50f1f;--info:#0f6cbd;--accent:#0f6cbd;--uglybg:#fde7e9;--sp:#fff;--sptext:#242424}
 @media (prefers-color-scheme: dark){:root:not(.vscode-light){--bg:#1f1f1f;--card:#2b2b2b;--text:#f0f0f0;--sub:#b0b0b0;--line:#3d3d3d;--good:#54b054;--warn:#f7a35c;--bad:#f1707b;--info:#62abf5;--accent:#62abf5;--uglybg:#4a1f23}}
@@ -362,7 +362,7 @@ ${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolb
 ${section('pane', 'Property pane', 'what authors see when they edit the web part', '#038387', propertyPanes(c), nav[2][2], safe('pane'), ia)}
 ${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and what an upgrade involves', '#ca5010', upgradeSection(c), nav[3][2], safe('versions'), ia)}
 ${others.length ? section('others', 'Other components', 'extensions and libraries', '#5c5c5c', `<div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>`) : ''}
-${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX-Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
+${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
 </div>
 <script${opts.nonce ? ` nonce="${opts.nonce}"` : ''}>
 const vscode = ${opts.interactive ? 'acquireVsCodeApi()' : 'null'};
