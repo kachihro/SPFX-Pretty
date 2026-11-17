@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.2 - 17/11/2026
+- New icons in the M365 style: a magic wand with sparkles over an "SPFX" label (Activity Bar and extension page)
+
 ## 0.7.1 - 17/11/2026
 - Source on GitHub: https://github.com/kachihro/SPFX-Pretty
 - README screenshot and links point at GitHub, so they work on any extension page

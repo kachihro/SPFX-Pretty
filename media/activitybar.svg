@@ -1,17 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-  <defs>
-    <mask id="label">
-      <rect width="24" height="24" fill="#fff"/>
-      <text x="12" y="20.9" text-anchor="middle" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="6.2" font-weight="700" letter-spacing="-0.1" fill="#000">SPFx</text>
-    </mask>
-  </defs>
-  <!-- frame -->
-  <path d="M4.5 2.75h15a1.75 1.75 0 0 1 1.75 1.75v10.25h-1.5V4.5a.25.25 0 0 0-.25-.25h-15a.25.25 0 0 0-.25.25v10.25h-1.5V4.5A1.75 1.75 0 0 1 4.5 2.75z" fill="currentColor"/>
-  <!-- web part tiles -->
-  <rect x="6.6" y="5.9" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
-  <rect x="12.8" y="5.9" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
-  <rect x="6.6" y="10.4" width="4.6" height="3.4" rx=".6" fill="currentColor"/>
-  <path d="M15.1 10.1l.55 1.35 1.35.55-1.35.55-.55 1.35-.55-1.35-1.35-.55 1.35-.55z" fill="currentColor"/>
-  <!-- SPFx label band (text knocked out) -->
-  <rect x="2.75" y="15.6" width="18.5" height="6.4" rx="1.6" fill="currentColor" mask="url(#label)"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  <!-- frame, in the style of the M365 icon -->
+  <path d="M3.6 15.2V4.4a1.6 1.6 0 0 1 1.6-1.6h13.6a1.6 1.6 0 0 1 1.6 1.6v10.8" stroke-width="1.3"/>
+  <!-- "SPFX" label box -->
+  <rect x="2.9" y="15.2" width="18.2" height="6.2" rx="1.4" stroke-width="1.3"/>
+  <text x="12" y="20.25" text-anchor="middle" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="5.3" font-weight="700" letter-spacing="0.15" fill="currentColor" stroke="none">SPFX</text>
+  <!-- magic wand: "make it pretty / tidy up" -->
+  <path d="M7.6 13.2l6.6-6.6" stroke-width="1.6"/>
+  <path d="M13.4 7.4l1.6-1.6" stroke-width="2.4"/>
+  <!-- sparkles -->
+  <path d="M17 4.9l.55 1.45 1.45.55-1.45.55-.55 1.45-.55-1.45-1.45-.55 1.45-.55z" fill="currentColor" stroke="none"/>
+  <path d="M9.6 4.6l.35.9.9.35-.9.35-.35.9-.35-.9-.9-.35.9-.35z" fill="currentColor" stroke="none"/>
+  <path d="M16.4 10.4l.3.75.75.3-.75.3-.3.75-.3-.75-.75-.3.75-.3z" fill="currentColor" stroke="none"/>
 </svg>
