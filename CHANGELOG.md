@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 - 17/11/2026
+- Report opens with every section collapsed (it remembers the ones you open)
+- Toolbox cards are full-width (landscape): icon, name, group and description side by side
+- Issue details laid out as Problem / Why / Fix, with the change preview and Apply / Ignore / Help together in one Fix box
+- Help examples: formatted, highlighted JSON
+
 ## 0.9.2 - 17/11/2026
 - Report section bars: description under the title; folded sections are one clean bar
 - Marketplace page: more features and a second screenshot
