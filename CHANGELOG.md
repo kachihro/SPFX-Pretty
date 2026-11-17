@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 - 17/11/2026
+- Ready for the VS Code Marketplace as kachihro.spfx-pretty (free to use licence)
+- npm run publish-marketplace + a "Publish to Marketplace" GitHub workflow (on version tags), with checks that images and links are public
+- Website and README: install from the Marketplace; building from source is for developers
+- install-local removes the old ChrisOC.spfx-pretty copy
+
 ## 0.8.1 - 17/11/2026
 - Report issues are calm expandable rows (dot + short title): expand to see the explanation and exactly what will change, then Apply / Ignore / Help - no more walls of orange buttons
 - Toolbox tiles are left-aligned and wider

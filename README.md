@@ -11,6 +11,10 @@
 - 🧹 **Leftover defaults** - "Description Field", "Test message", unused properties
 - 🔢 **Versions** - React / Node / SPFx mismatches and an upgrade plan with effort
 
+## Install
+
+In VS Code: **Extensions** (`Ctrl+Shift+X`) → search **SPFX Pretty** → **Install**.
+
 ## How to use
 
 1. Open an SPFx project and click the **SPFX Pretty** icon in the Activity Bar (or set **SPFX Pretty › Location** to *explorer* to have it next to Outline)

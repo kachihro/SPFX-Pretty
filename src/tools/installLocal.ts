@@ -6,5 +6,10 @@ const root = path.join(__dirname, '..', '..');
 const { version, name } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const vsix = path.join(root, `${name}-${version}.vsix`);
 if (!fs.existsSync(vsix)) { console.error(`Not found: ${vsix} - run npm run package first`); process.exit(1); }
+// The extension used to be published as ChrisOC.spfx-pretty - remove that copy so there aren't two
+try {
+  const installed = execSync('code --list-extensions', { encoding: 'utf8' });
+  if (/^chrisoc\.spfx-pretty$/im.test(installed)) { execSync('code --uninstall-extension ChrisOC.spfx-pretty', { stdio: 'inherit' }); }
+} catch { /* code CLI not on PATH - the install below will say so */ }
 execSync(`code --install-extension "${vsix}" --force`, { stdio: 'inherit' });
 console.log(`\nInstalled ${name} ${version}. Restart VS Code (or run "Developer: Reload Window") to use it.`);

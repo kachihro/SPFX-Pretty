@@ -15,7 +15,13 @@ md = md.replace(/!\[([^\]]*)\]\((media\/[^)]+)\)/g, (_m, alt: string, rel: strin
   const mime = /\.jpe?g$/i.test(file) ? 'image/jpeg' : 'image/png';
   return `![${alt}](data:${mime};base64,${fs.readFileSync(path.join(root, file)).toString('base64')})`;
 });
-md = md.replace(/\]\((?!https?:|data:|#)([^)]+)\)/g, (_m, rel: string) => `](${GITHUB}${rel})`);
+// Relative links: to the public website once it's live (the GitHub repo is private), else GitHub
+const site = DOCS_SITE.replace(/\/$/, '');
+const toSite = (rel: string) => rel === 'docs/RULES.md' ? `${site}/settings.html`
+  : rel === 'docs/faq/README.md' ? `${site}/faq/index.html`
+  : /^docs\/faq\/([A-Z]{3}\d{3})\.md$/.test(rel) ? `${site}/faq/${rel.slice(9, 15)}.html`
+  : `${site}/guide.html`;
+md = md.replace(/\]\((?!https?:|data:|#)([^)]+)\)/g, (_m, rel: string) => `](${site ? toSite(rel) : GITHUB + rel})`);
 fs.mkdirSync(path.join(root, 'build'), { recursive: true });
 fs.writeFileSync(path.join(root, 'build', 'README.md'), md);
 console.log('build/README.md written for the VSIX');

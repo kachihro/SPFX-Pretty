@@ -7,8 +7,9 @@ Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/pub
 
 | Item | Now | Needed for the Marketplace |
 |---|---|---|
-| `publisher` in package.json | `ChrisOC` | Must equal your Marketplace **publisher ID** (e.g. `kachihro`). Changing it changes the extension ID (`kachihro.spfx-pretty`). |
-| `LICENSE` | "All rights reserved. Internal tool. Not for redistribution" | Pick a licence you are happy to publish under (e.g. MIT), or keep it proprietary. |
+| `publisher` in package.json | `kachihro` ✅ | Must equal your Marketplace **publisher ID**. Extension ID: `kachihro.spfx-pretty`. |
+| `LICENSE` | Free to use, proprietary ✅ | - |
+| Website address | **not set yet** | Set `DOCS_SITE` in `src/core/site.ts` - `npm run publish-marketplace` refuses to publish until it is. |
 | README images | Embedded in the VSIX README | Marketplace requires **HTTPS** image URLs (no `data:` images, no SVG). Host them on the help website and set `DOCS_SITE` in `src/core/site.ts` - the packaged README then uses `https://<site>/assets/before-after.png` automatically. |
 | Repo links | Private GitHub repo | Links to a private repo ask visitors to sign in. Point readers at the help website instead (or make the repo public). |
 | Icon | `media/icon.png`, 128x128 PNG | OK - PNG, at least 128x128, not SVG. |
@@ -21,7 +22,6 @@ Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/pub
    - **Organization: All accessible organizations** (vsce fails with 401 otherwise)
    - **Scopes: Custom defined > Marketplace > Manage**
    - Copy the token - it is shown once.
-3. Set `"publisher": "kachihro"` in package.json (your publisher ID), commit.
 4. Check the token works:
    ```powershell
    npx vsce verify-pat kachihro
@@ -31,9 +31,11 @@ Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/pub
 
 ```powershell
 npx vsce login kachihro            # paste the PAT once
-npm run package                    # builds spfx-pretty-<version>.vsix (README images must be HTTPS - see above)
-npx vsce publish -i .\spfx-pretty-0.8.0.vsix
+npm run publish-marketplace        # builds the VSIX, checks images/links are public, publishes
 ```
+
+Or let GitHub do it: add the PAT as the repository secret `VSCE_PAT`, bump the version in package.json, then
+`git tag v0.9.0; git push origin v0.9.0` - the **Publish to Marketplace** workflow tests, packages and publishes.
 
 Other useful commands:
 

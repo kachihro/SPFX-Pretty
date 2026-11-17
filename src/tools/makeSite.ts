@@ -14,6 +14,8 @@ const out = path.join(root, 'site');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const GITHUB = 'https://github.com/kachihro/SPFX-Pretty';
 const KACHIHRO = 'https://www.kachihro.com';
+const MARKETPLACE = `https://marketplace.visualstudio.com/items?itemName=${pkg.publisher}.${pkg.name}`;
+const EXT_ID = `${pkg.publisher}.${pkg.name}`;
 
 const esc = (s: string) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 /** `code` and **bold** in short help strings */
@@ -103,7 +105,7 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
 <section class="hero">
   <h1>Make your SPFx apps look <span class="grad">professional.</span></h1>
   <p class="lead">SPFX Pretty is a free VS Code extension that checks your SharePoint Framework project and fixes what people actually see - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.</p>
-  <div class="cta"><a class="btn" href="guide.html#install">Install it</a><a class="btn alt" href="guide.html">See how it works</a></div>
+  <div class="cta"><a class="btn" href="${MARKETPLACE}">Install from the Marketplace</a><a class="btn alt" href="guide.html">See how it works</a></div>
 </section>
 <div class="shot"><img src="assets/before-after.png" alt="Before: project-client-side-solution with a generic icon, 7/100. After SPFX Pretty: Kachihro Project with a company icon, 51/100."></div>
 
@@ -117,7 +119,7 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
 
 <p class="kicker">How it works</p><h2>Three steps</h2>
 <ol class="steps">
-  <li><b>Open your SPFx project</b> in VS Code and click the <b>SPFX</b> icon on the left.</li>
+  <li><b>Install SPFX Pretty</b> from the VS Code Marketplace, then <b>open your SPFx project</b> and click the <b>SPFX</b> icon on the left.</li>
   <li><b>The report opens</b> - it shows your app the way the App Catalog, "Add an app" and Site Contents show it, with every issue underlined.</li>
   <li><b>Click ▶ Fix step by step</b> - fix, explain, skip or ignore each issue. Most are one click; the rest tell you exactly what to do.</li>
 </ol>
@@ -130,13 +132,16 @@ page('guide.html', 'How to use', 'How to use', `
 
 <h2 id="install">Install</h2>
 <ol class="steps">
-  <li><b>Get the code</b><pre><code>git clone ${GITHUB}.git
-cd SPFX-Pretty</code></pre></li>
-  <li><b>Build and install it into VS Code</b><pre><code>npm install
-npm run install-local</code></pre></li>
-  <li><b>Restart VS Code.</b> The SPFX icon appears on the Activity Bar (left edge).</li>
+  <li><b>Open VS Code</b> and go to <b>Extensions</b> (<code>Ctrl+Shift+X</code>).</li>
+  <li><b>Search for SPFX Pretty</b> and click <b>Install</b> - or open it <a href="${MARKETPLACE}">on the Marketplace</a>.</li>
+  <li><b>Open an SPFx project.</b> The SPFX icon appears on the Activity Bar (left edge).</li>
 </ol>
-<p>To update later: <code>git pull; npm install; npm run install-local</code>.</p>
+<p>From a terminal: <code>code --install-extension ${EXT_ID}</code>. Updates install automatically.</p>
+<details class="box"><summary><b>For developers: build from source</b></summary>
+<pre><code>git clone ${GITHUB}.git
+cd SPFX-Pretty
+npm install
+npm run install-local</code></pre></details>
 
 <h2 id="report">The report</h2>
 <p>Open an SPFx project (a folder with <code>config/package-solution.json</code>) and click the SPFX icon - the report opens straight away. It is grouped into sections you can fold:</p>

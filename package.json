@@ -2,12 +2,10 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.8.1",
-  "publisher": "ChrisOC",
+  "version": "0.9.0",
+  "publisher": "kachihro",
   "license": "SEE LICENSE IN LICENSE",
-  "repository": { "type": "git", "url": "https://github.com/kachihro/SPFX-Pretty.git" },
   "homepage": "https://www.kachihro.com",
-  "bugs": { "url": "https://github.com/kachihro/SPFX-Pretty/issues" },
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.90.0"
@@ -188,8 +186,9 @@
     "docs": "npm run compile && node ./out/tools/makeDocs.js",
     "site": "npm run compile && node ./out/tools/makeSite.js",
     "test": "npm run compile && node --test out/test/*.test.js",
-    "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --readme-path build/README.md --baseContentUrl https://github.com/kachihro/SPFX-Pretty/blob/main/",
+    "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --allow-missing-repository --no-rewrite-relative-links --readme-path build/README.md",
     "install-local": "npm run package && node ./out/tools/installLocal.js",
+    "publish-marketplace": "npm run package && node ./out/tools/publish.js",
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {
