@@ -146,7 +146,7 @@ export interface ProjectConfig {
 }
 
 export const DEFAULT_CONFIG: ProjectConfig = {
-  brandColour: '#0F6CBD',
+  brandColour: '#2A6FDB',
   toolboxGroup: '',
   appNamePrefix: '',
   developer: { name: '', websiteUrl: '', privacyUrl: '', termsOfUseUrl: '', mpnId: 'Undefined-1.0.0' },

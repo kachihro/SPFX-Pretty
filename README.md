@@ -29,3 +29,8 @@
 | **Apply All Safe Fixes** | Everything that doesn't need a human |
 
 More: [FAQ for every rule](docs/faq/README.md) · [rules, settings and CLI](docs/RULES.md)
+
+## About
+
+SPFX Pretty is made by **[Kachihro](https://www.kachihro.com)** - Microsoft 365 and Azure projects done properly.
+Source and issues: [github.com/kachihro/SPFX-Pretty](https://github.com/kachihro/SPFX-Pretty)

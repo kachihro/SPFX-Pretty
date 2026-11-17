@@ -2,11 +2,11 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "repository": { "type": "git", "url": "https://github.com/kachihro/SPFX-Pretty.git" },
-  "homepage": "https://github.com/kachihro/SPFX-Pretty#readme",
+  "homepage": "https://www.kachihro.com",
   "bugs": { "url": "https://github.com/kachihro/SPFX-Pretty/issues" },
   "icon": "media/icon.png",
   "engines": {
@@ -114,7 +114,7 @@
       "properties": {
         "spfxPretty.brandColour": {
           "type": "string",
-          "default": "#0F6CBD",
+          "default": "#2A6FDB",
           "pattern": "^#[0-9a-fA-F]{6}$",
           "description": "Brand colour used when generating icons (hex, e.g. #0F6CBD)."
         },

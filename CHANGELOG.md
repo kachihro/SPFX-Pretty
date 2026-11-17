@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3 - 17/11/2026
+- Kachihro theme: icon and report use the Kachihro blue / violet / navy palette; default brand colour #2A6FDB
+- Cleaner icon frame (no bulge around the SPFX label)
+- About: extension homepage, README, report and FAQ footers link to kachihro.com
+
 ## 0.7.2 - 17/11/2026
 - New icons in the M365 style: a magic wand with sparkles over an "SPFX" label (Activity Bar and extension page)
 

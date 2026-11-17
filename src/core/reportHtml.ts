@@ -263,7 +263,7 @@ export function renderReportHtml(r: ScanResult, opts: ReportOptions): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SPFX Pretty Report</title>
 <style>
-:root{--bg:#f5f5f5;--card:#fff;--text:#242424;--sub:#616161;--line:#e0e0e0;--good:#107c10;--warn:#bc4b09;--bad:#c50f1f;--info:#0f6cbd;--accent:#0f6cbd;--uglybg:#fde7e9;--sp:#fff;--sptext:#242424}
+:root{--bg:#f5f5f5;--card:#fff;--text:#242424;--sub:#616161;--line:#e0e0e0;--good:#107c10;--warn:#bc4b09;--bad:#c50f1f;--info:#2A6FDB;--accent:#2A6FDB;--uglybg:#fde7e9;--sp:#fff;--sptext:#242424}
 @media (prefers-color-scheme: dark){:root:not(.vscode-light){--bg:#1f1f1f;--card:#2b2b2b;--text:#f0f0f0;--sub:#b0b0b0;--line:#3d3d3d;--good:#54b054;--warn:#f7a35c;--bad:#f1707b;--info:#62abf5;--accent:#62abf5;--uglybg:#4a1f23}}
 body.vscode-dark,body.vscode-high-contrast{--bg:#1f1f1f;--card:#2b2b2b;--text:#f0f0f0;--sub:#b0b0b0;--line:#3d3d3d;--good:#54b054;--warn:#f7a35c;--bad:#f1707b;--info:#62abf5;--accent:#62abf5;--uglybg:#4a1f23}
 *{box-sizing:border-box}
@@ -309,13 +309,13 @@ html{scroll-behavior:smooth}
 .jump{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;padding:10px 0;margin:8px 0 0;background:var(--bg)}
 .jump a{font-size:12.5px;text-decoration:none;color:var(--text);border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 12px}
 .jump a b{color:var(--bad);font-weight:600;margin-left:2px}
-.sec{--c:#0f6cbd;margin:20px 0;border-radius:10px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));background:color-mix(in srgb,var(--c) 7%,var(--bg));overflow:hidden;scroll-margin-top:52px}
-.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--c);color:#fff;cursor:pointer;list-style:none;user-select:none}
+.sec{--c:#2A6FDB;margin:20px 0;border-radius:10px;border:1px solid color-mix(in srgb,var(--c) 45%,var(--line));background:color-mix(in srgb,var(--c) 7%,var(--bg));overflow:hidden;scroll-margin-top:52px}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(90deg,#2A8BD8 0%,#2A6FDB 35%,#7B3FE4 75%,#15287F 100%);color:#fff;cursor:pointer;list-style:none;user-select:none}
 .sh::-webkit-details-marker{display:none}
-.sh:hover{background:color-mix(in srgb,var(--c) 88%,#000)}
+.sh:hover{filter:brightness(.93)}
 .chev{display:inline-block;width:16px;transition:transform .15s}
 .sec[open] > .sh .chev{transform:rotate(90deg)}
-.sec:not([open]){background:var(--c);border-color:var(--c)}
+.sec:not([open]){background:#15287F;border-color:#2A6FDB}
 .sec:not([open]) > .sh{border-radius:0}
 .jump .tools{margin-left:auto;display:flex;gap:6px}
 .jump button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:3px 10px}
@@ -332,11 +332,12 @@ button.mini{font-size:11px;padding:2px 8px;border-radius:999px;text-align:left;m
 button.mini.error{background:var(--bad);border-color:var(--bad)}
 button.explain{background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:999px;font-size:11px;padding:0 8px;margin-left:4px}
 .wizard{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
-button.cmd.big{font-size:14px;padding:6px 16px;border-radius:999px;background:var(--accent);color:#fff;border-color:var(--accent)}
+button.cmd.big{font-size:14px;padding:7px 18px;border-radius:8px;background:#2A6FDB;color:#fff;border-color:#2A6FDB;font-weight:600}
 button.cmd.mini{background:#fff;color:#000;border-color:var(--accent)}
 button.open.mini{background:transparent;color:var(--text);border:1px dashed var(--sub)}
 button.mini.ask{background:#fff;color:#000;border-color:var(--accent)}button.mini.warning{background:var(--warn);border-color:var(--warn)}
 button:disabled{opacity:.6;cursor:default}
+.foot{margin:28px 0 8px;text-align:center;font-size:12.5px;color:var(--sub)}.foot a{color:var(--accent)}
 .cat{margin:0 0 14px;padding:12px 14px;border-radius:8px;border-left:5px solid var(--c);background:color-mix(in srgb,var(--c) 6%,var(--card))}
 .cat:last-child{margin-bottom:0}
 .cat h3 .count{color:var(--c)}
@@ -373,7 +374,8 @@ ${section('toolbox', 'Toolbox', 'when someone adds a web part', '#8764b8', toolb
 ${section('pane', 'Property pane', 'what authors see when they edit the web part', '#038387', propertyPanes(c), nav[2][2], safe('pane'), ia)}
 ${section('versions', 'Version & upgrade', 'SPFx, React, Node, TypeScript and what an upgrade involves', '#ca5010', upgradeSection(c), nav[3][2], safe('versions'), ia)}
 ${others.length ? section('others', 'Other components', 'extensions and libraries', '#5c5c5c', `<div class="panel">${others.map(x => `<div style="margin:4px 0"><b>${esc(componentName(x))}</b> <span class="kind">${esc(kindLabel(x.kind))}</span>${x.commands?.length ? `<div class="sub">Commands: ${x.commands.map(k => esc(k.title ?? k.key)).join(', ')}</div>` : ''}</div>`).join('')}</div>`) : ''}
-${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
+${'' /* sections */}${section('checks', 'All checks', 'grouped by area - right-click items in the SPFX Pretty panel for more fixes', '#616161', checks || '<p>Nothing to check - is this an SPFx project?</p>', nav[4][2], safe('checks'), ia)}
+<footer class="foot">SPFX Pretty by <a href="https://www.kachihro.com">Kachihro</a> &middot; Microsoft 365 and Azure projects done properly &middot; <a href="https://github.com/kachihro/SPFX-Pretty">GitHub</a></footer>
 </div>
 <script${opts.nonce ? ` nonce="${opts.nonce}"` : ''}>
 const vscode = ${opts.interactive ? 'acquireVsCodeApi()' : 'null'};

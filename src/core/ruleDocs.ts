@@ -222,11 +222,11 @@ export function renderFaqHtml(selected: string | undefined, nonce: string, cspSo
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} https: data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>SPFX Pretty FAQ</title>
 <style>
-:root{--bg:var(--vscode-editor-background,#1f1f1f);--text:var(--vscode-foreground,#eee);--sub:var(--vscode-descriptionForeground,#aaa);--line:var(--vscode-panel-border,#444);--card:var(--vscode-sideBar-background,#262626);--accent:#0f6cbd}
+:root{--bg:var(--vscode-editor-background,#1f1f1f);--text:var(--vscode-foreground,#eee);--sub:var(--vscode-descriptionForeground,#aaa);--line:var(--vscode-panel-border,#444);--card:var(--vscode-sideBar-background,#262626);--accent:#2A6FDB}
 body{margin:0;padding:20px 16px;background:var(--bg);color:var(--text);font:14px/1.5 "Segoe UI",system-ui,sans-serif}
 .wrap{max-width:900px;margin:0 auto}h1{font-size:22px;margin:0 0 6px}.sub{color:var(--sub)}
 input{width:100%;box-sizing:border-box;margin:14px 0;padding:8px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit}
-h2{font-size:15px;margin:22px 0 8px;padding:6px 12px;background:var(--accent);color:#fff;border-radius:6px}
+h2{font-size:15px;margin:22px 0 8px;padding:6px 12px;background:linear-gradient(90deg,#2A8BD8,#2A6FDB 35%,#7B3FE4 75%,#15287F);color:#fff;border-radius:6px}
 details.rule{border:1px solid var(--line);border-radius:6px;margin:6px 0;background:var(--card)}
 details.rule[open]{border-color:var(--accent)}
 summary{cursor:pointer;padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -240,6 +240,7 @@ a{color:#62abf5}
 <h1>SPFX Pretty - FAQ</h1><div class="sub">What each finding means and how to fix it. ${RULE_DOCS.length} rules.</div>
 <input id="q" placeholder="Search, e.g. icon, toolbox, React, SOL008" autofocus>
 ${areas.map(a => `<section data-area><h2>${esc(a)}</h2>${RULE_DOCS.filter(r => r.area === a).map(card).join('')}</section>`).join('')}
+<p class="sub" style="text-align:center;margin-top:24px">SPFX Pretty by <a href="https://www.kachihro.com">Kachihro</a> &middot; <a href="https://github.com/kachihro/SPFX-Pretty">GitHub</a></p>
 </div>
 <script nonce="${nonce}">
 const q=document.getElementById('q');
