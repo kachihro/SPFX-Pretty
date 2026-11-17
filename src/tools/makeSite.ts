@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RULE_DOCS, RuleDoc } from '../core/ruleDocs';
 import { SNIPPET_CSS, highlightJson, snippetHtml } from '../core/codeFormat';
+import { learnLinks } from '../core/learnLinks';
 
 /**
  * Builds the SPFX Pretty help website into ./site (static HTML - host on Azure Static Web Apps,
@@ -117,6 +118,9 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vert
 .ba{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.ba{grid-template-columns:1fr}}
 .ba .lbl{font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}.ba .before .lbl{color:var(--warn)}.ba .after .lbl{color:var(--good)}
 .pager{display:flex;justify-content:space-between;gap:12px;margin:30px 0}.pager a{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;max-width:48%}
+.box.learn h2{display:flex;align-items:center;gap:10px}.box.learn ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.box.learn li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.box.learn li:hover{border-color:var(--accent,#2A6FDB)}.box.learn a{font-weight:500;text-decoration:none}.box.learn .ext{margin-left:6px;font-size:.85em}.box.learn .host{font-size:12px;color:var(--sub,#6b7280)}
 .tip{border-left:4px solid var(--violet);background:var(--chip);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
 .crumb{font-size:14px;color:var(--sub);margin-top:22px}
 footer.site{margin-top:70px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--sub);font-size:14px}
@@ -287,7 +291,8 @@ RULE_DOCS.forEach((r, i) => {
 ${r.where ? `<div class="box"><h2>Where</h2><p><code>${esc(r.where)}</code></p></div>` : ''}
 <div class="box"><h2>How to fix</h2><ol>${r.fix.map(f => `<li>${inline(f)}</li>`).join('')}</ol></div>
 ${r.before || r.after ? `<div class="ba"${r.before && r.after ? '' : ' style="grid-template-columns:1fr"'}>${r.before ? `<div class="before"><div class="lbl">BEFORE</div><pre><code>${snippetHtml(r.before)}</code></pre></div>` : ''}${r.after ? `<div class="after"><div class="lbl">${r.before ? 'AFTER' : 'EXAMPLE'}</div><pre><code>${snippetHtml(r.after)}</code></pre></div>` : ''}</div>` : ''}
-<div class="tip">In VS Code: right-click the finding → <b>${r.auto === 'no' ? 'Explain &amp; How to Fix' : 'Apply Fix…'}</b>, or use <b>▶ Fix step by step</b> in the report.${r.learnMore ? ` More: <a href="${esc(r.learnMore)}">Microsoft Learn</a>.` : ''}</div>
+${learnLinks(r.id, r.learnMore).length ? `<div class="box learn"><h2><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="9.5" height="9.5" fill="#F25022"/><rect x="12.5" y="2" width="9.5" height="9.5" fill="#7FBA00"/><rect x="2" y="12.5" width="9.5" height="9.5" fill="#00A4EF"/><rect x="12.5" y="12.5" width="9.5" height="9.5" fill="#FFB900"/></svg>Microsoft articles</h2><ul>${learnLinks(r.id, r.learnMore).map(l => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.title)}<span class="ext" aria-hidden="true">↗</span></a><span class="host">learn.microsoft.com</span></li>`).join('')}</ul></div>` : ''}
+<div class="tip">In VS Code: right-click the finding → <b>${r.auto === 'no' ? 'Explain &amp; How to Fix' : 'Apply Fix…'}</b>, or use <b>▶ Fix step by step</b> in the report.</div>
 <nav class="pager">${prev ? `<a href="${prev.id}.html">← ${prev.id} ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="${next.id}.html" style="text-align:right">${next.id} ${esc(next.title)} →</a>` : ''}</nav>
 </article>`, 1);
 });

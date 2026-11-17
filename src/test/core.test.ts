@@ -290,3 +290,14 @@ test('help examples: JSON fragments are pretty-printed and highlighted; other co
     if (ex && /^\s*"/.test(ex)) { assert.equal(formatSnippet(ex).lang, 'json', `${r.id}: ${ex}`); }
   }
 });
+
+test('every rule links to at least one Microsoft Learn article', () => {
+  const { RULE_DOCS } = require('../core/ruleDocs') as typeof import('../core/ruleDocs');
+  const { learnLinks } = require('../core/learnLinks') as typeof import('../core/learnLinks');
+  for (const r of RULE_DOCS) {
+    const l = learnLinks(r.id, r.learnMore);
+    assert.ok(l.length > 0, `${r.id} has no Microsoft article`);
+    for (const x of l) { assert.match(x.url, /^https:\/\/learn\.microsoft\.com\//, r.id); }
+    assert.equal(new Set(l.map(x => x.url)).size, l.length, `${r.id} has duplicate links`);
+  }
+});

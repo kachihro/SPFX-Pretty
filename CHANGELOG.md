@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.4 - 17/11/2026
+- Every rule now links to the relevant Microsoft Learn articles (in VS Code help, on the website and in the FAQ pages)
+
 ## 0.9.3 - 17/11/2026
 - Report opens with every section collapsed (it remembers the ones you open)
 - Toolbox cards are full-width (landscape): icon, name, group and description side by side

@@ -1,5 +1,6 @@
 import { ruleUrl } from './site';
 import { SNIPPET_CSS, formatSnippet, snippetHtml } from './codeFormat';
+import { learnLinks } from './learnLinks';
 const fence = (src: string) => (formatSnippet(src).lang === 'json' ? 'json' : /:\s*[^;]+;/.test(src) ? 'scss' : /="/.test(src) ? 'xml' : '');
 /**
  * Help for every rule: what it means, why it matters, and how to fix it.
@@ -219,7 +220,8 @@ export function renderFaqHtml(selected: string | undefined, nonce: string, cspSo
       ${r.where ? `<h4>Where</h4><p><code>${esc(r.where)}</code></p>` : ''}
       <h4>How to fix</h4><ol>${r.fix.map(f => `<li>${esc(f)}</li>`).join('')}</ol>
       ${r.before ? `<h4>Before</h4><pre><code>${snippetHtml(r.before)}</code></pre>` : ''}${r.after ? `<h4>${r.before ? 'After' : 'Example'}</h4><pre><code>${snippetHtml(r.after)}</code></pre>` : ''}
-      ${r.learnMore || ruleUrl(r.id) ? `<p>${ruleUrl(r.id) ? `<a href="${esc(ruleUrl(r.id)!)}">Open online</a>` : ''}${r.learnMore && ruleUrl(r.id) ? ' &middot; ' : ''}${r.learnMore ? `<a href="${esc(r.learnMore)}">Microsoft Learn</a>` : ''}</p>` : ''}
+      ${learnLinks(r.id, r.learnMore).length ? `<h4>Microsoft articles</h4><ul class="learn">${learnLinks(r.id, r.learnMore).map(l => `<li><a href="${esc(l.url)}">${esc(l.title)}</a></li>`).join('')}</ul>` : ''}
+      ${ruleUrl(r.id) ? `<p><a href="${esc(ruleUrl(r.id)!)}">Open this page online</a></p>` : ''}
     </div></details>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} https: data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">
@@ -239,6 +241,7 @@ summary code{font-size:12px;opacity:.8}
 .body{padding:0 14px 10px}h4{margin:12px 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:12.5px}
 a{color:#62abf5}
+ul.learn{margin:0;padding-left:20px}ul.learn li{margin:3px 0}
 pre code{font:12.5px/1.5 Consolas,"Cascadia Code",monospace}
 ${SNIPPET_CSS}
 body.vscode-dark .k{color:#7cb7ff}body.vscode-dark .s{color:#8bd5a5}body.vscode-dark .n{color:#f5b36b}body.vscode-dark .b{color:#c4a5ff}body.vscode-dark .p{color:#7d8696}
@@ -263,6 +266,6 @@ export function ruleMarkdown(r: RuleDoc): string {
     '## How to fix', '', ...r.fix.map((f, i) => `${i + 1}. ${f}`), '',
     ...(r.before ? ['### Before', '', '```' + fence(r.before), formatSnippet(r.before).text, '```', ''] : []),
     ...(r.after ? [r.before ? '### After' : '### Example', '', '```' + fence(r.after), formatSnippet(r.after).text, '```', ''] : []),
-    ...(r.learnMore ? [`[Microsoft Learn](${r.learnMore})`, ''] : []),
+    ...(learnLinks(r.id, r.learnMore).length ? ['## Microsoft articles', '', ...learnLinks(r.id, r.learnMore).map(l => `- [${l.title}](${l.url})`), ''] : []),
     '[All rules](README.md)', ''].join('\n');
 }
