@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1 - 17/11/2026
+- Help website is live: https://victorious-sea-0bde5f710.8.azurestaticapps.net
+- Marketplace page shows the before / after photo (served from the website)
+- Every rule in the in-editor FAQ has an "Open online" link to its how-to-fix page
+
 ## 0.9.0 - 17/11/2026
 - Ready for the VS Code Marketplace as kachihro.spfx-pretty (free to use licence)
 - npm run publish-marketplace + a "Publish to Marketplace" GitHub workflow (on version tags), with checks that images and links are public
