@@ -136,12 +136,8 @@ page('guide.html', 'How to use', 'How to use', `
   <li><b>Search for SPFX Pretty</b> and click <b>Install</b> - or open it <a href="${MARKETPLACE}">on the Marketplace</a>.</li>
   <li><b>Open an SPFx project.</b> The SPFX icon appears on the Activity Bar (left edge).</li>
 </ol>
-<p>From a terminal: <code>code --install-extension ${EXT_ID}</code>. Updates install automatically.</p>
-<details class="box"><summary><b>For developers: build from source</b></summary>
-<pre><code>git clone ${GITHUB}.git
-cd SPFX-Pretty
-npm install
-npm run install-local</code></pre></details>
+<p>Or from a terminal: <code>code --install-extension ${EXT_ID}</code></p>
+<p><b>Updates</b> arrive automatically through VS Code, like any other extension.</p>
 
 <h2 id="report">The report</h2>
 <p>Open an SPFx project (a folder with <code>config/package-solution.json</code>) and click the SPFX icon - the report opens straight away. It is grouped into sections you can fold:</p>
