@@ -2,10 +2,10 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "publisher": "kachihro",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://www.kachihro.com",
+  "homepage": "https://spfxpretty.com",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.90.0"

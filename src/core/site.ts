@@ -4,7 +4,7 @@
  * Marketplace README uses the site's public images (the GitHub repo is private).
  * Leave empty until then: online links are hidden and README images are embedded.
  */
-export const DOCS_SITE: string = 'https://victorious-sea-0bde5f710.8.azurestaticapps.net';
+export const DOCS_SITE: string = 'https://spfxpretty.com';
 
 export function ruleUrl(id: string): string | undefined {
   return DOCS_SITE ? `${DOCS_SITE.replace(/\/$/, '')}/faq/${id}.html` : undefined;

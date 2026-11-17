@@ -3,6 +3,8 @@ import * as path from 'path';
 import { RULE_DOCS, RuleDoc } from '../core/ruleDocs';
 import { SNIPPET_CSS, highlightJson, snippetHtml } from '../core/codeFormat';
 import { learnLinks } from '../core/learnLinks';
+import { DOCS_SITE } from '../core/site';
+const PAGES: string[] = [];
 
 /**
  * Builds the SPFX Pretty help website into ./site (static HTML - host on Azure Static Web Apps,
@@ -152,6 +154,7 @@ function page(file: string, title: string, active: string, body: string, depth =
     .map(([href, label]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}">${label}</a>`).join('');
   const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)} - SPFX Pretty</title><meta name="description" content="SPFX Pretty for VS Code: nice names, icons and versions for SharePoint Framework apps.">
+<link rel="canonical" href="${DOCS_SITE}/${file === 'index.html' ? '' : file}"><meta property="og:title" content="${esc(title)} - SPFX Pretty"><meta property="og:image" content="${DOCS_SITE}/assets/icon.png"><meta property="og:url" content="${DOCS_SITE}/${file === 'index.html' ? '' : file}">
 <link rel="icon" href="${up}assets/icon.png"><link rel="stylesheet" href="${up}assets/site.css"></head><body>
 <header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><nav class="main">${nav}</nav></div></header>
 <main class="wrap">${body}</main>
@@ -162,6 +165,7 @@ function page(file: string, title: string, active: string, body: string, depth =
 </div></footer>
 <script src="${up}assets/lightbox.js" defer></script>
 </body></html>`;
+  if (file !== '404.html') { PAGES.push(file); }
   const target = path.join(out, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, html);
@@ -319,6 +323,9 @@ page('settings.html', 'Settings & CLI', 'Settings & CLI', `
 <tr><td><code>--min-score &lt;n&gt;</code>, <code>--fail-on error|warning|info</code></td><td>Fail the build below a score or at a severity</td></tr></table>`);
 
 // ---------- hosting ----------
-fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*'] }, responseOverrides: { 404: { rewrite: '/index.html' } } }, null, 2));
+fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*', '/sitemap.xml', '/robots.txt'] }, responseOverrides: { 404: { rewrite: '/index.html' } } }, null, 2));
 page('404.html', 'Not found', '', `<section class="hero"><h1>Page not found</h1><p class="lead">Try <a href="faq/index.html">How to fix</a> or the <a href="index.html">home page</a>.</p></section>`);
+const today = new Date().toISOString().slice(0, 10);
+fs.writeFileSync(path.join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map(f => `  <url><loc>${DOCS_SITE}/${f === 'index.html' ? '' : f}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
+fs.writeFileSync(path.join(out, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${DOCS_SITE}/sitemap.xml\n`);
 console.log(`Website written to site/ - ${RULE_DOCS.length} how-to-fix pages + home, guide, settings`);
