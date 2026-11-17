@@ -370,7 +370,7 @@ page('settings.html', 'Settings & CLI', 'Settings & CLI', `
 <tr><td><code>--min-score &lt;n&gt;</code>, <code>--fail-on error|warning|info</code></td><td>Fail the build below a score or at a severity</td></tr></table>`);
 
 // ---------- hosting ----------
-fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*', '/sitemap.xml', '/robots.txt', '/*.{png,ico,svg,webmanifest}'] }, responseOverrides: { 404: { rewrite: '/index.html' } } }, null, 2));
+fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*', '/sitemap.xml', '/robots.txt', '/*.{png,ico,svg,webmanifest}'] }, responseOverrides: { 404: { rewrite: '/index.html' } }, mimeTypes: { '.webmanifest': 'application/manifest+json' } }, null, 2));
 page('404.html', 'Not found', '', `<section class="hero"><h1>Page not found</h1><p class="lead">Try <a href="faq/index.html">How to fix</a> or the <a href="index.html">home page</a>.</p></section>`);
 const today = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map(f => `  <url><loc>${DOCS_SITE}/${f === 'index.html' ? '' : f}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
