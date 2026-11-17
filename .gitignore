@@ -6,3 +6,4 @@ planb-check/
 *.zip
 build/
 site/
+preview/
