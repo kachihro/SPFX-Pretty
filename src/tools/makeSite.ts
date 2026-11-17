@@ -6,6 +6,42 @@ import { learnLinks } from '../core/learnLinks';
 import { DOCS_SITE } from '../core/site';
 const PAGES: string[] = [];
 
+// ---------- SEO: a real title + description per page (Google shows these), structured data, icons ----------
+const SITE_NAME = 'SPFX Pretty';
+const DEFAULT_DESC = 'Free VS Code extension that polishes SharePoint Framework (SPFx) apps before you deploy: nice App Catalog names, company icons, a tidy toolbox and SPFx upgrades.';
+const META: Record<string, { title: string; desc: string }> = {
+  'index.html': { title: 'SPFX Pretty - Polish your SPFx apps before you deploy', desc: DEFAULT_DESC },
+  'guide.html': { title: 'How to use SPFX Pretty in VS Code', desc: 'Scan an SPFx project, read the report, preview every fix and apply it, or go through each issue with Fix step by step. A quick guide to SPFX Pretty.' },
+  'faq/index.html': { title: 'How to fix SPFx App Catalog, toolbox and version issues', desc: `What each of the ${RULE_DOCS.length} SPFX Pretty checks means and how to fix it: App Catalog names and icons, toolbox titles, unused properties, theming and SPFx versions.` },
+  'settings.html': { title: 'SPFX Pretty settings, commands and CLI', desc: 'Every SPFX Pretty setting, VS Code command and CLI option: brand words, company icon, developer details, disabled rules and running the checks in a pipeline.' },
+};
+const clip = (t: string, n = 158) => (t.length <= n ? t : t.slice(0, t.lastIndexOf(' ', n - 1)) + '…');
+function pageMeta(file: string, fallbackTitle: string): { title: string; desc: string; ld: object[] } {
+  const url = `${DOCS_SITE}/${file === 'index.html' ? '' : file}`;
+  const crumbs = (items: [string, string][]) => ({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map(([name, item], i) => ({ '@type': 'ListItem', position: i + 1, name, item })) });
+  const rule = /^faq\/([A-Z]+\d+)\.html$/.exec(file);
+  if (rule) {
+    const r = RULE_DOCS.find(x => x.id === rule[1])!;
+    return {
+      title: `${r.title} - how to fix (${r.id})`,
+      desc: (() => { const full = `${r.why} How to fix it in your SPFx project${r.auto === 'yes' ? ', with a one-click fix in VS Code' : ''}.`; return full.length <= 158 ? full : clip(r.why); })(),
+      ld: [crumbs([['Home', DOCS_SITE + '/'], ['How to fix', DOCS_SITE + '/faq/index.html'], [r.title, url]]),
+        { '@context': 'https://schema.org', '@type': 'TechArticle', headline: `${r.title} (${r.id})`, description: r.why, url, about: 'SharePoint Framework (SPFx)', publisher: { '@type': 'Organization', name: 'Kachihro', url: KACHIHRO } }],
+    };
+  }
+  const m = META[file] ?? { title: fallbackTitle, desc: DEFAULT_DESC };
+  const ld: object[] = [];
+  if (file === 'index.html') {
+    ld.push({ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, alternateName: ['SPFx Pretty', 'spfxpretty'], url: DOCS_SITE + '/' },
+      { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: SITE_NAME, description: DEFAULT_DESC, url: DOCS_SITE + '/', downloadUrl: MARKETPLACE, image: `${DOCS_SITE}/icon-512.png`, screenshot: `${DOCS_SITE}/assets/before-after.png`,
+        applicationCategory: 'DeveloperApplication', applicationSubCategory: 'VS Code extension', operatingSystem: 'Windows, macOS, Linux (Visual Studio Code)', softwareVersion: pkg.version,
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' }, publisher: { '@type': 'Organization', name: 'Kachihro', url: KACHIHRO, logo: `${DOCS_SITE}/icon-512.png` } });
+  } else if (file !== '404.html') {
+    ld.push(crumbs([['Home', DOCS_SITE + '/'], [fallbackTitle, url]]));
+  }
+  return { ...m, ld };
+}
+
 /**
  * Builds the SPFX Pretty help website into ./site (static HTML - host on Azure Static Web Apps,
  * Azure Storage static website, or anywhere). Run: npm run site
@@ -152,10 +188,17 @@ function page(file: string, title: string, active: string, body: string, depth =
   const up = depth ? '../'.repeat(depth) : '';
   const nav = [['index.html', 'Home'], ['guide.html', 'How to use'], ['faq/index.html', 'How to fix'], ['settings.html', 'Settings & CLI']]
     .map(([href, label]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}">${label}</a>`).join('');
+  const meta = pageMeta(file, title);
+  const pageUrl = `${DOCS_SITE}/${file === 'index.html' ? '' : file}`;
   const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} - SPFX Pretty</title><meta name="description" content="SPFX Pretty for VS Code: nice names, icons and versions for SharePoint Framework apps.">
-<link rel="canonical" href="${DOCS_SITE}/${file === 'index.html' ? '' : file}"><meta property="og:title" content="${esc(title)} - SPFX Pretty"><meta property="og:image" content="${DOCS_SITE}/assets/icon.png"><meta property="og:url" content="${DOCS_SITE}/${file === 'index.html' ? '' : file}">
-<link rel="icon" href="${up}assets/icon.png"><link rel="stylesheet" href="${up}assets/site.css"></head><body>
+<title>${esc(meta.title)}${/SPFX Pretty/.test(meta.title) ? '' : ' | SPFX Pretty'}</title><meta name="description" content="${esc(meta.desc)}">
+<link rel="canonical" href="${pageUrl}">
+<meta property="og:type" content="${file === 'index.html' ? 'website' : 'article'}"><meta property="og:site_name" content="SPFX Pretty"><meta property="og:title" content="${esc(meta.title)}"><meta property="og:description" content="${esc(meta.desc)}"><meta property="og:url" content="${pageUrl}">
+<meta property="og:image" content="${DOCS_SITE}/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="SPFX Pretty - cut + polish your SPFx apps before you deploy">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(meta.title)}"><meta name="twitter:description" content="${esc(meta.desc)}"><meta name="twitter:image" content="${DOCS_SITE}/og-image.png">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#2A6FDB">
+${meta.ld.map(o => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`).join('')}
+<link rel="stylesheet" href="${up}assets/site.css"></head><body>
 <header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><nav class="main">${nav}</nav></div></header>
 <main class="wrap">${body}</main>
 <footer class="site"><div class="wrap foot3">
@@ -176,6 +219,10 @@ fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
 fs.writeFileSync(path.join(out, 'assets', 'site.css'), CSS);
 fs.copyFileSync(path.join(root, 'media', 'icon.png'), path.join(out, 'assets', 'icon.png'));
+// favicons, app icons and the social share card live at the site root (Google looks for /favicon.ico)
+for (const f of fs.readdirSync(path.join(root, 'media', 'web'))) { fs.copyFileSync(path.join(root, 'media', 'web', f), path.join(out, f)); }
+fs.writeFileSync(path.join(out, 'site.webmanifest'), JSON.stringify({ name: 'SPFX Pretty', short_name: 'SPFX Pretty', description: DEFAULT_DESC, start_url: '/', display: 'browser', background_color: '#f6f7f9', theme_color: '#2A6FDB',
+  icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }, { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }] }, null, 2));
 fs.copyFileSync(path.join(root, 'media', 'before-after.png'), path.join(out, 'assets', 'before-after.png'));
 fs.mkdirSync(path.join(out, 'assets', 'screens'), { recursive: true });
 for (const f of Object.keys(SHOTS)) { fs.copyFileSync(path.join(root, 'media', 'screens', f), path.join(out, 'assets', 'screens', f)); }
@@ -323,7 +370,7 @@ page('settings.html', 'Settings & CLI', 'Settings & CLI', `
 <tr><td><code>--min-score &lt;n&gt;</code>, <code>--fail-on error|warning|info</code></td><td>Fail the build below a score or at a severity</td></tr></table>`);
 
 // ---------- hosting ----------
-fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*', '/sitemap.xml', '/robots.txt'] }, responseOverrides: { 404: { rewrite: '/index.html' } } }, null, 2));
+fs.writeFileSync(path.join(out, 'staticwebapp.config.json'), JSON.stringify({ navigationFallback: { rewrite: '/index.html', exclude: ['/assets/*', '/faq/*', '/sitemap.xml', '/robots.txt', '/*.{png,ico,svg,webmanifest}'] }, responseOverrides: { 404: { rewrite: '/index.html' } } }, null, 2));
 page('404.html', 'Not found', '', `<section class="hero"><h1>Page not found</h1><p class="lead">Try <a href="faq/index.html">How to fix</a> or the <a href="index.html">home page</a>.</p></section>`);
 const today = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(out, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${PAGES.map(f => `  <url><loc>${DOCS_SITE}/${f === 'index.html' ? '' : f}</loc><lastmod>${today}</lastmod></url>`).join('\n')}\n</urlset>\n`);
