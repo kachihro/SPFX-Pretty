@@ -11,6 +11,17 @@
 - 🧹 **Leftover defaults** - "Description Field", "Test message", unused properties
 - 🔢 **Versions** - React / Node / SPFx mismatches and an upgrade plan with effort
 
+…and much more:
+
+- ▶ **Fix step by step** - every issue, worst first: fix, explain, skip or ignore
+- 👀 **See before you apply** - every fix shows the exact lines it will change; nothing is touched until you click Apply
+- 🧰 **Toolbox** - real toolbox sections (custom groups land in "Advanced"), icons that stand out, proper descriptions
+- 🧩 **Unused properties** - properties nobody reads, leftover manifest defaults, property pane typos, dead loc strings
+- 🎨 **Branding** - theme colours and section backgrounds, SharePoint Brand Center fonts
+- 📚 **Help for every rule** - why it matters and exactly how to fix it, in VS Code and on the website
+
+![Expand any issue to see the explanation and the exact change, then Apply or Ignore](media/screens/toolbox.png)
+
 ## Install
 
 In VS Code: **Extensions** (`Ctrl+Shift+X`) → search **SPFX Pretty** → **Install**.

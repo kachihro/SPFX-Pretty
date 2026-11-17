@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2 - 17/11/2026
+- Report section bars: description under the title; folded sections are one clean bar
+- Marketplace page: more features and a second screenshot
+
 ## 0.9.1 - 17/11/2026
 - Help website is live: https://victorious-sea-0bde5f710.8.azurestaticapps.net
 - Marketplace page shows the before / after photo (served from the website)
