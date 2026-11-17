@@ -169,12 +169,17 @@ function appSurfaces(c: Ctx): string {
 }
 
 const PAGE_GLYPH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>';
+const SP_GLYPH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="13" cy="9" r="6"/><circle cx="16" cy="15.5" r="4.5"/><rect x="3" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"/><path d="M10.2 9.6c-.5-.6-1.3-.9-2.1-.9-1 0-1.8.5-1.8 1.3 0 1.8 3.9 1 3.9 3 0 .9-.9 1.4-2 1.4-.9 0-1.7-.4-2.2-1" stroke="#1f1f1f" stroke-width="1.2" stroke-linecap="round"/></svg>';
 const FLUENT_GLYPH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg>';
 
 function toolboxIcon(comp: ComponentInfo): string {
   if (comp.iconImageUrl && !comp.officeFabricIconFontName && /^(data:|https:)/.test(comp.iconImageUrl)) {
     const generic = /brand-icons\/product\/svg\/sharepoint_|sharepointlogo/i.test(comp.iconImageUrl);
-    return `<img class="tbx-img" src="${esc(comp.iconImageUrl)}" alt=""><div class="tbx-cap${generic ? ' bad' : ''}">${generic ? 'default SharePoint logo' : 'custom icon'}</div>`;
+    if (generic) {
+      // The generator's online SharePoint logo can't load inside the report - draw a stand-in instead of a broken image
+      return `<span class="tbx-glyph ugly-b" title="${esc(comp.iconImageUrl)}">${SP_GLYPH}</span><div class="tbx-cap bad">default SharePoint logo</div>`;
+    }
+    return `<img class="tbx-img" src="${esc(comp.iconImageUrl)}" alt=""><div class="tbx-cap">custom icon</div>`;
   }
   const name = comp.officeFabricIconFontName;
   if (name === 'Page') {

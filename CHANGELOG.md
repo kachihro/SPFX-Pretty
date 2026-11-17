@@ -5,6 +5,7 @@
 - npm run publish-marketplace + a "Publish to Marketplace" GitHub workflow (on version tags), with checks that images and links are public
 - Website and README: install from the Marketplace; building from source is for developers
 - install-local removes the old ChrisOC.spfx-pretty copy
+- Toolbox tiles draw the default SharePoint logo (Adaptive Card Extensions) instead of showing a broken image
 
 ## 0.8.1 - 17/11/2026
 - Report issues are calm expandable rows (dot + short title): expand to see the explanation and exactly what will change, then Apply / Ignore / Help - no more walls of orange buttons
