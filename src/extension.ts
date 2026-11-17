@@ -12,6 +12,7 @@ import { Finding, Fix, ScanResult } from './core/types';
 import { applyFix, confirmAndApply, confirmBatch, readConfig, setLatestOnline } from './vscode/apply';
 import { registerExtraCommands } from './vscode/extraCommands';
 import { fixStepByStep, openFaq } from './vscode/help';
+import { ruleDoc } from './core/ruleDocs';
 import { fetchLatestSpfxVersion } from './core/versions';
 import { ScanManager } from './vscode/scanManager';
 import { FILTER_LABEL, FindingsTree, SeverityFilter, categoryFromNode, findingFromNode } from './vscode/treeView';
@@ -180,6 +181,15 @@ export function activate(context: vscode.ExtensionContext): void {
       panel.webview.onDidReceiveMessage(async (msg: { type: string; idx: number; fix?: number; section?: string }) => {
         const r = currentResult(scans);
         if (msg.type === 'explain') { openFaq(context, (msg as { rule?: string }).rule); return; }
+        if (msg.type === 'ignore') {
+          const rule = (msg as { rule?: string }).rule;
+          if (rule && await vscode.window.showInformationMessage(`Ignore ${rule} in this workspace?`, { modal: true, detail: `${ruleDoc(rule)?.title ?? rule}\n\nIt is added to SPFX Pretty > Disabled Rules for this workspace - undo it in Settings any time.` }, 'Ignore') === 'Ignore') {
+            const cfg = vscode.workspace.getConfiguration('spfxPretty');
+            await cfg.update('disabledRules', [...new Set([...(cfg.get<string[]>('disabledRules') ?? []), rule])], vscode.ConfigurationTarget.Workspace);
+            rescan();
+          }
+          return;
+        }
         if (msg.type === 'command' && r && (msg as { id?: string }).id === 'spfxPretty.fixStepByStep') {
           await vscode.commands.executeCommand('spfxPretty.fixStepByStep', r.root);
           return;
@@ -203,7 +213,12 @@ export function activate(context: vscode.ExtensionContext): void {
         const f = r?.findings[msg.idx];
         if (!f) { return; }
         if (msg.type === 'open') { await vscode.commands.executeCommand('spfxPretty.openFinding', f); }
-        if (msg.type === 'fix') { await run(f.fixes[msg.fix ?? 0], f); refreshPanel(scans); }
+        if (msg.type === 'fix') {
+          // the report already showed the explanation and the exact changes - Apply goes straight ahead
+          const fx = f.fixes[msg.fix ?? 0];
+          if (fx && (msg as { confirmed?: boolean }).confirmed ? await applyFix(fx) : await confirmAndApply(fx, f)) { rescan(); }
+          refreshPanel(scans);
+        }
       });
       refreshPanel(scans);
     }),

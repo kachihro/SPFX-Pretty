@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 - 17/11/2026
+- Report issues are calm expandable rows (dot + short title): expand to see the explanation and exactly what will change, then Apply / Ignore / Help - no more walls of orange buttons
+- Toolbox tiles are left-aligned and wider
+- Ignore from the report asks once, then adds the rule to this workspace's Disabled Rules
+
 ## 0.8.0 - 17/11/2026
 - Nothing changes without you seeing it: every fix shows what it will change (file, lines before/after, files created) and waits for Apply. Fix all lists every change first. Setting: spfxPretty.previewFixes
 - Report section bars: chevron, an icon per section, one font

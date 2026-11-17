@@ -2,6 +2,8 @@ import * as path from 'path';
 import { componentName, kindLabel } from './project';
 import { MODERN_GROUPS } from './rules/components';
 import { Category, ComponentInfo, Finding, ScanResult, Surface } from './types';
+import { ruleDoc } from './ruleDocs';
+import { describeFix } from './describeFix';
 
 export interface ReportOptions {
   /** Adds "Fix" / "Open" buttons that post messages to the VS Code extension. */
@@ -42,6 +44,38 @@ function surfaceIssues(c: Ctx, s: Surface): Finding[] {
 }
 
 /** Small fix buttons (first fix of each finding) shown inside a preview panel. */
+/**
+ * Issues as quiet expandable rows: a severity dot + short title; expand for the explanation,
+ * exactly what will change, and Apply / Ignore / Help. Nothing is applied without opening it first.
+ */
+function issueList(c: Ctx, list: Finding[]): string {
+  const open = list.filter(f => f.severity !== 'pass');
+  if (!open.length) { return ''; }
+  const rel = (p: string) => path.relative(c.r.root, p).replace(/\\/g, '/');
+  const rows = open.map(f => {
+    const doc = ruleDoc(f.ruleId);
+    const fix = f.fixes[0];
+    let changes: string[] = [];
+    try { changes = fix ? describeFix(fix, rel) : []; } catch { changes = []; }
+    const i = idx(c, f);
+    const buttons = c.opts.interactive ? `<div class="iss-btns">
+        ${fix ? `<button class="fix apply" data-idx="${i}" data-fix="0" data-confirmed="1">${fix.ask ? '&#x270D; ' : fix.pick ? '&#x25BE; ' : fix.command ? '&#x1F5BC; ' : ''}Apply${fix.ask || fix.pick || fix.command ? '...' : ''}</button>` : `<button class="open ghost" data-idx="${i}">Open file</button>`}
+        <button class="ignore ghost" data-rule="${esc(f.ruleId)}">Ignore</button>
+        <button class="explain linkish" data-rule="${esc(f.ruleId)}">? Help</button>
+      </div>` : '';
+    return `<details class="iss">
+      <summary title="Show explanation"><span class="dot ${f.severity}"></span><span class="iss-t">${esc(doc?.title ?? f.message)}</span></summary>
+      <div class="iss-b">
+        <p>${esc(f.message)}</p>
+        ${doc ? `<p class="sub">${esc(doc.why)}</p>` : ''}
+        ${fix ? `<div class="iss-l">${esc(fix.title)}</div>${changes.length ? `<pre class="chg">${changes.map(l => `<span class="${/^\s*\+/.test(l) ? 'add' : /^\s*-/.test(l) ? 'del' : ''}">${esc(l)}</span>`).join('\n')}</pre>` : ''}` : `<div class="iss-l">Needs you: ${esc(doc?.fix[0] ?? 'see Help')}</div>`}
+        ${buttons}
+      </div>
+    </details>`;
+  }).join('');
+  return `<div class="isslist">${rows}</div>`;
+}
+
 /** Short labels for buttons inside small tiles. */
 function shortLabel(title: string): string {
   if (/brand-coloured .*initials icon/i.test(title)) { return '✨ Brand icon'; }
@@ -109,7 +143,7 @@ function appSurfaces(c: Ctx): string {
   const better = suggestion(nameIssue);
   const whereIssues = c.r.findings.filter(f => f.severity !== 'pass' && sectionMatcher('where')(f));
   const changeIcon = c.opts.interactive && !iconIssue ? `<div class="acts"><button class="cmd mini" data-cmd="spfxPretty.uploadCompanyLogo">&#x1F5BC; Change app icon (upload company icon)...</button></div>` : '';
-  const fixRow = `${better ? `<div class="suggest">Suggested name: <b>${esc(better)}</b></div>` : ''}${actions(c, whereIssues, 8)}${changeIcon}`;
+  const fixRow = `${better ? `<div class="suggest">Suggested name: <b>${esc(better)}</b></div>` : ''}${issueList(c, whereIssues)}${changeIcon}`;
   const hidden = c.r.preview.skipFeatureDeployment;
   const hiddenNote = hidden
     ? '<div class="note info">skipFeatureDeployment is true: when deployed to all sites the app is <b>not</b> listed in "Add an app" or Site Contents. If an admin unticks "add to all sites", it shows here.</div>'
@@ -168,7 +202,7 @@ function toolbox(c: Ctx): string {
     return `<div class="tbx-item" title="${esc(comp.description ?? '')}">${toolboxIcon(comp)}
       <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
       ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div>
-      ${actions(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)), 4, true)}</div>`;
+      ${issueList(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)))}</div>`;
   }).join('');
   return `<div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
 }
@@ -186,7 +220,7 @@ function propertyPanes(c: Ctx): string {
       ${props.length ? `<div class="pp-note">Default values when the web part is added:</div>` : ''}
       ${props.map(([k, v]) => `<label class="pp-k">${esc(k)}</label><div class="pp-in ${v ? '' : 'empty'}">${v ? esc(v) : '(empty)'}</div>`).join('')}
       ${c.r.findings.some(f => f.ruleId === 'ABT001' && f.severity !== 'pass' && f.component === p.component) ? '<div class="pp-about-missing">No About section (version, developer, packages)</div>' : ''}
-      ${actions(c, c.r.findings.filter(f => f.component === p.component && (sectionMatcher('pane')(f) || f.ruleId === 'ABT001')), 4)}
+      ${issueList(c, c.r.findings.filter(f => f.component === p.component && (sectionMatcher('pane')(f) || f.ruleId === 'ABT001')))}
     </div>`;
   };
   return `<div class="surfaces">${panes.map(card).join('')}</div>`;
@@ -226,7 +260,7 @@ function upgradeSection(c: Ctx): string {
         ${row('Node', u.compat.node.current.map(n => 'v' + n).join(', '), u.compat.node.target.map(n => 'v' + n).join(', '), nodeOk)}
         ${row('TypeScript', u.compat.typescript.current, u.compat.typescript.target, true)}
       </tbody></table>
-      ${verIssues.length ? `<div class="note bad">${verIssues.length} version issue${verIssues.length === 1 ? '' : 's'}</div>${actions(c, verIssues, 4)}` : '<div class="note ok">&#x2714; Versions line up</div>'}
+      ${verIssues.length ? `<div class="note bad">${verIssues.length} version issue${verIssues.length === 1 ? '' : 's'}</div>${issueList(c, verIssues)}` : '<div class="note ok">&#x2714; Versions line up</div>'}
     </div>
     ${u.steps.length ? `<div class="panel"><div class="ph">Upgrade plan</div><ol class="steps">${u.steps.map(st => `<li>${chip(st.effort)} <b>${esc(st.title)}</b><div class="sub">${esc(st.detail)}${st.link ? ` <a href="${esc(st.link)}">Docs</a>` : ''}</div></li>`).join('')}</ol>
       <div class="sub" style="margin-top:8px">Detailed file-by-file report (CLI for Microsoft 365):</div><code class="cmd">${esc(u.command)}</code></div>` : ''}
@@ -325,8 +359,8 @@ table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .ugly-b{border-color:var(--bad)!important;color:var(--bad)!important}
 .note{font-size:12px;margin-top:8px}.note.ok{color:var(--good)}.note.bad{color:var(--bad)}.note.info{color:var(--sub);margin-top:10px}
 .suggest{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-.tbx-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:6px;border:1px solid var(--line);text-align:center;font-size:12.5px;min-width:0;word-break:break-word}
+.tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.tbx-item{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px;border-radius:8px;border:1px solid var(--line);text-align:left;font-size:12.5px;min-width:0;word-break:break-word}
 .tbx-img{width:40px;height:28px;object-fit:contain}
 .tbx-glyph{display:grid;place-items:center;width:44px;height:34px;border:1px dashed var(--sub);border-radius:6px;color:var(--sub)}
 .tbx-cap{font-size:11px;color:var(--sub);margin-top:-2px}.tbx-cap.bad{color:var(--bad)}
@@ -363,8 +397,25 @@ html{scroll-behavior:smooth}
 .shr{display:flex;gap:8px;align-items:center}
 button.fixsec{background:#fff;color:var(--c);border:none;font-weight:600;border-radius:999px;padding:3px 12px}
 button.fixsec:hover{filter:brightness(.92)}
+.isslist{display:flex;flex-direction:column;gap:4px;margin-top:10px;text-align:left;width:100%}
+details.iss{border:1px solid var(--line);border-radius:8px;background:var(--card)}
+details.iss[open]{border-color:var(--accent)}
+details.iss>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12.5px}
+details.iss>summary::-webkit-details-marker{display:none}
+details.iss>summary::after{content:"\\203A";margin-left:auto;font-size:16px;line-height:1;color:var(--sub);transition:transform .15s;flex:none}
+details.iss[open]>summary::after{transform:rotate(90deg)}
+.iss-t{flex:1;min-width:0;line-height:1.35}
+.dot{flex:none;width:8px;height:8px;border-radius:50%}.dot.error{background:var(--bad)}.dot.warning{background:var(--warn)}.dot.info{background:var(--info)}
+.iss-b{padding:0 12px 10px;font-size:12.5px}.iss-b p{margin:4px 0}
+.iss-l{font-weight:600;margin:8px 0 4px}
+pre.chg{margin:0;padding:6px 8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;font-size:11.5px;white-space:pre-wrap;word-break:break-word}
+pre.chg .add{color:var(--good)}pre.chg .del{color:var(--bad)}
+.iss-btns{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
+button.apply{background:#2A6FDB;border-color:#2A6FDB;color:#fff;font-weight:600;border-radius:6px;padding:4px 14px}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 12px}
+button.linkish,button.explain.linkish{background:transparent;border:none;color:var(--accent);padding:4px 6px;font-size:12px}
 .acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;align-items:center}
-.tbx-item .acts{justify-content:center}
+.tbx-item .acts{justify-content:flex-start}
 button.mini{font-size:11px;padding:2px 8px;border-radius:999px;text-align:left;max-width:100%;white-space:normal;line-height:1.35}
 button.mini.error{background:var(--bad);border-color:var(--bad)}
 button.explain{background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:999px;font-size:11px;padding:0 8px;margin-left:4px}
@@ -429,10 +480,11 @@ document.addEventListener('click', e => {
   if (b.closest('summary')) { e.preventDefault(); } // header buttons must not fold the section
   if (b.dataset.all) { secs().forEach(d => { d.open = b.dataset.all === 'open'; }); save(); return; }
   if (!vscode) return;
-  if (b.classList.contains('fix')) { b.disabled = true; b.textContent = 'Applying...'; vscode.postMessage({ type: 'fix', idx: +b.dataset.idx, fix: +b.dataset.fix }); }
+  if (b.classList.contains('fix')) { b.disabled = true; b.textContent = 'Applying...'; vscode.postMessage({ type: 'fix', idx: +b.dataset.idx, fix: +b.dataset.fix, confirmed: b.dataset.confirmed === '1' }); }
   if (b.classList.contains('open')) { vscode.postMessage({ type: 'open', idx: +b.dataset.idx }); }
   if (b.classList.contains('cmd')) { vscode.postMessage({ type: 'command', id: b.dataset.cmd }); return; }
   if (b.classList.contains('explain')) { vscode.postMessage({ type: 'explain', rule: b.dataset.rule }); return; }
+  if (b.classList.contains('ignore')) { vscode.postMessage({ type: 'ignore', rule: b.dataset.rule }); return; }
   if (b.classList.contains('fixsec')) { b.disabled = true; b.textContent = 'Fixing...'; vscode.postMessage({ type: 'fixSection', section: b.dataset.sec }); }
 });
 </script>

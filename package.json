@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "repository": { "type": "git", "url": "https://github.com/kachihro/SPFX-Pretty.git" },
