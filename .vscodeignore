@@ -17,6 +17,9 @@ planb-check/**
 media/report-small.jpg
 *.bundle
 media/report-small.jpg
-media/report.png
 docs/**
 media/icon-source.svg
+build/**
+media/before-after.png
+media/before-after-small.jpg
+README.md

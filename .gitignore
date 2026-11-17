@@ -4,3 +4,4 @@ out/
 planb-check/
 *.bundle
 *.zip
+build/

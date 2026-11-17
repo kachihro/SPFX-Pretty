@@ -1,5 +1,5 @@
 /**
- * Helpers that turn scaffold-y names ("hello-world-client-side-solution",
+ * Helpers that turn scaffold-y names ("project-client-side-solution",
  * "HelloWorldWebPart") into titles that look good in the App Catalog.
  */
 

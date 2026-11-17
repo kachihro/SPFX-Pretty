@@ -49,7 +49,7 @@ export function defaultsRules(ctx: RuleContext): void {
   assetXml(ctx);
 }
 
-/** A raw alias/class-like name ("HelloWorld", "hello-world") rather than real text. */
+/** A raw alias/class-like name ("ProjectWebPart", "my-project") rather than real text. */
 function looksLikeRawName(value: string, c: LoadedComponent): boolean {
   const alias = c.alias.replace(/(WebPart|AdaptiveCardExtension)$/, '');
   const norm = (s: string) => s.replace(/[^a-z0-9]/gi, '').toLowerCase();

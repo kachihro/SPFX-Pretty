@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4 - 17/11/2026
+- Before / after photo on the extension page, embedded so it shows even though the repo is private
+- Examples use project-client-side-solution instead of hello-world
+
 ## 0.7.3 - 17/11/2026
 - Kachihro theme: icon and report use the Kachihro blue / violet / navy palette; default brand colour #2A6FDB
 - Cleaner icon frame (no bulge around the SPFX label)

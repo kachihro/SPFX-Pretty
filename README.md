@@ -2,11 +2,11 @@
 
 **Make your SPFx apps look professional where people actually see them** - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.
 
-![SPFX Pretty report](media/report.png)
+![Before and after SPFX Pretty](media/before-after.png)
 
 ## What it does
 
-- 🏷️ **Nice names** - no more `hello-world-client-side-solution` in the App Catalog
+- 🏷️ **Nice names** - no more `project-client-side-solution` in the App Catalog
 - 🎨 **Icons** - your company logo for the app, toolbox and Teams, in one click
 - 🧹 **Leftover defaults** - "Description Field", "Test message", unused properties
 - 🔢 **Versions** - React / Node / SPFx mismatches and an upgrade plan with effort

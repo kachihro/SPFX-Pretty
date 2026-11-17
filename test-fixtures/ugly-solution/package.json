@@ -1,2 +1,2 @@
-{ "name": "hello-world", "version": "1.2.0", "description": "Company intranet web parts",
+{ "name": "project", "version": "1.2.0", "description": "Company intranet web parts",
   "dependencies": { "@microsoft/sp-core-library": "1.22.0", "@fluentui/react-components": "9.54.0", "react": "17.0.1" } }

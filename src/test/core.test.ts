@@ -18,7 +18,8 @@ function copyFixture(): string {
 }
 
 test('nice titles', () => {
-  assert.equal(toNiceTitle('hello-world-client-side-solution'), 'Hello World');
+  assert.equal(toNiceTitle('project-client-side-solution'), 'Project');
+  assert.equal(toNiceTitle('team-news-client-side-solution'), 'Team News');
   assert.equal(toNiceTitle('HelloWorldWebPart'), 'Hello World');
   assert.equal(toNiceTitle('team-news-web-part'), 'Team News');
   assert.equal(toNiceTitle('spfx-hr-faq-of-the-day'), 'HR FAQ of the Day');
@@ -27,7 +28,7 @@ test('nice titles', () => {
 });
 
 test('title problems', () => {
-  assert.ok(titleProblems('hello-world-client-side-solution').length >= 2);
+  assert.ok(titleProblems('project-client-side-solution').length >= 2);
   assert.ok(titleProblems('HelloWorld').length === 1);
   assert.deepEqual(titleProblems('Contoso Staff Directory'), []);
   assert.deepEqual(titleProblems('HR FAQ'), []);
@@ -35,7 +36,7 @@ test('title problems', () => {
 
 test('placeholder descriptions', () => {
   assert.ok(isPlaceholderDescription('HelloWorld description'));
-  assert.ok(isPlaceholderDescription('hello-world description'));
+  assert.ok(isPlaceholderDescription('project description'));
   assert.ok(isPlaceholderDescription(''));
   assert.ok(!isPlaceholderDescription('Shows the latest news from your team site.'));
 });
@@ -85,7 +86,7 @@ test('scan finds the classic scaffold problems', () => {
   assert.ok(!unused.includes('"description"'), 'used property not flagged');
   // where people see it
   assert.deepEqual(issues(r).find(f => f.ruleId === 'SOL001')!.surfaces, ['App Catalog', 'Add an app', 'Site Contents']);
-  assert.equal(r.preview.packageFile, 'hello-world.sppkg');
+  assert.equal(r.preview.packageFile, 'project.sppkg');
   assert.equal(r.preview.propertyPanes[0].group, 'Group Name');
   assert.ok(r.score < 30);
 });
@@ -93,7 +94,7 @@ test('scan finds the classic scaffold problems', () => {
 test('app name prefix', () => {
   const dir = copyFixture();
   applyAllSafeFixes(dir, { appNamePrefix: 'PlanB - ' });
-  assert.equal(new JsoncDoc(path.join(dir, 'config', 'package-solution.json')).get(['solution', 'name']), 'PlanB - Hello World');
+  assert.equal(new JsoncDoc(path.join(dir, 'config', 'package-solution.json')).get(['solution', 'name']), 'PlanB - Project');
 });
 
 test('disabled rules are skipped (.spfxprettyrc.json)', () => {
@@ -112,7 +113,7 @@ test('fix-all makes the project nicer and is idempotent', () => {
   assert.ok(after.score > before + 35, `score ${before} -> ${after.score}`);
 
   const sol = new JsoncDoc(path.join(dir, 'config', 'package-solution.json'));
-  assert.equal(sol.get(['solution', 'name']), 'Hello World');
+  assert.equal(sol.get(['solution', 'name']), 'Project');
   assert.equal(sol.get(['solution', 'iconPath']), 'images/AppIcon.png');
   assert.equal(sol.get(['solution', 'developer', 'name']), 'Contoso');
   assert.deepEqual(readPngSize(fs.readFileSync(path.join(dir, 'sharepoint', 'images', 'AppIcon.png'))), { width: 96, height: 96 });

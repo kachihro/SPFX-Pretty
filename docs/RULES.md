@@ -7,11 +7,11 @@ or by right-clicking a finding > **Ignore This Rule**.
 
 | Area | Rule | What it looks for | Fix |
 |---|---|---|---|
-| **App Catalog title** | SOL001 | `solution.name` still `hello-world-client-side-solution`, kebab/Pascal case, too long | ✅ Renames to a nice title |
+| **App Catalog title** | SOL001 | `solution.name` still `project-client-side-solution`, kebab/Pascal case, too long | ✅ Renames to a nice title |
 | | SOL002 | Optional `solution.title` not nice | ✅ |
 | | SOL003 | Feature title still `xxx Feature` (Manage site features) | ✅ |
 | **Metadata** | SOL004 | `developer` block empty (name, website, privacy, terms) | ✅ From your settings |
-| | SOL005/006 | Short/long description missing or placeholder (`hello-world description`) | ✍️ Needs you |
+| | SOL005/006 | Short/long description missing or placeholder (`project description`) | ✍️ Needs you |
 | | SOL007/008 | No categories / screenshots | ✍️ |
 | | SOL013 | Solution version out of sync with `package.json` | ✅ (opt-in) |
 | **.sppkg icon** | SOL010-012 | No `iconPath`, file missing from `./sharepoint`, wrong size/format | ✅ Generates a 96x96 brand PNG |
