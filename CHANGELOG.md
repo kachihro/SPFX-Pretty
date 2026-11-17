@@ -1,7 +1,7 @@
 # Changelog
 
 ## 0.9.5 - 17/11/2026
-- Help website moved to https://spfxpretty.com (help links, "Open online", Marketplace images and homepage)
+- Help website moved to https://www.spfxpretty.com (help links, "Open online", Marketplace images and homepage)
 
 ## 0.9.4 - 17/11/2026
 - Every rule now links to the relevant Microsoft Learn articles (in VS Code help, on the website and in the FAQ pages)

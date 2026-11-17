@@ -5,7 +5,7 @@
   "version": "0.9.5",
   "publisher": "kachihro",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://spfxpretty.com",
+  "homepage": "https://www.spfxpretty.com",
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.90.0"
