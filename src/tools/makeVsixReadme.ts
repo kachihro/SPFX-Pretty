@@ -22,6 +22,14 @@ const toSite = (rel: string) => rel === 'docs/RULES.md' ? `${site}/settings.html
   : /^docs\/faq\/([A-Z]{3}\d{3})\.md$/.test(rel) ? `${site}/faq/${rel.slice(9, 15)}.html`
   : `${site}/guide.html`;
 md = md.replace(/\]\((?!https?:|data:|#)([^)]+)\)/g, (_m, rel: string) => `](${site ? toSite(rel) : GITHUB + rel})`);
+// Marketplace build (MARKETPLACE=1) before the website is live: the Marketplace only accepts public HTTPS
+// images and visitors can't open the private repo - so drop the photo and the GitHub links for now.
+if (process.env.MARKETPLACE && !DOCS_SITE) {
+  md = md.replace(/\n!\[[^\]]*\]\(data:[^)]+\)\n/g, '\n');
+  md = md.replace(/\nMore: \[FAQ for every rule\][^\n]*\n/, '\nIn VS Code, right-click any finding and choose **Explain & How to Fix** for help with every rule.\n');
+  md = md.replace(/\nSource and issues: \[github\.com\/kachihro\/SPFX-Pretty\]\([^)]*\)/, '\nQuestions or ideas: [kachihro.com](https://www.kachihro.com)');
+  if (/data:|github\.com\/kachihro/i.test(md)) { throw new Error('Marketplace README still has an embedded image or a private GitHub link'); }
+}
 fs.mkdirSync(path.join(root, 'build'), { recursive: true });
 fs.writeFileSync(path.join(root, 'build', 'README.md'), md);
 console.log('build/README.md written for the VSIX');

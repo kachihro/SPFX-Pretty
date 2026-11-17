@@ -188,6 +188,7 @@
     "test": "npm run compile && node --test out/test/*.test.js",
     "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --allow-missing-repository --no-rewrite-relative-links --readme-path build/README.md",
     "install-local": "npm run package && node ./out/tools/installLocal.js",
+    "package-marketplace": "npm run compile && node -e \"process.env.MARKETPLACE=1;require('./out/tools/makeVsixReadme.js')\" && vsce package --allow-missing-repository --no-rewrite-relative-links --readme-path build/README.md",
     "publish-marketplace": "npm run package && node ./out/tools/publish.js",
     "vscode:prepublish": "npm run compile"
   },
