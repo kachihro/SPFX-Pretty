@@ -12,7 +12,6 @@ import { RULE_DOCS, RuleDoc } from '../core/ruleDocs';
 const root = path.join(__dirname, '..', '..');
 const out = path.join(root, 'site');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const GITHUB = 'https://github.com/kachihro/SPFX-Pretty';
 const KACHIHRO = 'https://www.kachihro.com';
 const MARKETPLACE = `https://marketplace.visualstudio.com/items?itemName=${pkg.publisher}.${pkg.name}`;
 const EXT_ID = `${pkg.publisher}.${pkg.name}`;
@@ -111,7 +110,11 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vert
 .tip{border-left:4px solid var(--violet);background:var(--chip);padding:12px 16px;border-radius:0 10px 10px 0;margin:16px 0}
 .crumb{font-size:14px;color:var(--sub);margin-top:22px}
 footer.site{margin-top:70px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--sub);font-size:14px}
-footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
+footer.site .foot3{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px}
+.foot-ver{justify-self:start}.foot-links{justify-self:end}
+.footer-kachihro{display:inline-flex;align-items:center;gap:8px;color:var(--sub)!important;text-decoration:none!important;font-weight:500}
+.footer-kachihro:hover span{color:var(--blue)}.footer-kachihro-icon{width:20px;height:20px;flex:none}
+@media(max-width:600px){footer.site .foot3{grid-template-columns:1fr;justify-items:center;text-align:center}.foot-ver,.foot-links{justify-self:center}}
 .fig{margin:16px 0 22px}.fig a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(21,40,127,.14);background:#1f1f1f;cursor:zoom-in}
 .fig img{width:100%;display:block;transition:transform .25s}.fig a:hover img{transform:scale(1.015)}
 .fig figcaption{font-size:14px;color:var(--sub);margin-top:8px}
@@ -136,7 +139,11 @@ function page(file: string, title: string, active: string, body: string, depth =
 <link rel="icon" href="${up}assets/icon.png"><link rel="stylesheet" href="${up}assets/site.css"></head><body>
 <header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><nav class="main">${nav}</nav></div></header>
 <main class="wrap">${body}</main>
-<footer class="site"><div class="wrap"><span>SPFX Pretty ${esc(pkg.version)} &middot; made by <a href="${KACHIHRO}">Kachihro</a> - Microsoft 365 and Azure projects done properly</span><span><a href="${GITHUB}">GitHub</a> &middot; <a href="${up}faq/index.html">How to fix</a></span></div></footer>
+<footer class="site"><div class="wrap foot3">
+  <span class="foot-ver">SPFX Pretty ${esc(pkg.version)}</span>
+  <a class="footer-kachihro" href="${KACHIHRO}" target="_blank" rel="noopener noreferrer"><svg class="footer-kachihro-icon" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="footer-kachihro-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c5cff"></stop><stop offset="100%" stop-color="#3ba7ff"></stop></linearGradient></defs><polygon points="12,2 22,9 12,22 2,9" fill="url(#footer-kachihro-gradient)"></polygon></svg><span>&copy; ${new Date().getFullYear()} Kachihro</span></a>
+  <span class="foot-links"><a href="${up}faq/index.html">How to fix</a></span>
+</div></footer>
 <script src="${up}assets/lightbox.js" defer></script>
 </body></html>`;
   const target = path.join(out, file);
