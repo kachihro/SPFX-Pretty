@@ -1,4 +1,6 @@
 import { ruleUrl } from './site';
+import { SNIPPET_CSS, formatSnippet, snippetHtml } from './codeFormat';
+const fence = (src: string) => (formatSnippet(src).lang === 'json' ? 'json' : /:\s*[^;]+;/.test(src) ? 'scss' : /="/.test(src) ? 'xml' : '');
 /**
  * Help for every rule: what it means, why it matters, and how to fix it.
  * Drives the "Explain & How to Fix" page in the editor and docs/faq/*.md for the website.
@@ -58,8 +60,8 @@ export const RULE_DOCS: RuleDoc[] = [
   { id: 'SOL010', area: 'Icons', title: 'No app icon', auto: 'yes',
     why: 'Without solution.iconPath the App Catalog, "Add an app" and Site Contents show a generic placeholder, so your app looks like everyone else\'s.',
     where: 'config/package-solution.json → solution.iconPath (relative to ./sharepoint)',
-    fix: ['Click "Upload company icon (96x96)…" and pick a square PNG - it is resized and wired up for you.', 'Or run "SPFX Pretty: Upload Company Logo" once and it is remembered for every project.', 'Rebuild and upload the .sppkg.'],
-    after: '"iconPath": "images/AppIcon.png"   →  file: sharepoint/images/AppIcon.png (96x96 PNG)' },
+    fix: ['Click "Upload company icon (96x96)…" and pick a square PNG - it is resized, saved as sharepoint/images/AppIcon.png and wired up for you.', 'Or run "SPFX Pretty: Upload Company Logo" once and it is remembered for every project.', 'Rebuild and upload the .sppkg.'],
+    after: '"iconPath": "images/AppIcon.png"' },
   { id: 'SOL011', area: 'Icons', title: 'App icon file not found', auto: 'yes',
     why: 'iconPath points at a file that is not in ./sharepoint, so packaging fails or no icon shows.',
     fix: ['iconPath is relative to ./sharepoint - move the file there, or', 'click the fix to upload/generate an icon at that path.'] },
@@ -216,7 +218,7 @@ export function renderFaqHtml(selected: string | undefined, nonce: string, cspSo
       <h4>Why it matters</h4><p>${esc(r.why)}</p>
       ${r.where ? `<h4>Where</h4><p><code>${esc(r.where)}</code></p>` : ''}
       <h4>How to fix</h4><ol>${r.fix.map(f => `<li>${esc(f)}</li>`).join('')}</ol>
-      ${r.before ? `<h4>Before</h4><pre>${esc(r.before)}</pre>` : ''}${r.after ? `<h4>After</h4><pre>${esc(r.after)}</pre>` : ''}
+      ${r.before ? `<h4>Before</h4><pre><code>${snippetHtml(r.before)}</code></pre>` : ''}${r.after ? `<h4>${r.before ? 'After' : 'Example'}</h4><pre><code>${snippetHtml(r.after)}</code></pre>` : ''}
       ${r.learnMore || ruleUrl(r.id) ? `<p>${ruleUrl(r.id) ? `<a href="${esc(ruleUrl(r.id)!)}">Open online</a>` : ''}${r.learnMore && ruleUrl(r.id) ? ' &middot; ' : ''}${r.learnMore ? `<a href="${esc(r.learnMore)}">Microsoft Learn</a>` : ''}</p>` : ''}
     </div></details>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
@@ -237,6 +239,10 @@ summary code{font-size:12px;opacity:.8}
 .body{padding:0 14px 10px}h4{margin:12px 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub)}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px;white-space:pre-wrap;word-break:break-word;font-size:12.5px}
 a{color:#62abf5}
+pre code{font:12.5px/1.5 Consolas,"Cascadia Code",monospace}
+${SNIPPET_CSS}
+body.vscode-dark .k{color:#7cb7ff}body.vscode-dark .s{color:#8bd5a5}body.vscode-dark .n{color:#f5b36b}body.vscode-dark .b{color:#c4a5ff}body.vscode-dark .p{color:#7d8696}
+body.vscode-light .k{color:#2A6FDB}body.vscode-light .s{color:#0b7a4b}body.vscode-light .n{color:#b45309}body.vscode-light .b{color:#7B3FE4}body.vscode-light .p{color:#8a94a6}
 </style></head><body><div class="wrap">
 <h1>SPFX Pretty - FAQ</h1><div class="sub">What each finding means and how to fix it. ${RULE_DOCS.length} rules.</div>
 <input id="q" placeholder="Search, e.g. icon, toolbox, React, SOL008" autofocus>
@@ -255,8 +261,8 @@ export function ruleMarkdown(r: RuleDoc): string {
   return [`# ${r.id}: ${r.title}`, '', `**Area:** ${r.area} · **${AUTO[r.auto]}**`, '', '## Why it matters', '', r.why, '',
     ...(r.where ? ['## Where', '', '`' + r.where + '`', ''] : []),
     '## How to fix', '', ...r.fix.map((f, i) => `${i + 1}. ${f}`), '',
-    ...(r.before ? ['### Before', '', '```', r.before, '```', ''] : []),
-    ...(r.after ? ['### After', '', '```', r.after, '```', ''] : []),
+    ...(r.before ? ['### Before', '', '```' + fence(r.before), formatSnippet(r.before).text, '```', ''] : []),
+    ...(r.after ? [r.before ? '### After' : '### Example', '', '```' + fence(r.after), formatSnippet(r.after).text, '```', ''] : []),
     ...(r.learnMore ? [`[Microsoft Learn](${r.learnMore})`, ''] : []),
     '[All rules](README.md)', ''].join('\n');
 }

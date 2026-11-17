@@ -278,3 +278,15 @@ test('fix preview shows exactly what will change, without changing anything', ()
   const icon = issues(scanProject(dir)).find(x => x.ruleId === 'SOL010')!.fixes.find(x => /Generate/.test(x.title))!;
   assert.ok(describeFix(icon, p => path.relative(dir, p)).some(l => /^Create image: sharepoint/.test(l)));
 });
+
+test('help examples: JSON fragments are pretty-printed and highlighted; other code is left alone', () => {
+  const { formatSnippet, highlightJson } = require('../core/codeFormat') as typeof import('../core/codeFormat');
+  const { RULE_DOCS } = require('../core/ruleDocs') as typeof import('../core/ruleDocs');
+  assert.equal(formatSnippet('"title": { "default": "Hello" }').text, '"title": {\n  "default": "Hello"\n}');
+  assert.equal(formatSnippet('color: #0078d4;').lang, 'text');
+  assert.match(highlightJson('{"a": 1}'), /<span class="k">&quot;a&quot;<\/span>: <span class="n">1<\/span>/);
+  // every JSON-looking example in the help is valid JSON (so it formats nicely)
+  for (const r of RULE_DOCS) for (const ex of [r.before, r.after]) {
+    if (ex && /^\s*"/.test(ex)) { assert.equal(formatSnippet(ex).lang, 'json', `${r.id}: ${ex}`); }
+  }
+});

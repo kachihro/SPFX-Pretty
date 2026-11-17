@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { RULE_DOCS, RuleDoc } from '../core/ruleDocs';
+import { SNIPPET_CSS, highlightJson, snippetHtml } from '../core/codeFormat';
 
 /**
  * Builds the SPFX Pretty help website into ./site (static HTML - host on Azure Static Web Apps,
@@ -21,6 +22,15 @@ const esc = (s: string) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '
 const inline = (s: string) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 const AUTO: Record<RuleDoc['auto'], [string, string]> = { yes: ['Auto-fix', 'yes'], partly: ['Guided fix', 'partly'], no: ['Needs you', 'no'] };
 const areas = [...new Set(RULE_DOCS.map(r => r.area))];
+const RC_EXAMPLE = {
+  brandColour: '#2A6FDB',
+  appNamePrefix: 'Kachihro ',
+  brandWords: ['Kachihro'],
+  toolboxGroup: 'Discovery',
+  companyIcon: 'sharepoint/assets/kachihro-logo.png',
+  developer: { name: 'Kachihro', websiteUrl: 'https://<your-website>/' },
+  disabledRules: ['SOL008'],
+};
 
 /** Screenshots in media/screens (made by scripts/make-screens.js). `mock` = drawn in VS Code's style. */
 const SHOTS: Record<string, { caption: string; mock?: boolean }> = {
@@ -127,6 +137,8 @@ footer.site .foot3{display:grid;grid-template-columns:1fr auto 1fr;align-items:c
 .lbx figcaption{color:#e8ecf3;margin-top:12px;font-size:15px}
 .lbx button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:28px;line-height:1;cursor:pointer}
 .lbx button:hover{background:rgba(255,255,255,.25)}.lbx-x{top:18px;right:18px}.lbx-p{left:18px;top:50%;transform:translateY(-50%)}.lbx-n{right:18px;top:50%;transform:translateY(-50%)}
+${SNIPPET_CSS}
+pre code{font-family:Consolas,"Cascadia Code","SFMono-Regular",monospace}
 @media(max-width:760px){nav.main{display:none}header.top .wrap{justify-content:space-between}.lbx-p,.lbx-n{display:none}}
 `;
 
@@ -274,7 +286,7 @@ RULE_DOCS.forEach((r, i) => {
 <div class="box"><h2>Why it matters</h2><p>${inline(r.why)}</p></div>
 ${r.where ? `<div class="box"><h2>Where</h2><p><code>${esc(r.where)}</code></p></div>` : ''}
 <div class="box"><h2>How to fix</h2><ol>${r.fix.map(f => `<li>${inline(f)}</li>`).join('')}</ol></div>
-${r.before || r.after ? `<div class="ba"${r.before && r.after ? '' : ' style="grid-template-columns:1fr"'}>${r.before ? `<div class="before"><div class="lbl">BEFORE</div><pre><code>${esc(r.before)}</code></pre></div>` : ''}${r.after ? `<div class="after"><div class="lbl">${r.before ? 'AFTER' : 'EXAMPLE'}</div><pre><code>${esc(r.after)}</code></pre></div>` : ''}</div>` : ''}
+${r.before || r.after ? `<div class="ba"${r.before && r.after ? '' : ' style="grid-template-columns:1fr"'}>${r.before ? `<div class="before"><div class="lbl">BEFORE</div><pre><code>${snippetHtml(r.before)}</code></pre></div>` : ''}${r.after ? `<div class="after"><div class="lbl">${r.before ? 'AFTER' : 'EXAMPLE'}</div><pre><code>${snippetHtml(r.after)}</code></pre></div>` : ''}</div>` : ''}
 <div class="tip">In VS Code: right-click the finding → <b>${r.auto === 'no' ? 'Explain &amp; How to Fix' : 'Apply Fix…'}</b>, or use <b>▶ Fix step by step</b> in the report.${r.learnMore ? ` More: <a href="${esc(r.learnMore)}">Microsoft Learn</a>.` : ''}</div>
 <nav class="pager">${prev ? `<a href="${prev.id}.html">← ${prev.id} ${esc(prev.title)}</a>` : '<span></span>'}${next ? `<a href="${next.id}.html" style="text-align:right">${next.id} ${esc(next.title)} →</a>` : ''}</nav>
 </article>`, 1);
@@ -292,15 +304,7 @@ page('settings.html', 'Settings & CLI', 'Settings & CLI', `
 <table><tr><th>Setting</th><th>Default</th><th>What it does</th></tr>${Object.entries(props).map(([k, v]) =>
   `<tr><td><code>${esc(k)}</code></td><td><code>${esc(JSON.stringify(v.default))}</code></td><td>${inline(v.description)}${v.enum ? `<br><small>Options: ${v.enum.filter(Boolean).map(e => `<code>${esc(e)}</code>`).join(' ')}</small>` : ''}</td></tr>`).join('')}</table>
 <h2 id="rc">Per-project settings: <code>.spfxprettyrc.json</code></h2><p>Commit this to the project so the whole team (and the pipeline) agree:</p>
-<pre><code>{
-  "brandColour": "#2A6FDB",
-  "appNamePrefix": "Kachihro ",
-  "brandWords": ["Kachihro"],
-  "toolboxGroup": "Discovery",
-  "companyIcon": "sharepoint/assets/kachihro-logo.png",
-  "developer": { "name": "Kachihro", "websiteUrl": "https://&lt;your-website&gt;/" },
-  "disabledRules": ["SOL008"]
-}</code></pre>
+<pre><code>${highlightJson(JSON.stringify(RC_EXAMPLE, null, 2))}</code></pre>
 <h2 id="cli">Command line (pipelines)</h2>
 <pre><code>node out/cli.js . --min-score 70 --fail-on error --html report.html --upgrade-md upgrade.md</code></pre>
 <table><tr><th>Option</th><th>What it does</th></tr>
