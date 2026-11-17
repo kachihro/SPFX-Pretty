@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 - 17/11/2026
+- Source on GitHub: https://github.com/kachihro/SPFX-Pretty
+- README screenshot and links point at GitHub, so they work on any extension page
+- npm run install-local builds and installs the extension in one step
+
 ## 0.7.0 - 17/11/2026
 - Fix Step by Step: walks through every issue, worst first - fix, explain, open, skip or ignore each one
 - FAQ: what every finding means and how to fix it (54 rules), with search; "Explain & How to Fix" on every item and "? Explain" in the report

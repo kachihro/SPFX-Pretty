@@ -2,9 +2,12 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
+  "repository": { "type": "git", "url": "https://github.com/kachihro/SPFX-Pretty.git" },
+  "homepage": "https://github.com/kachihro/SPFX-Pretty#readme",
+  "bugs": { "url": "https://github.com/kachihro/SPFX-Pretty/issues" },
   "icon": "media/icon.png",
   "engines": {
     "vscode": "^1.90.0"
@@ -179,7 +182,8 @@
     "icon": "node ./out/tools/makeExtensionIcon.js",
     "docs": "npm run compile && node ./out/tools/makeDocs.js",
     "test": "npm run compile && node --test out/test/*.test.js",
-    "package": "npm run compile && npm run icon && vsce package --allow-missing-repository --no-rewrite-relative-links",
+    "package": "npm run compile && npm run icon && vsce package --baseImagesUrl https://raw.githubusercontent.com/kachihro/SPFX-Pretty/main/ --baseContentUrl https://github.com/kachihro/SPFX-Pretty/blob/main/",
+    "install-local": "npm run package && node ./out/tools/installLocal.js",
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {
