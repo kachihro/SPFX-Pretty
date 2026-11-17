@@ -185,7 +185,7 @@
     "icon": "node ./out/tools/makeExtensionIcon.js",
     "docs": "npm run compile && node ./out/tools/makeDocs.js",
     "site": "npm run compile && node ./out/tools/makeSite.js",
-    "build": "npm run site",
+
     "test": "npm run compile && node --test out/test/*.test.js",
     "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --allow-missing-repository --no-rewrite-relative-links --readme-path build/README.md",
     "install-local": "npm run package && node ./out/tools/installLocal.js",
