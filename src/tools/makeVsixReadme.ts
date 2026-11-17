@@ -1,11 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { DOCS_SITE } from '../core/site';
 // The repo is private, so GitHub image links don't load on the installed extension page.
 // Build a copy of README.md for the VSIX with the images embedded (and relative links pointed at GitHub).
 const root = path.join(__dirname, '..', '..');
 const GITHUB = 'https://github.com/kachihro/SPFX-Pretty/blob/main/';
 let md = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
 md = md.replace(/!\[([^\]]*)\]\((media\/[^)]+)\)/g, (_m, alt: string, rel: string) => {
+  // Marketplace needs public HTTPS images: use the website's copy once DOCS_SITE is set
+  if (DOCS_SITE) { return `![${alt}](${DOCS_SITE.replace(/\/$/, '')}/assets/${path.basename(rel)})`; }
   // prefer a small JPEG twin (media/x-small.jpg) to keep the VSIX light
   const small = rel.replace(/\.png$/i, '-small.jpg');
   const file = fs.existsSync(path.join(root, small)) ? small : rel;

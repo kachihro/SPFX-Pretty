@@ -1,3 +1,4 @@
+import { ruleUrl } from './site';
 /**
  * Help for every rule: what it means, why it matters, and how to fix it.
  * Drives the "Explain & How to Fix" page in the editor and docs/faq/*.md for the website.
@@ -216,7 +217,7 @@ export function renderFaqHtml(selected: string | undefined, nonce: string, cspSo
       ${r.where ? `<h4>Where</h4><p><code>${esc(r.where)}</code></p>` : ''}
       <h4>How to fix</h4><ol>${r.fix.map(f => `<li>${esc(f)}</li>`).join('')}</ol>
       ${r.before ? `<h4>Before</h4><pre>${esc(r.before)}</pre>` : ''}${r.after ? `<h4>After</h4><pre>${esc(r.after)}</pre>` : ''}
-      ${r.learnMore ? `<p><a href="${esc(r.learnMore)}">Microsoft Learn</a></p>` : ''}
+      ${r.learnMore || ruleUrl(r.id) ? `<p>${ruleUrl(r.id) ? `<a href="${esc(ruleUrl(r.id)!)}">Open online</a>` : ''}${r.learnMore && ruleUrl(r.id) ? ' &middot; ' : ''}${r.learnMore ? `<a href="${esc(r.learnMore)}">Microsoft Learn</a>` : ''}</p>` : ''}
     </div></details>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} https: data:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}';">

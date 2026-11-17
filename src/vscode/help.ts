@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import { renderFaqHtml, ruleDoc } from '../core/ruleDocs';
 import { issues } from '../core/scanner';
 import { Finding, ScanResult } from '../core/types';
-import { applyFix } from './apply';
+import { confirmAndApply } from './apply';
 import { ScanManager } from './scanManager';
 import { findingFromNode } from './treeView';
 
@@ -62,7 +62,7 @@ export async function fixStepByStep(context: vscode.ExtensionContext, scans: Sca
     });
     if (!pick || pick.act === 'stop') { return; }
     switch (pick.act) {
-      case 'fix': attempted.add(key(f)); if (await applyFix(f.fixes[pick.fixIndex!])) { done++; } else { skipped.add(key(f)); } break;
+      case 'fix': attempted.add(key(f)); if (await confirmAndApply(f.fixes[pick.fixIndex!], f)) { done++; } else { attempted.delete(key(f)); } break;
       case 'explain': openFaq(context, f.ruleId); break; // stay on this issue
       case 'open': await vscode.commands.executeCommand('spfxPretty.openFinding', f); skipped.add(key(f)); break;
       case 'skip': skipped.add(key(f)); break;

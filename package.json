@@ -2,7 +2,7 @@
   "name": "spfx-pretty",
   "displayName": "SPFX Pretty",
   "description": "Nice names, icons and versions for SPFx apps - in the App Catalog, Site Contents and the toolbox.",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "publisher": "ChrisOC",
   "license": "SEE LICENSE IN LICENSE",
   "repository": { "type": "git", "url": "https://github.com/kachihro/SPFX-Pretty.git" },
@@ -163,6 +163,11 @@
           "enumDescriptions": ["Its own icon on the Activity Bar (left edge)", "A section in the Explorer sidebar, alongside Outline and Timeline", "Both places"],
           "description": "Where the SPFX Pretty findings panel lives. Tip: if you dragged it somewhere and lost it, run 'View: Reset View Locations'."
         },
+        "spfxPretty.previewFixes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show what a fix will change (file, lines before and after) and wait for Apply before changing anything. Turn off for one-click fixes."
+        },
         "spfxPretty.showReportAfterScan": {
           "type": "boolean",
           "default": true,
@@ -181,6 +186,7 @@
     "watch": "tsc -watch -p ./",
     "icon": "node ./out/tools/makeExtensionIcon.js",
     "docs": "npm run compile && node ./out/tools/makeDocs.js",
+    "site": "npm run compile && node ./out/tools/makeSite.js",
     "test": "npm run compile && node --test out/test/*.test.js",
     "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --readme-path build/README.md --baseContentUrl https://github.com/kachihro/SPFX-Pretty/blob/main/",
     "install-local": "npm run package && node ./out/tools/installLocal.js",

@@ -5,3 +5,4 @@ planb-check/
 *.bundle
 *.zip
 build/
+site/

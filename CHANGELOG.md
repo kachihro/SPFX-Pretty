@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 - 17/11/2026
+- Nothing changes without you seeing it: every fix shows what it will change (file, lines before/after, files created) and waits for Apply. Fix all lists every change first. Setting: spfxPretty.previewFixes
+- Report section bars: chevron, an icon per section, one font
+- Toolbox tiles draw the default "Page" icon instead of printing its name; short button labels (full text on hover)
+- Help website generator (npm run site) with a page per rule, plus an Azure Static Web Apps workflow
+- docs/PUBLISHING.md: how to publish to the VS Code Marketplace
+
 ## 0.7.4 - 17/11/2026
 - Before / after photo on the extension page, embedded so it shows even though the repo is private
 - Examples use project-client-side-solution instead of hello-world

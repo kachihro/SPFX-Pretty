@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { Fix, ProjectConfig } from '../core/types';
+import { Finding, Fix, ProjectConfig } from '../core/types';
+import { describeFix } from '../core/describeFix';
 import { JsoncDoc } from '../core/jsonc';
 
 /** Latest SPFx version fetched from npm at activation (undefined = use the bundled table). */
@@ -74,4 +75,30 @@ export async function applyFix(fix: Fix): Promise<boolean> {
     await Promise.all(docs.map(d => d.save()));
   }
   return true;
+}
+
+/**
+ * Show what a fix will change, then apply it only if the developer clicks Apply.
+ * (Setting spfxPretty.previewFixes = false skips the preview.)
+ */
+export async function confirmAndApply(fix: Fix, finding?: Finding): Promise<boolean> {
+  const interactive = !!(fix.ask || fix.pick || fix.command); // these ask the developer anyway
+  if (interactive || !vscode.workspace.getConfiguration('spfxPretty').get('previewFixes', true)) { return applyFix(fix); }
+  const changes = describeFix(fix, f => vscode.workspace.asRelativePath(f));
+  const apply = 'Apply', explain = 'Explain';
+  const choice = await vscode.window.showInformationMessage(
+    fix.title,
+    { modal: true, detail: `${finding ? `${finding.ruleId}: ${finding.message}\n\n` : ''}This will change:\n${changes.join('\n')}` },
+    apply, ...(finding ? [explain] : []));
+  if (choice === explain && finding) { await vscode.commands.executeCommand('spfxPretty.faq', finding.ruleId); return false; }
+  return choice === apply ? applyFix(fix) : false;
+}
+
+/** Confirm a batch (Fix all) by listing every change first. */
+export async function confirmBatch(title: string, findings: Finding[]): Promise<boolean> {
+  if (!findings.length) { return false; }
+  if (!vscode.workspace.getConfiguration('spfxPretty').get('previewFixes', true)) { return true; }
+  const lines = findings.slice(0, 25).map(f => `- ${f.fixes.find(x => x.safe)?.title}  (${vscode.workspace.asRelativePath(f.file)})`);
+  const more = findings.length > 25 ? `\n...and ${findings.length - 25} more` : '';
+  return (await vscode.window.showInformationMessage(title, { modal: true, detail: `These ${findings.length} change(s) will be made:\n${lines.join('\n')}${more}\n\nEach one can be undone with Ctrl+Z in its file.` }, 'Apply all')) === 'Apply all';
 }

@@ -264,3 +264,17 @@ test('every rule the scanner can raise has an FAQ entry', () => {
   assert.deepEqual(missing, [], `rules without FAQ: ${missing.join(', ')}`);
   assert.equal(documented.size, RULE_DOCS.length, 'no duplicate FAQ ids');
 });
+
+test('fix preview shows exactly what will change, without changing anything', () => {
+  const { describeFix } = require('../core/describeFix') as typeof import('../core/describeFix');
+  const dir = copyFixture();
+  const f = issues(scanProject(dir)).find(x => x.ruleId === 'SOL001')!;
+  const before = fs.readFileSync(path.join(dir, 'config', 'package-solution.json'), 'utf8');
+  const lines = describeFix(f.fixes[0], p => path.relative(dir, p));
+  assert.equal(lines[0], path.join('config', 'package-solution.json') + ':');
+  assert.ok(lines.some(l => /^\s+- .*"name": "project-client-side-solution"/.test(l)), lines.join('\n'));
+  assert.ok(lines.some(l => /^\s+\+ .*"name": "Project"/.test(l)), lines.join('\n'));
+  assert.equal(fs.readFileSync(path.join(dir, 'config', 'package-solution.json'), 'utf8'), before, 'preview must not change the file');
+  const icon = issues(scanProject(dir)).find(x => x.ruleId === 'SOL010')!.fixes.find(x => /Generate/.test(x.title))!;
+  assert.ok(describeFix(icon, p => path.relative(dir, p)).some(l => /^Create image: sharepoint/.test(l)));
+});

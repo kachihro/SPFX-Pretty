@@ -42,7 +42,20 @@ function surfaceIssues(c: Ctx, s: Surface): Finding[] {
 }
 
 /** Small fix buttons (first fix of each finding) shown inside a preview panel. */
-function actions(c: Ctx, list: Finding[], max = 6): string {
+/** Short labels for buttons inside small tiles. */
+function shortLabel(title: string): string {
+  if (/brand-coloured .*initials icon/i.test(title)) { return '✨ Brand icon'; }
+  if (/brand-coloured .*icon/i.test(title)) { return '✨ Type icon'; }
+  if (/^Use Fluent icon "([^"]+)"/.test(title)) { return `Fluent "${/"([^"]+)"/.exec(title)![1]}"`; }
+  if (/^Rename to "/.test(title)) { return '✏ Rename'; }
+  if (/description/i.test(title) && /^Write/.test(title)) { return '✍ Description'; }
+  if (/^Choose toolbox group/.test(title)) { return '▾ Group'; }
+  if (/^Move to "/.test(title)) { return `▾ ${/"([^"]+)"/.exec(title)![1]}`; }
+  if (/^Remove officeFabricIconFontName/.test(title)) { return 'Use the image'; }
+  return title.length > 24 ? title.slice(0, 22) + '…' : title;
+}
+
+function actions(c: Ctx, list: Finding[], max = 6, compact = false): string {
   const open = list.filter(f => f.severity !== 'pass');
   const withFix = open.filter(f => f.fixes.length);
   const manual = open.filter(f => !f.fixes.length);
@@ -52,7 +65,7 @@ function actions(c: Ctx, list: Finding[], max = 6): string {
     return `<div class="acts">${withFix.slice(0, max).map(f => `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`).join('')}${manual.map(f => `<span class="hint">&#x270D; ${esc(short(f.message))}</span>`).join('')}</div>`;
   }
   const btns = withFix.slice(0, max).map(f =>
-    `<button class="fix mini ${f.severity}${f.fixes[0].ask || f.fixes[0].pick || f.fixes[0].command ? ' ask' : ''}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${f.fixes[0].ask ? '&#x270D; ' : f.fixes[0].pick ? '&#x25BE; ' : f.fixes[0].command ? '&#x1F5BC; ' : ''}${esc(f.fixes[0].title)}</button>`).join('');
+    `<button class="fix mini ${f.severity}${f.fixes[0].ask || f.fixes[0].pick || f.fixes[0].command ? ' ask' : ''}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${compact ? esc(shortLabel(f.fixes[0].title)) : `${f.fixes[0].ask ? '&#x270D; ' : f.fixes[0].pick ? '&#x25BE; ' : f.fixes[0].command ? '&#x1F5BC; ' : ''}${esc(f.fixes[0].title)}`}</button>`).join('');
   const more = withFix.length > max ? `<span class="hint">+${withFix.length - max} more in All checks</span>` : '';
   const hand = manual.map(f =>
     `<button class="open mini" data-idx="${idx(c, f)}" title="${esc(f.message)}${f.detail ? '\n\n' + esc(f.detail) : ''}">&#x1F50D; ${esc(short(f.message))}</button>`).join('');
@@ -121,14 +134,22 @@ function appSurfaces(c: Ctx): string {
   </div>${fixRow}${hiddenNote}`;
 }
 
+const PAGE_GLYPH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>';
+const FLUENT_GLYPH = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg>';
+
 function toolboxIcon(comp: ComponentInfo): string {
   if (comp.iconImageUrl && !comp.officeFabricIconFontName && /^(data:|https:)/.test(comp.iconImageUrl)) {
-    return `<img class="tbx-img" src="${esc(comp.iconImageUrl)}" alt="">`;
+    const generic = /brand-icons\/product\/svg\/sharepoint_|sharepointlogo/i.test(comp.iconImageUrl);
+    return `<img class="tbx-img" src="${esc(comp.iconImageUrl)}" alt=""><div class="tbx-cap${generic ? ' bad' : ''}">${generic ? 'default SharePoint logo' : 'custom icon'}</div>`;
   }
-  if (comp.officeFabricIconFontName) {
-    return `<span class="tbx-font${comp.officeFabricIconFontName === 'Page' ? ' ugly-b' : ''}" title="Fluent icon">${esc(comp.officeFabricIconFontName)}</span>`;
+  const name = comp.officeFabricIconFontName;
+  if (name === 'Page') {
+    return `<span class="tbx-glyph ugly-b" title="officeFabricIconFontName: Page - the icon every new web part gets">${PAGE_GLYPH}</span><div class="tbx-cap bad">default "Page" icon</div>`;
   }
-  return '<span class="tbx-font ugly-b">?</span>';
+  if (name) {
+    return `<span class="tbx-glyph" title="Fluent UI icon: ${esc(name)}">${FLUENT_GLYPH}</span><div class="tbx-cap">Fluent icon "${esc(name)}"</div>`;
+  }
+  return '<span class="tbx-glyph ugly-b">?</span><div class="tbx-cap bad">no icon</div>';
 }
 
 /** The modern toolbox section the component really appears in. */
@@ -147,7 +168,7 @@ function toolbox(c: Ctx): string {
     return `<div class="tbx-item" title="${esc(comp.description ?? '')}">${toolboxIcon(comp)}
       <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
       ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div>
-      ${actions(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)), 3)}</div>`;
+      ${actions(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)), 4, true)}</div>`;
   }).join('');
   return `<div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
 }
@@ -213,13 +234,25 @@ function upgradeSection(c: Ctx): string {
 }
 
 /** A coloured section panel with a header bar, subtitle and an issue count badge. */
+const svg = (d: string) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+/** One white icon per report section. */
+const SECTION_ICONS: Record<string, string> = {
+  where: svg('<path d="M3 9l1.5-5h15L21 9"/><path d="M3 9h18v2a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z"/><path d="M5 13v7h14v-7"/><path d="M10 20v-4h4v4"/>'),
+  toolbox: svg('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/><path d="M11 12v2h2v-2"/>'),
+  pane: svg('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
+  versions: svg('<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
+  others: svg('<path d="M14 4a2 2 0 1 0-4 0v2H5v5h2a2 2 0 1 1 0 4H5v5h5v-2a2 2 0 1 1 4 0v2h5v-5h-2a2 2 0 1 1 0-4h2V6h-5z"/>'),
+  checks: svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5 2.5-2.5M3.5 18l1.5 1.5 2.5-2.5"/>'),
+};
+const CHEVRON = '<svg class="chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
 function section(id: string, title: string, sub: string, colour: string, inner: string, count?: number, safeFixes = 0, interactive = false): string {
   if (!inner.trim()) { return ''; }
   const fixAll = interactive && safeFixes ? `<button class="fixsec" data-sec="${id}" title="Apply the safe fixes in this section">&#x2728; Fix all (${safeFixes})</button>` : '';
   const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
   void colour; // every section uses the same blue
   return `<details class="sec" id="${id}" open>
-    <summary class="sh"><div><span class="chev">&#x25B8;</span><span class="st">${esc(title)}</span> <span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></summary>
+    <summary class="sh"><div class="shl">${CHEVRON}<span class="sicon">${SECTION_ICONS[id] ?? ''}</span><span class="st">${esc(title)}</span><span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></summary>
     <div class="sb">${inner}</div>
   </details>`;
 }
@@ -295,6 +328,8 @@ table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .tbx-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border-radius:6px;border:1px solid var(--line);text-align:center;font-size:12.5px;min-width:0;word-break:break-word}
 .tbx-img{width:40px;height:28px;object-fit:contain}
+.tbx-glyph{display:grid;place-items:center;width:44px;height:34px;border:1px dashed var(--sub);border-radius:6px;color:var(--sub)}
+.tbx-cap{font-size:11px;color:var(--sub);margin-top:-2px}.tbx-cap.bad{color:var(--bad)}
 .tbx-font{min-width:40px;height:28px;display:grid;place-items:center;padding:0 4px;border:1px dashed var(--sub);border-radius:4px;font-size:10px;color:var(--sub)}
 .kind{font-size:11px;color:var(--sub)}
 .pp .pp-h{font-size:13px;margin-bottom:10px;display:inline-block}.pp .pp-g{font-weight:600;margin:6px 0;display:inline-block}
@@ -313,13 +348,15 @@ html{scroll-behavior:smooth}
 .sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(90deg,#2A8BD8 0%,#2A6FDB 35%,#7B3FE4 75%,#15287F 100%);color:#fff;cursor:pointer;list-style:none;user-select:none}
 .sh::-webkit-details-marker{display:none}
 .sh:hover{filter:brightness(.93)}
-.chev{display:inline-block;width:16px;transition:transform .15s}
+.shl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.chev{flex:none;transition:transform .15s;opacity:.9}
 .sec[open] > .sh .chev{transform:rotate(90deg)}
+.sicon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.18);flex:none}
 .sec:not([open]){background:#15287F;border-color:#2A6FDB}
 .sec:not([open]) > .sh{border-radius:0}
 .jump .tools{margin-left:auto;display:flex;gap:6px}
 .jump button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:3px 10px}
-.st{font-size:16px;font-weight:600}.ss{font-size:12.5px;opacity:.85;margin-left:4px}
+.st,.ss{font-family:inherit;line-height:1.3}.st{font-size:16px;font-weight:600}.ss{font-size:14px;font-weight:400;opacity:.85}
 .sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .sbadge.ok{background:rgba(255,255,255,.22);color:#fff}
 .sb{padding:14px 16px}

@@ -9,7 +9,7 @@ import { issues, scanProject } from './core/scanner';
 import { themingSnippet } from './core/snippets';
 import { titleProblems, toNiceTitle } from './core/titles';
 import { Finding, Fix, ScanResult } from './core/types';
-import { applyFix, readConfig, setLatestOnline } from './vscode/apply';
+import { applyFix, confirmAndApply, confirmBatch, readConfig, setLatestOnline } from './vscode/apply';
 import { registerExtraCommands } from './vscode/extraCommands';
 import { fixStepByStep, openFaq } from './vscode/help';
 import { fetchLatestSpfxVersion } from './core/versions';
@@ -95,8 +95,8 @@ export function activate(context: vscode.ExtensionContext): void {
     { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
   ));
 
-  const run = async (fix: Fix | undefined): Promise<void> => {
-    if (fix && await applyFix(fix)) { rescan(); }
+  const run = async (fix: Fix | undefined, finding?: Finding): Promise<void> => {
+    if (fix && await confirmAndApply(fix, finding)) { rescan(); }
   };
 
   context.subscriptions.push(
@@ -124,12 +124,14 @@ export function activate(context: vscode.ExtensionContext): void {
         const pick = await vscode.window.showQuickPick(f.fixes.map(x => ({ label: x.title, fix: x })), { title: f.message });
         fix = pick?.fix as Fix;
       }
-      await run(fix ?? f.fixes[0]);
+      await run(fix ?? f.fixes[0], f);
     }),
 
     vscode.commands.registerCommand('spfxPretty.fixCategory', async (node: unknown) => {
       const cat = categoryFromNode(node);
       if (!cat) { return; }
+      const planned = scans.all.flatMap(r => issues(r)).filter(f => f.category === cat.category && f.file.startsWith(cat.root) && f.fixes.some(x => x.safe));
+      if (!await confirmBatch(`Fix all ${cat.category} issues?`, planned)) { return; }
       await vscode.workspace.saveAll(false);
       const n = await applySafeFixes(scans, f => f.category === cat.category && f.file.startsWith(cat.root));
       rescan();
@@ -190,6 +192,8 @@ export function activate(context: vscode.ExtensionContext): void {
         if (msg.type === 'fixSection' && r) {
           await vscode.workspace.saveAll(false);
           const match = sectionMatcher(msg.section ?? 'checks');
+          const planned = issues(r).filter(f => match(f) && f.fixes.some(x => x.safe));
+          if (!await confirmBatch('Fix all in this section?', planned)) { refreshPanel(scans); return; }
           const n = await applySafeFixes(scans, f => f.file.startsWith(r.root) && match(f));
           rescan();
           refreshPanel(scans);
@@ -199,7 +203,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const f = r?.findings[msg.idx];
         if (!f) { return; }
         if (msg.type === 'open') { await vscode.commands.executeCommand('spfxPretty.openFinding', f); }
-        if (msg.type === 'fix') { await run(f.fixes[msg.fix ?? 0]); refreshPanel(scans); }
+        if (msg.type === 'fix') { await run(f.fixes[msg.fix ?? 0], f); refreshPanel(scans); }
       });
       refreshPanel(scans);
     }),
