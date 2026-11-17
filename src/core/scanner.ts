@@ -16,7 +16,7 @@ import { Finding, Fix, PreviewData, ProjectConfig, ScanResult, Surface } from '.
 const CATALOG: Surface[] = ['App Catalog', 'Add an app', 'Site Contents'];
 /** Where people see what each rule is about. */
 export const RULE_SURFACES: Record<string, Surface[]> = {
-  SOL001: CATALOG, SOL002: CATALOG, SOL010: CATALOG, SOL011: CATALOG, SOL012: CATALOG, SOL014: CATALOG,
+  SOL001: CATALOG, SOL002: CATALOG, SOL010: CATALOG, SOL015: CATALOG, SOL011: CATALOG, SOL012: CATALOG, SOL014: CATALOG,
   SOL003: ['Site features'], DEF003: ['Site features'],
   SOL004: ['App Catalog'], SOL005: ['App Catalog', 'Add an app'], SOL006: ['App Catalog'], SOL007: ['App Catalog'], SOL008: ['App Catalog'], SOL013: ['App Catalog'],
   DEF004: ['App Catalog'],
@@ -90,7 +90,7 @@ export function issues(result: ScanResult): Finding[] {
  * fix's offsets are relative to the file as it was when scanned.
  */
 export function applyFixToDisk(fix: Fix): void {
-  if (fix.pick || fix.ask) { return; } // interactive fixes need the editor
+  if (fix.pick || fix.ask || fix.command) { return; } // interactive fixes need the editor
   const byFile = new Map<string, typeof fix.edits>();
   for (const e of fix.edits) { byFile.set(e.file, [...(byFile.get(e.file) ?? []), e]); }
   for (const [file, edits] of byFile) {

@@ -11,6 +11,7 @@ import { titleProblems, toNiceTitle } from './core/titles';
 import { Finding, Fix, ScanResult } from './core/types';
 import { applyFix, readConfig, setLatestOnline } from './vscode/apply';
 import { registerExtraCommands } from './vscode/extraCommands';
+import { fixStepByStep, openFaq } from './vscode/help';
 import { fetchLatestSpfxVersion } from './core/versions';
 import { ScanManager } from './vscode/scanManager';
 import { FILTER_LABEL, FindingsTree, SeverityFilter, categoryFromNode, findingFromNode } from './vscode/treeView';
@@ -145,12 +146,12 @@ export function activate(context: vscode.ExtensionContext): void {
       vscode.window.showInformationMessage(`SPFX Pretty: ignoring ${f.ruleId} in this workspace (undo in Settings > SPFX Pretty > Disabled Rules).`);
     }),
 
-    vscode.commands.registerCommand('spfxPretty.howToFix', async (node: unknown) => {
-      const f = findingFromNode(node);
-      if (!f) { return; }
-      const open = 'Open the file';
-      const pick = await vscode.window.showInformationMessage(`${f.ruleId}: ${f.message}`, { modal: true, detail: `${f.detail ?? 'This one needs your judgement - SPFX Pretty can\'t safely change it automatically.'}\n\nFile: ${vscode.workspace.asRelativePath(f.file)}` }, open);
-      if (pick === open) { await vscode.commands.executeCommand('spfxPretty.openFinding', f); }
+    vscode.commands.registerCommand('spfxPretty.howToFix', (node: unknown) => openFaq(context, node)),
+    vscode.commands.registerCommand('spfxPretty.faq', (id?: unknown) => openFaq(context, id)),
+    vscode.commands.registerCommand('spfxPretty.fixStepByStep', async (rootArg?: unknown) => {
+      await vscode.workspace.saveAll(false);
+      await fixStepByStep(context, scans, rescan, typeof rootArg === 'string' ? rootArg : undefined);
+      if (panel) { refreshPanel(scans); }
     }),
 
     vscode.commands.registerCommand('spfxPretty.copyMessage', async (node: unknown) => {
@@ -176,6 +177,16 @@ export function activate(context: vscode.ExtensionContext): void {
       panel.onDidDispose(() => { panel = undefined; });
       panel.webview.onDidReceiveMessage(async (msg: { type: string; idx: number; fix?: number; section?: string }) => {
         const r = currentResult(scans);
+        if (msg.type === 'explain') { openFaq(context, (msg as { rule?: string }).rule); return; }
+        if (msg.type === 'command' && r && (msg as { id?: string }).id === 'spfxPretty.fixStepByStep') {
+          await vscode.commands.executeCommand('spfxPretty.fixStepByStep', r.root);
+          return;
+        }
+        if (msg.type === 'command' && r && (msg as { id?: string }).id === 'spfxPretty.uploadCompanyLogo') {
+          await vscode.commands.executeCommand('spfxPretty.uploadCompanyLogo', r.root);
+          refreshPanel(scans);
+          return;
+        }
         if (msg.type === 'fixSection' && r) {
           await vscode.workspace.saveAll(false);
           const match = sectionMatcher(msg.section ?? 'checks');

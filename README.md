@@ -14,8 +14,8 @@
 ## How to use
 
 1. Open an SPFx project and click the **SPFX Pretty** icon in the Activity Bar (or set **SPFX Pretty › Location** to *explorer* to have it next to Outline)
-2. The report opens - click **✨ Fix all** on a section, or a button on any item
-3. Right-click a finding in the panel for more options
+2. The report opens - click **▶ Fix step by step** to go through every issue one at a time
+3. Or click **✨ Fix all** on a section, a button on any item, or **? Explain** for help
 
 ## Commands
 
@@ -24,6 +24,8 @@
 | **Scan Project** | Re-scan and open the report |
 | **Upload Company Logo** | App Catalog, Teams and toolbox icons from one PNG |
 | **Version Check & Upgrade Assessment** | Upgrade plan as Markdown |
+| **Fix Step by Step** | Every issue, one at a time - fix, explain, skip or ignore |
+| **FAQ - What Each Finding Means** | Help for every rule, with search |
 | **Apply All Safe Fixes** | Everything that doesn't need a human |
 
-More: [all rules, settings and CLI](docs/RULES.md)
+More: [FAQ for every rule](docs/faq/README.md) · [rules, settings and CLI](docs/RULES.md)

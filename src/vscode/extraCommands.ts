@@ -14,10 +14,10 @@ type Picker = (results: ScanResult[]) => Promise<ScanResult | undefined>;
 
 export function registerExtraCommands(context: vscode.ExtensionContext, scans: ScanManager, rescan: () => ScanResult[], pickProject: Picker): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('spfxPretty.uploadCompanyLogo', async () => {
-      const result = await pickProject(scans.all.length ? scans.all : rescan());
-      if (!result) { return; }
-      await uploadCompanyLogo(context, result.root);
+    vscode.commands.registerCommand('spfxPretty.uploadCompanyLogo', async (rootArg?: unknown) => {
+      const root = typeof rootArg === 'string' ? rootArg : (await pickProject(scans.all.length ? scans.all : rescan()))?.root;
+      if (!root) { return; }
+      await uploadCompanyLogo(context, root);
       rescan();
     }),
 

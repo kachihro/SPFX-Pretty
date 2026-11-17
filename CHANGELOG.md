@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 - 17/11/2026
+- Fix Step by Step: walks through every issue, worst first - fix, explain, open, skip or ignore each one
+- FAQ: what every finding means and how to fix it (54 rules), with search; "Explain & How to Fix" on every item and "? Explain" in the report
+- docs/faq/*.md generated for the website (npm run docs)
+- Upload company icon straight from the icon fix; the generated placeholder icon is flagged until you do
+
 ## 0.6.2 - 17/11/2026
 - New setting spfxPretty.location: Activity Bar, Explorer sidebar (next to Outline / Timeline) or both
 - New command "SPFX Pretty: Show Findings Panel" jumps to it wherever it is

@@ -243,3 +243,23 @@ test('custom toolbox groupId is flagged (modern toolbox shows it under Advanced)
   assert.equal(opts.length, 8); // 6 sections + Advanced + company name
   assert.ok(opts.some(o => /Company group name/.test(o)));
 });
+
+test('generated placeholder app icon is flagged until a real icon is uploaded', () => {
+  const dir = copyFixture();
+  applyFixToDisk(issues(scanProject(dir)).find(x => x.ruleId === 'SOL010')!.fixes.find(x => /Generate/.test(x.title))!);
+  const f = issues(scanProject(dir)).find(x => x.ruleId === 'SOL015')!;
+  assert.ok(f, 'placeholder flagged');
+  assert.equal(f.fixes[0].command?.id, 'spfxPretty.uploadCompanyLogo');
+  fs.writeFileSync(path.join(dir, 'sharepoint', 'images', 'AppIcon.png'), companyIconSet(makePngIcon({ size: 200, colour: '#123456', glyph: 'webpart' })).app96);
+  assert.ok(!issues(scanProject(dir)).some(x => x.ruleId === 'SOL015'), 'real logo not flagged');
+});
+
+test('every rule the scanner can raise has an FAQ entry', () => {
+  const { RULE_DOCS } = require('../core/ruleDocs') as typeof import('../core/ruleDocs');
+  const src = fs.readdirSync(path.join(__dirname, '..', '..', 'src', 'core', 'rules')).map(f => fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'core', 'rules', f), 'utf8')).join('\n');
+  const raised = new Set([...src.matchAll(/ruleId: '([A-Z]{3}\d{3})'|ctx\.pass\('([A-Z]{3}\d{3})'/g)].map(m => m[1] ?? m[2]));
+  const documented = new Set(RULE_DOCS.map(r => r.id));
+  const missing = [...raised].filter(id => !documented.has(id));
+  assert.deepEqual(missing, [], `rules without FAQ: ${missing.join(', ')}`);
+  assert.equal(documented.size, RULE_DOCS.length, 'no duplicate FAQ ids');
+});

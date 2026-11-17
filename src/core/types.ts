@@ -47,6 +47,8 @@ export interface PickOne {
 }
 
 export interface Fix {
+  /** When set, the fix runs this editor command (e.g. the company logo picker). Editor only. */
+  command?: { id: string; args?: unknown[] };
   /** When set, the user picks one of these fixes (editor only). */
   pick?: PickOne;
   /** When set, the fix asks for text first (editor only - skipped by fix-all and the CLI). */

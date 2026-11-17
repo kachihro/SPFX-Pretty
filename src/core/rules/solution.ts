@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { RuleContext } from './context';
 import { isPlaceholderDescription, titleProblems } from '../titles';
-import { makePngIcon, readPngSize } from '../icons';
+import { isGeneratedPlaceholder, makePngIcon, readPngSize } from '../icons';
 import { Fix } from '../types';
 import { companyIconSet } from '../imageTools';
 import { JsoncDoc } from '../jsonc';
@@ -145,6 +145,8 @@ export function solutionRules(ctx: RuleContext): void {
     }
     // 2. A logo already in the project (e.g. sharepoint/assets/kachihro-logo.png)
     for (const found of existingLogos(root, packageDir)) {
+      // never offer the current icon or one of our own placeholders as "your logo"
+      if (found === solution.iconFile || isGeneratedPlaceholder(fs.readFileSync(found), [config.brandColour, '#0F6CBD'])) { continue; }
       const size = readPngSize(fs.readFileSync(found));
       if (!size || size.width !== size.height) { continue; }
       const rel = path.relative(packageDir, found).replace(/\\/g, '/');
@@ -159,7 +161,11 @@ export function solutionRules(ctx: RuleContext): void {
     }
     // 3. A generated brand-colour icon
     const png = makePngIcon({ size: APP_ICON_SIZE, colour: config.brandColour, glyph: 'package', rounded: true });
-    fixes.push({ title: generatedTitle, safe: fixes.length === 0, edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
+    const generatedSafe = fixes.length === 0;
+    fixes.push({ title: generatedTitle, safe: generatedSafe, edits: setPath(iconRel), creates: [{ file: target, content: png.toString('base64'), encoding: 'base64' }] });
+    // 4. Upload a company icon (file picker) - first choice when no company logo is configured yet
+    const upload: Fix = { title: 'Upload company icon (96x96)...', safe: false, edits: [], command: { id: 'spfxPretty.uploadCompanyLogo', args: [root] } };
+    if (logo) { fixes.splice(1, 0, upload); } else { fixes.unshift(upload); }
     return fixes;
   };
   if (!solution.iconPath) {
@@ -188,6 +194,12 @@ export function solutionRules(ctx: RuleContext): void {
         ruleId: 'SOL012', severity: 'info', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
         message: `App icon is ${size.width}x${size.height}; ${APP_ICON_SIZE}x${APP_ICON_SIZE} (square) looks crisp in the catalog.`,
         fixes: iconFixes(`Replace with a generated ${APP_ICON_SIZE}x${APP_ICON_SIZE} brand-colour icon`),
+      });
+    } else if (ext === '.png' && isGeneratedPlaceholder(fs.readFileSync(solution.iconFile), [...new Set([config.brandColour, '#0F6CBD'])])) {
+      ctx.issue({
+        ruleId: 'SOL015', severity: 'info', category: 'Icon', file, ...doc.locate(['solution', 'iconPath']),
+        message: 'App icon is the generated placeholder - upload your company icon so people recognise it in the App Catalog and Site Contents.',
+        fixes: iconFixes('Regenerate the placeholder').filter(f => f.title !== 'Regenerate the placeholder'),
       });
     } else {
       ctx.pass('SOL010', 'Icon', `App Catalog icon ${solution.iconPath}${size ? ` (${size.width}x${size.height})` : ''}`, file, undefined, 3);

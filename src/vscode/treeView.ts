@@ -84,7 +84,7 @@ export class FindingsTree implements vscode.TreeDataProvider<Node> {
         const f = node.finding;
         const item = new vscode.TreeItem(f.message, vscode.TreeItemCollapsibleState.None);
         const fx = f.fixes[0];
-        item.description = f.severity === 'pass' ? '' : `${f.ruleId} · ${fx ? `${fx.ask ? '✍' : fx.pick ? '▾' : '💡'} ${fx.title}${f.fixes.length > 1 ? ` (+${f.fixes.length - 1})` : ''}` : '✋ needs you - right-click > How to Fix'}`;
+        item.description = f.severity === 'pass' ? '' : `${f.ruleId} · ${fx ? `${fx.ask ? '✍' : fx.pick ? '▾' : fx.command ? '🖼' : '💡'} ${fx.title}${f.fixes.length > 1 ? ` (+${f.fixes.length - 1})` : ''}` : '✋ needs you - right-click > How to Fix'}`;
         item.tooltip = new vscode.MarkdownString(`**${f.ruleId}** ${f.message}${f.detail ? `\n\n${f.detail}` : ''}${f.fixes.length ? `\n\n💡 ${f.fixes.map(x => x.title).join('  \n💡 ')}` : ''}`);
         item.iconPath = f.severity === 'pass' ? new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'))
           : f.severity === 'error' ? new vscode.ThemeIcon('error', new vscode.ThemeColor('problemsErrorIcon.foreground'))

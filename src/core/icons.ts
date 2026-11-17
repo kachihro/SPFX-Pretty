@@ -180,7 +180,10 @@ function chunk(type: string, data: Buffer): Buffer {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td));
   return Buffer.concat([len, td, crc]);
 }
-export function encodePng(rgba: Buffer, width: number, height: number): Buffer {
+/** Text written into generated placeholder icons, so we can tell them apart from a real company icon later. */
+export const PLACEHOLDER_MARK = 'SPFX Pretty placeholder';
+
+export function encodePng(rgba: Buffer, width: number, height: number, software?: string): Buffer {
   const raw = Buffer.alloc((width * 4 + 1) * height);
   for (let y = 0; y < height; y++) {
     raw[y * (width * 4 + 1)] = 0;
@@ -192,13 +195,28 @@ export function encodePng(rgba: Buffer, width: number, height: number): Buffer {
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', ihdr),
+    ...(software ? [chunk('tEXt', Buffer.from(`Software\0${software}`, 'latin1'))] : []),
     chunk('IDAT', zlib.deflateSync(raw, { level: 9 })),
     chunk('IEND', Buffer.alloc(0)),
   ]);
 }
 
 export function makePngIcon(opts: PngIconOptions): Buffer {
-  return encodePng(render(opts), opts.size, opts.size);
+  return encodePng(render(opts), opts.size, opts.size, PLACEHOLDER_MARK);
+}
+
+/** True when an icon file is one SPFX Pretty generated (marked, or identical to a generated one). */
+export function isGeneratedPlaceholder(png: Buffer, brandColours: string[]): boolean {
+  if (png.includes(Buffer.from(PLACEHOLDER_MARK, 'latin1'))) { return true; }
+  const size = readPngSize(png);
+  if (!size || size.width !== size.height) { return false; }
+  // icons generated before the marker existed: compare pixels with a fresh render
+  const strip = (b: Buffer) => { try { return require('./imageTools').decodePng(b).data as Buffer; } catch { return undefined; } };
+  const mine = strip(png);
+  return !!mine && brandColours.some(c => {
+    const again = strip(makePngIcon({ size: size.width, colour: c, glyph: 'package', rounded: true }));
+    return !!again && again.equals(mine);
+  });
 }
 
 /** Read width/height from a PNG header without decoding it. */

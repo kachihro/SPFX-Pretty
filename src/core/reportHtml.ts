@@ -52,7 +52,7 @@ function actions(c: Ctx, list: Finding[], max = 6): string {
     return `<div class="acts">${withFix.slice(0, max).map(f => `<span class="hint">Fix: ${esc(f.fixes[0].title)}</span>`).join('')}${manual.map(f => `<span class="hint">&#x270D; ${esc(short(f.message))}</span>`).join('')}</div>`;
   }
   const btns = withFix.slice(0, max).map(f =>
-    `<button class="fix mini ${f.severity}${f.fixes[0].ask || f.fixes[0].pick ? ' ask' : ''}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${f.fixes[0].ask ? '&#x270D; ' : f.fixes[0].pick ? '&#x25BE; ' : ''}${esc(f.fixes[0].title)}</button>`).join('');
+    `<button class="fix mini ${f.severity}${f.fixes[0].ask || f.fixes[0].pick || f.fixes[0].command ? ' ask' : ''}" data-idx="${idx(c, f)}" data-fix="0" title="${esc(f.message)}">${f.fixes[0].ask ? '&#x270D; ' : f.fixes[0].pick ? '&#x25BE; ' : f.fixes[0].command ? '&#x1F5BC; ' : ''}${esc(f.fixes[0].title)}</button>`).join('');
   const more = withFix.length > max ? `<span class="hint">+${withFix.length - max} more in All checks</span>` : '';
   const hand = manual.map(f =>
     `<button class="open mini" data-idx="${idx(c, f)}" title="${esc(f.message)}${f.detail ? '\n\n' + esc(f.detail) : ''}">&#x1F50D; ${esc(short(f.message))}</button>`).join('');
@@ -95,7 +95,8 @@ function appSurfaces(c: Ctx): string {
   const nameCell = `<span class="${nameIssue ? 'ugly' : ''}">${esc(name)}</span>`;
   const better = suggestion(nameIssue);
   const whereIssues = c.r.findings.filter(f => f.severity !== 'pass' && sectionMatcher('where')(f));
-  const fixRow = `${better ? `<div class="suggest">Suggested name: <b>${esc(better)}</b></div>` : ''}${actions(c, whereIssues, 8)}`;
+  const changeIcon = c.opts.interactive && !iconIssue ? `<div class="acts"><button class="cmd mini" data-cmd="spfxPretty.uploadCompanyLogo">&#x1F5BC; Change app icon (upload company icon)...</button></div>` : '';
+  const fixRow = `${better ? `<div class="suggest">Suggested name: <b>${esc(better)}</b></div>` : ''}${actions(c, whereIssues, 8)}${changeIcon}`;
   const hidden = c.r.preview.skipFeatureDeployment;
   const hiddenNote = hidden
     ? '<div class="note info">skipFeatureDeployment is true: when deployed to all sites the app is <b>not</b> listed in "Add an app" or Site Contents. If an admin unticks "add to all sites", it shows here.</div>'
@@ -180,7 +181,7 @@ function findingRow(c: Ctx, f: Finding): string {
   return `<li class="f ${f.severity}"><span class="sev">${badge}</span><div class="body">
     <div class="msg">${esc(f.message)}</div>
     ${f.detail ? `<div class="detail">${esc(f.detail)}</div>` : ''}
-    <div class="where">${(f.surfaces ?? []).map(s => `<span class="chip">${esc(s)}</span>`).join('')}<span>${esc(rel)}${f.component ? ` &middot; ${esc(f.component)}` : ''}</span> <code class="rule">${esc(f.ruleId)}</code></div>
+    <div class="where">${(f.surfaces ?? []).map(s => `<span class="chip">${esc(s)}</span>`).join('')}<span>${esc(rel)}${f.component ? ` &middot; ${esc(f.component)}` : ''}</span> <code class="rule">${esc(f.ruleId)}</code>${c.opts.interactive && f.severity !== 'pass' ? ` <button class="explain" data-rule="${esc(f.ruleId)}" title="What this means and how to fix it">? Explain</button>` : ''}</div>
     ${f.severity !== 'pass' ? `<div class="actions">${buttons}</div>` : ''}
   </div></li>`;
 }
@@ -329,6 +330,10 @@ button.fixsec:hover{filter:brightness(.92)}
 .tbx-item .acts{justify-content:center}
 button.mini{font-size:11px;padding:2px 8px;border-radius:999px;text-align:left;max-width:100%;white-space:normal;line-height:1.35}
 button.mini.error{background:var(--bad);border-color:var(--bad)}
+button.explain{background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:999px;font-size:11px;padding:0 8px;margin-left:4px}
+.wizard{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:14px 0 0}
+button.cmd.big{font-size:14px;padding:6px 16px;border-radius:999px;background:var(--accent);color:#fff;border-color:var(--accent)}
+button.cmd.mini{background:#fff;color:#000;border-color:var(--accent)}
 button.open.mini{background:transparent;color:var(--text);border:1px dashed var(--sub)}
 button.mini.ask{background:#fff;color:#000;border-color:var(--accent)}button.mini.warning{background:var(--warn);border-color:var(--warn)}
 button:disabled{opacity:.6;cursor:default}
@@ -360,6 +365,7 @@ details summary{cursor:pointer;color:var(--sub);margin:6px 0}
   <div class="sub">SPFx ${esc(r.upgrade?.current ?? r.spfxVersion ?? '?')} &middot; ${r.components.length} component${r.components.length === 1 ? '' : 's'} &middot; ${issues.length} thing${issues.length === 1 ? '' : 's'} to polish &middot; ${passes.length} looking nice</div></div>
 </div>
 
+${opts.interactive && issues.length ? `<div class="wizard"><button class="cmd big" data-cmd="spfxPretty.fixStepByStep">&#x25B6; Fix step by step (${issues.length})</button><span class="sub">walks through every issue, worst first - fix, explain, skip or ignore each one</span></div>` : ''}
 <nav class="jump">${nav.map(([id, label, n]) => `<a href="#${id}" data-jump="${id}">${esc(label)}${n ? ` <b>${n}</b>` : ''}</a>`).join('')}<span class="tools"><button type="button" data-all="open">Expand all</button><button type="button" data-all="close">Collapse all</button></span></nav>
 
 ${section('where', 'Where people see your app', 'App Catalog, Add an app and Site Contents', '#0f6cbd', appSurfaces(c), nav[0][2], safe('where'), ia)}
@@ -386,6 +392,8 @@ document.addEventListener('click', e => {
   if (!vscode) return;
   if (b.classList.contains('fix')) { b.disabled = true; b.textContent = 'Applying...'; vscode.postMessage({ type: 'fix', idx: +b.dataset.idx, fix: +b.dataset.fix }); }
   if (b.classList.contains('open')) { vscode.postMessage({ type: 'open', idx: +b.dataset.idx }); }
+  if (b.classList.contains('cmd')) { vscode.postMessage({ type: 'command', id: b.dataset.cmd }); return; }
+  if (b.classList.contains('explain')) { vscode.postMessage({ type: 'explain', rule: b.dataset.rule }); return; }
   if (b.classList.contains('fixsec')) { b.disabled = true; b.textContent = 'Fixing...'; vscode.postMessage({ type: 'fixSection', section: b.dataset.sec }); }
 });
 </script>

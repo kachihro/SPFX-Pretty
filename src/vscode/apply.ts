@@ -33,6 +33,7 @@ export function readConfig(): Partial<ProjectConfig> {
  * Returns false if a target file has unsaved changes (offsets would be stale).
  */
 export async function applyFix(fix: Fix): Promise<boolean> {
+  if (fix.command) { await vscode.commands.executeCommand(fix.command.id, ...(fix.command.args ?? [])); return true; }
   if (fix.pick) {
     const chosen = await vscode.window.showQuickPick(fix.pick.options.map(o => ({ label: o.label, description: o.description, fix: o.fix })), { title: 'SPFX Pretty', placeHolder: fix.pick.prompt });
     return chosen ? applyFix(chosen.fix) : false;
