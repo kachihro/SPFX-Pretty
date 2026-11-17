@@ -22,7 +22,46 @@ const esc = (s: string) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '
 const inline = (s: string) => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 const AUTO: Record<RuleDoc['auto'], [string, string]> = { yes: ['Auto-fix', 'yes'], partly: ['Guided fix', 'partly'], no: ['Needs you', 'no'] };
 const areas = [...new Set(RULE_DOCS.map(r => r.area))];
+
+/** Screenshots in media/screens (made by scripts/make-screens.js). `mock` = drawn in VS Code's style. */
+const SHOTS: Record<string, { caption: string; mock?: boolean }> = {
+  'report.png': { caption: 'The report: your app as the App Catalog, "Add an app" and Site Contents show it' },
+  'toolbox.png': { caption: 'Toolbox tiles - expand an issue for the explanation, the exact change, and Apply / Ignore' },
+  'property-pane.png': { caption: 'Property pane: the labels and default values authors see' },
+  'upgrade.png': { caption: 'Version & upgrade: React / Node / TypeScript vs the latest SPFx, and a step-by-step plan with effort' },
+  'step-by-step.png': { caption: 'Fix step by step: every issue, worst first - fix, explain, open, skip or ignore', mock: true },
+  'preview-apply.png': { caption: 'Nothing changes until you click Apply - you see exactly what will change first', mock: true },
+  'panel.png': { caption: 'The findings panel: badge on the SPFX icon, filter, and the fix next to every finding', mock: true },
+  'faq.png': { caption: 'Help for every rule, right inside VS Code' },
+  'icons.png': { caption: 'One company logo becomes every icon SharePoint and Teams need' },
+};
+const fig = (file: string, up = '', cls = '') => {
+  const s = SHOTS[file];
+  const cap = `${s.caption}${s.mock ? ' (illustration)' : ''}`;
+  return `<figure class="fig ${cls}"><a class="lb" href="${up}assets/screens/${file}" data-caption="${esc(cap)}"><img src="${up}assets/screens/${file}" alt="${esc(s.caption)}" loading="lazy"></a><figcaption>${esc(cap)}</figcaption></figure>`;
+};
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+/** Click any .lb link to view the image large: captions, arrows / keys, swipe, Esc or click outside to close. */
+const LIGHTBOX_JS = `(() => {
+  const links = [...document.querySelectorAll('a.lb')];
+  if (!links.length) return;
+  const box = document.createElement('div');
+  box.className = 'lbx'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.hidden = true;
+  box.innerHTML = '<button class="lbx-x" aria-label="Close">&times;</button><button class="lbx-p" aria-label="Previous">&#8249;</button>'
+    + '<figure><img alt=""><figcaption></figcaption></figure><button class="lbx-n" aria-label="Next">&#8250;</button>';
+  document.body.appendChild(box);
+  const img = box.querySelector('img'), cap = box.querySelector('figcaption');
+  let i = 0, lastFocus = null, x0 = null;
+  const show = n => { i = (n + links.length) % links.length; img.src = links[i].href; img.alt = links[i].dataset.caption || ''; cap.textContent = (links[i].dataset.caption || '') + '  ·  ' + (i + 1) + ' / ' + links.length; };
+  const open = n => { lastFocus = document.activeElement; show(n); box.hidden = false; document.body.style.overflow = 'hidden'; box.querySelector('.lbx-x').focus(); };
+  const close = () => { box.hidden = true; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus(); };
+  links.forEach((a, n) => a.addEventListener('click', e => { e.preventDefault(); open(n); }));
+  box.addEventListener('click', e => { if (e.target === box || e.target.closest('.lbx-x')) close(); else if (e.target.closest('.lbx-p')) show(i - 1); else if (e.target.closest('.lbx-n')) show(i + 1); });
+  document.addEventListener('keydown', e => { if (box.hidden) return; if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') show(i - 1); if (e.key === 'ArrowRight') show(i + 1); });
+  box.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  box.addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1)); x0 = null; });
+})();`;
 
 const CSS = `
 :root{--bg:#f6f7f9;--card:#fff;--text:#3d4757;--head:#4a5568;--sub:#6b7686;--line:#e3e7ee;--blue:#2A6FDB;--sky:#2A8BD8;--violet:#7B3FE4;--navy:#15287F;--good:#107c10;--warn:#bc4b09;--chip:#eef3fc;--code:#f1f3f7}
@@ -73,7 +112,19 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vert
 .crumb{font-size:14px;color:var(--sub);margin-top:22px}
 footer.site{margin-top:70px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--sub);font-size:14px}
 footer.site .wrap{display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
-@media(max-width:760px){nav.main{display:none}header.top .wrap{justify-content:space-between}}
+.fig{margin:16px 0 22px}.fig a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(21,40,127,.14);background:#1f1f1f;cursor:zoom-in}
+.fig img{width:100%;display:block;transition:transform .25s}.fig a:hover img{transform:scale(1.015)}
+.fig figcaption{font-size:14px;color:var(--sub);margin-top:8px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin:20px 0}.gallery .fig{margin:0}
+.gallery .fig a{aspect-ratio:16/10}.gallery .fig img{height:100%;object-fit:cover;object-position:top left}
+.cards.eight{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.card .ic{font-size:22px}
+.lbx{position:fixed;inset:0;z-index:50;background:rgba(10,12,20,.92);display:flex;align-items:center;justify-content:center;padding:24px}
+.lbx[hidden]{display:none}.lbx figure{margin:0;max-width:min(1400px,92vw);text-align:center}
+.lbx img{max-width:100%;max-height:82vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lbx figcaption{color:#e8ecf3;margin-top:12px;font-size:15px}
+.lbx button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:50%;width:46px;height:46px;font-size:28px;line-height:1;cursor:pointer}
+.lbx button:hover{background:rgba(255,255,255,.25)}.lbx-x{top:18px;right:18px}.lbx-p{left:18px;top:50%;transform:translateY(-50%)}.lbx-n{right:18px;top:50%;transform:translateY(-50%)}
+@media(max-width:760px){nav.main{display:none}header.top .wrap{justify-content:space-between}.lbx-p,.lbx-n{display:none}}
 `;
 
 function page(file: string, title: string, active: string, body: string, depth = 0): void {
@@ -86,6 +137,7 @@ function page(file: string, title: string, active: string, body: string, depth =
 <header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><nav class="main">${nav}</nav></div></header>
 <main class="wrap">${body}</main>
 <footer class="site"><div class="wrap"><span>SPFX Pretty ${esc(pkg.version)} &middot; made by <a href="${KACHIHRO}">Kachihro</a> - Microsoft 365 and Azure projects done properly</span><span><a href="${GITHUB}">GitHub</a> &middot; <a href="${up}faq/index.html">How to fix</a></span></div></footer>
+<script src="${up}assets/lightbox.js" defer></script>
 </body></html>`;
   const target = path.join(out, file);
   fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -98,6 +150,9 @@ fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
 fs.writeFileSync(path.join(out, 'assets', 'site.css'), CSS);
 fs.copyFileSync(path.join(root, 'media', 'icon.png'), path.join(out, 'assets', 'icon.png'));
 fs.copyFileSync(path.join(root, 'media', 'before-after.png'), path.join(out, 'assets', 'before-after.png'));
+fs.mkdirSync(path.join(out, 'assets', 'screens'), { recursive: true });
+for (const f of Object.keys(SHOTS)) { fs.copyFileSync(path.join(root, 'media', 'screens', f), path.join(out, 'assets', 'screens', f)); }
+fs.writeFileSync(path.join(out, 'assets', 'lightbox.js'), LIGHTBOX_JS);
 
 // ---------- home ----------
 const ruleCount = RULE_DOCS.length;
@@ -107,15 +162,23 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
   <p class="lead">SPFX Pretty is a free VS Code extension that checks your SharePoint Framework project and fixes what people actually see - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.</p>
   <div class="cta"><a class="btn" href="${MARKETPLACE}">Install from the Marketplace</a><a class="btn alt" href="guide.html">See how it works</a></div>
 </section>
-<div class="shot"><img src="assets/before-after.png" alt="Before: project-client-side-solution with a generic icon, 7/100. After SPFX Pretty: Kachihro Project with a company icon, 51/100."></div>
+<div class="shot"><a class="lb" href="assets/before-after.png" data-caption="Before: 7/100 - the generator's name and a generic icon. After SPFX Pretty: 51/100 - a real name, your icon and a description." style="cursor:zoom-in"><img src="assets/before-after.png" alt="Before: project-client-side-solution with a generic icon, 7/100. After SPFX Pretty: Kachihro Project with a company icon, 51/100."></a></div>
 
 <p class="kicker">What it does</p><h2>No more <code>project-client-side-solution</code></h2>
-<div class="cards">
+<div class="cards eight">
   <div class="card"><h3>🏷️ Nice names</h3><p>App, toolbox and command titles that read like products - with your brand spelled right.</p></div>
-  <div class="card"><h3>🎨 Your icons</h3><p>Upload your company logo once - it becomes the App Catalog, Site Contents, Teams and toolbox icons.</p></div>
-  <div class="card"><h3>🧹 Leftover defaults</h3><p>"Description Field", "Test message" alerts, unused properties and other generator text, found and fixed.</p></div>
-  <div class="card"><h3>🔢 Versions</h3><p>React / Node / SPFx mismatches, the gulp → Heft move, and an upgrade plan with effort.</p></div>
+  <div class="card"><h3>🎨 Your icons</h3><p>Upload your company logo once - App Catalog, Site Contents, Teams and toolbox icons, done.</p></div>
+  <div class="card"><h3>▶ Fix step by step</h3><p>Every issue, worst first. Fix, explain, open the file, skip or ignore - one at a time.</p></div>
+  <div class="card"><h3>👀 See before you apply</h3><p>Every fix shows the exact lines it will change. Nothing is touched until you click Apply.</p></div>
+  <div class="card"><h3>🧹 Leftover defaults</h3><p>"Description Field", "Test message" alerts, default property values and other generator text.</p></div>
+  <div class="card"><h3>🧩 Unused properties</h3><p>Properties nobody reads, leftover manifest defaults, property pane typos and dead loc strings.</p></div>
+  <div class="card"><h3>🔢 Versions &amp; upgrades</h3><p>React / Node / SPFx mismatches, the gulp → Heft move, and an upgrade plan with effort.</p></div>
+  <div class="card"><h3>📚 Help for every rule</h3><p>${RULE_DOCS.length} rules, each with why it matters and exactly how to fix it - in VS Code and here.</p></div>
 </div>
+
+<p class="kicker">See it in action</p><h2>Screenshots</h2>
+<p class="sub">Click any picture to see it full size.</p>
+<div class="gallery">${Object.keys(SHOTS).map(f => fig(f)).join('')}</div>
 
 <p class="kicker">How it works</p><h2>Three steps</h2>
 <ol class="steps">
@@ -148,16 +211,21 @@ page('guide.html', 'How to use', 'How to use', `
 <tr><td><b>Version &amp; upgrade</b></td><td>SPFx, React, Node and TypeScript versions, and an upgrade plan with effort.</td></tr>
 <tr><td><b>All checks</b></td><td>Every finding, grouped by area, with fix buttons and <b>? Explain</b>.</td></tr></table>
 <p>Each section header has <b>✨ Fix all</b> for its safe fixes, and a count of things to polish.</p>
+${fig('report.png')}${fig('toolbox.png')}${fig('property-pane.png')}
 
 <h2 id="step-by-step">Fix step by step</h2>
 <p>Click <b>▶ Fix step by step</b> at the top of the report (or the ▶ on the panel). It walks through every issue, worst first. For each one you can:</p>
 <ul><li><b>Apply the recommended fix</b> - or another option where there are several</li><li><b>Explain &amp; how to fix</b> - opens the help for that rule</li><li><b>Open the file</b> at the right line</li><li><b>Skip</b> or <b>Ignore the rule</b> for this workspace</li></ul>
 <p>It re-scans after every change, so knock-on issues (like the About version going stale after a version bump) are picked up too.</p>
+${fig('step-by-step.png')}
+<h3>Nothing changes without you seeing it</h3><p>Every fix first shows what it will change - the file, the lines before and after, any files it creates - and waits for <b>Apply</b>. <b>✨ Fix all</b> lists every change first.</p>
+${fig('preview-apply.png')}
 
 <h2 id="logo">Your company logo</h2>
 <p>Run <b>SPFX Pretty: Upload Company Logo</b> (or click <b>🖼 Upload company icon</b> on the icon finding). Pick a square PNG and it becomes:</p>
 <ul><li>the 96x96 App Catalog / "Add an app" / Site Contents icon</li><li>the Teams colour (192x192) and outline (32x32) icons</li><li>optionally, the toolbox icon for every web part</li></ul>
 <p>It is remembered for every project. A brand-colour placeholder icon is flagged until you upload a real one.</p>
+${fig('icons.png')}
 
 <h2 id="panel">The findings panel</h2>
 <ul>
@@ -165,9 +233,11 @@ page('guide.html', 'How to use', 'How to use', `
 <li><b>Each row</b> shows its fix, e.g. <code>SOL005 · ✍ Write the short description…</code>.</li>
 <li><b>Right-click</b> any finding: Apply Fix, Explain &amp; How to Fix, Open, Copy Message, Ignore This Rule.</li>
 <li><b>Where it lives:</b> Activity Bar, Explorer sidebar or both - setting <code>spfxPretty.location</code>. Lost it? Run <b>SPFX Pretty: Show Findings Panel</b>.</li></ul>
+${fig('panel.png')}
 
 <h2 id="upgrade">Version check &amp; upgrade assessment</h2>
 <p>Run <b>SPFX Pretty: Version Check &amp; Upgrade Assessment</b> for a Markdown plan you can paste into a work item: current vs latest SPFx, React / Node / TypeScript, each step with Small / Medium / Large effort, and the CLI for Microsoft 365 command for the file-by-file report.</p>
+${fig('upgrade.png')}
 
 <h2 id="pipeline">In a pipeline</h2>
 <p>The same checks run from the command line - see <a href="settings.html#cli">Settings &amp; CLI</a>.</p>`);
@@ -177,6 +247,7 @@ page('faq/index.html', 'How to fix', 'How to fix', `
 <p class="crumb"><a href="../index.html">Home</a> › How to fix</p>
 <h1 class="grad" style="font-size:40px;margin:6px 0 6px">How to fix</h1>
 <p class="lead">What each finding means and exactly how to fix it. In VS Code, right-click any finding and choose <b>Explain &amp; How to Fix</b>.</p>
+${fig('faq.png', '../')}
 <input class="search" id="q" placeholder="Search - e.g. icon, toolbox, React, SOL008" autofocus>
 ${areas.map(a => `<section data-area><h2 class="area" id="${slug(a)}">${esc(a)}</h2><ul class="rules">${RULE_DOCS.filter(r => r.area === a).map(r =>
   `<li data-text="${esc((r.id + ' ' + r.title + ' ' + r.why).toLowerCase())}"><a href="${r.id}.html"><code>${r.id}</code><span>${esc(r.title)}</span><span class="badge ${AUTO[r.auto][1]}">${AUTO[r.auto][0]}</span></a></li>`).join('')}</ul></section>`).join('')}
