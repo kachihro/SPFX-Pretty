@@ -291,7 +291,7 @@ function section(id: string, title: string, sub: string, colour: string, inner: 
   const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
   void colour; // every section uses the same blue
   return `<details class="sec" id="${id}" open>
-    <summary class="sh"><div class="shl">${CHEVRON}<span class="sicon">${SECTION_ICONS[id] ?? ''}</span><span class="st">${esc(title)}</span><span class="ss">${esc(sub)}</span></div><div class="shr">${fixAll}${badge}</div></summary>
+    <summary class="sh"><div class="shl">${CHEVRON}<span class="sicon">${SECTION_ICONS[id] ?? ''}</span><span class="stt"><span class="st">${esc(title)}</span><span class="ss">${esc(sub)}</span></span></div><div class="shr">${fixAll}${badge}</div></summary>
     <div class="sb">${inner}</div>
   </details>`;
 }
@@ -388,15 +388,15 @@ html{scroll-behavior:smooth}
 .sh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(90deg,#2A8BD8 0%,#2A6FDB 35%,#7B3FE4 75%,#15287F 100%);color:#fff;cursor:pointer;list-style:none;user-select:none}
 .sh::-webkit-details-marker{display:none}
 .sh:hover{filter:brightness(.93)}
-.shl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.shl{display:flex;align-items:center;gap:10px;min-width:0}
 .chev{flex:none;transition:transform .15s;opacity:.9}
 .sec[open] > .sh .chev{transform:rotate(90deg)}
 .sicon{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.18);flex:none}
-.sec:not([open]){background:#15287F;border-color:#2A6FDB}
+.sec:not([open]){background:linear-gradient(90deg,#2A8BD8 0%,#2A6FDB 35%,#7B3FE4 75%,#15287F 100%);border-color:transparent}
 .sec:not([open]) > .sh{border-radius:0}
 .jump .tools{margin-left:auto;display:flex;gap:6px}
 .jump button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:999px;font-size:12px;padding:3px 10px}
-.st,.ss{font-family:inherit;line-height:1.3}.st{font-size:16px;font-weight:600}.ss{font-size:14px;font-weight:400;opacity:.85}
+.stt{display:flex;flex-direction:column;gap:1px;min-width:0}.st,.ss{font-family:inherit;line-height:1.3}.st{font-size:16px;font-weight:600}.ss{font-size:14px;font-weight:400;opacity:.85}
 .sbadge{font-size:12px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px 10px;white-space:nowrap}
 .sbadge.ok{background:rgba(255,255,255,.22);color:#fff}
 .sb{padding:14px 16px}
