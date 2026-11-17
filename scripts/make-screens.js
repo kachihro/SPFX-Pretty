@@ -90,6 +90,47 @@ const VS = `body{margin:0;background:#1f1f1f;color:#ccc;font:13px "Segoe UI",sys
     ${[['App Catalog · Site Contents', u(set.app96), 96], ['Teams colour 192×192', u(set.teamsColour192), 120], ['Teams outline 32×32', u(set.teamsOutline32), 32, '#464775'], ['Toolbox icon', u(set.toolbox64), 48], ['Brand initials icon', toolSvg, 48], ['Placeholder (until you upload)', u(makePngIcon({ size: 96, colour: '#2A6FDB', glyph: 'package' })), 96]].map(([l, src, s, bg]) =>
       `<div style="text-align:center"><div style="display:inline-grid;place-items:center;padding:10px;border-radius:10px;background:${bg || '#2b2b2b'}"><img src="${src}" width="${s}" height="${s}"></div><div style="margin-top:8px;font-size:12px;color:#aaa">${l}</div></div>`).join('')}
     </div></div>`, 1100, 330);
+  // 10: the before / after hero (media/before-after.png) - stacked and large so the titles are readable
+  {
+    const after = fs.mkdtempSync(path.join(os.tmpdir(), 'after-'));
+    fs.cpSync(ugly, after, { recursive: true });
+    const sp = path.join(after, 'config', 'package-solution.json');
+    fs.writeFileSync(sp, fs.readFileSync(sp, 'utf8')
+      .replace(/"default": "project description"/, '"default": "Team news, tasks and quick links for the intranet."')
+      .replace(/"default": "project description"/, '"default": "News, tasks and quick links for every team site."')
+      .replace('"categories": []', '"categories": ["Productivity"]'));
+    const logoFile = fs.existsSync('/tmp/kachihro-diamond.png') ? '/tmp/kachihro-diamond.png' : path.join(root, 'media', 'icon.png');
+    const cfg = { companyIcon: logoFile, appNamePrefix: 'Kachihro ', developer: { name: 'Kachihro', websiteUrl: 'https://www.kachihro.com', privacyUrl: 'https://www.kachihro.com', termsOfUseUrl: 'https://www.kachihro.com', mpnId: '' } };
+    require(path.join(root, 'out/core/scanner')).applyAllSafeFixes(after, cfg);
+    const half = async (dir, conf, file) => {
+      const r = scanProject(dir, { ...conf, latestSpfxVersion: '1.24.1' });
+      const f = path.join(tmp, file + '.html');
+      fs.writeFileSync(f, stub(renderReportHtml(r, { interactive: true, nonce: 'x' })));
+      const p = await b.newPage({ viewport: { width: 1000, height: 900 }, colorScheme: 'dark', deviceScaleFactor: 2 });
+      await p.goto('file://' + f);
+      await p.addStyleTag({ content: '.wizard,nav.jump,.isslist,.suggest,.note,.acts,.sh .shr,.foot,.sb>.acts{display:none!important} .wrap{max-width:none} body{padding:14px 18px} .top h1{font-size:30px} table.sp td,table.sp th{font-size:15px} .tname{font-size:19px} .panel .ph{font-size:15px}' });
+      await p.evaluate(() => document.querySelectorAll('details.sec').forEach(d => { d.open = d.id === 'where'; }));
+      await p.waitForTimeout(200);
+      const top = await p.evaluate(() => document.querySelector('.top').getBoundingClientRect().top);
+      const bottom = await p.evaluate(() => document.querySelector('#where .surfaces').getBoundingClientRect().bottom + 16);
+      await p.screenshot({ path: path.join(tmp, file + '.png'), clip: { x: 0, y: top - 6, width: 1000, height: bottom - top + 6 } });
+      await p.close();
+      return r.score;
+    };
+    const sb = await half(ugly, {}, 'before'), sa = await half(after, cfg, 'after');
+    const img = f => 'data:image/png;base64,' + fs.readFileSync(path.join(tmp, f)).toString('base64');
+    const comp = await b.newPage({ viewport: { width: 1200, height: 1400 }, deviceScaleFactor: 1.5 });
+    await comp.setContent(`<body style="margin:0;background:#141821;font-family:Segoe UI,Arial,sans-serif;color:#fff"><div id="c" style="padding:22px;display:flex;flex-direction:column;gap:20px">
+      ${[['BEFORE', 'The generator name and a generic icon', sb, 'before.png', '#c50f1f'], ['AFTER SPFX PRETTY', 'A real name, your company icon and a description', sa, 'after.png', '#107c10']].map(([l, sub, s, f, c]) => `
+      <div style="border-radius:14px;overflow:hidden;border:1px solid #2c3242;background:#1f1f1f">
+        <div style="padding:14px 20px;background:linear-gradient(90deg,#2A8BD8,#2A6FDB 35%,#7B3FE4 75%,#15287F);display:flex;align-items:center;gap:16px">
+          <b style="font-size:22px;letter-spacing:.06em">${l}</b><span style="font-size:16px;opacity:.9">${sub}</span>
+          <span style="margin-left:auto;background:${c};border-radius:999px;padding:4px 16px;font-weight:700;font-size:20px">${s}/100</span></div>
+        <img src="${img(f)}" style="width:100%;display:block"></div>`).join('')}</div></body>`);
+    const h = await comp.evaluate(() => Math.ceil(document.getElementById('c').getBoundingClientRect().bottom));
+    await comp.screenshot({ path: path.join(root, 'media', 'before-after.png'), clip: { x: 0, y: 0, width: 1200, height: h } });
+    console.log('before-after.png:', sb, '->', sa);
+  }
   await b.close();
   console.log('Screens written:', fs.readdirSync(out).join(', '));
 })().catch(e => { console.error(e); process.exit(1); });

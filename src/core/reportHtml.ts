@@ -354,6 +354,7 @@ table.sp{width:100%;border-collapse:collapse;background:var(--sp);color:var(--sp
 table.sp th{font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid #e1dfdd;color:#605e5c;font-size:12px}
 table.sp th:first-child{width:40px}
 table.sp td{padding:8px;vertical-align:middle;word-break:break-word}
+table.sp td:nth-child(3),table.sp td:nth-child(4){white-space:nowrap;word-break:normal}
 .tile{background:var(--sp);color:var(--sptext);border:1px solid #e1dfdd;border-radius:4px;padding:16px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;max-width:220px;margin:0 auto}
 .tile{align-items:flex-start;text-align:left}.tname{font-weight:600;font-size:16px;word-break:break-word}.tdesc{font-size:12px;color:#605e5c}.addbtn{border:1px solid #8a8886;border-radius:4px;padding:4px 18px;font-size:13px;margin-top:6px}.tdesc2{font-size:12px;color:var(--sub);margin:8px auto 0;max-width:220px}
 .dim{opacity:.55}
