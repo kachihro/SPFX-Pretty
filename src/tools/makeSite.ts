@@ -122,7 +122,7 @@ header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg
 header.top .wrap{display:flex;align-items:center;gap:22px;height:64px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--head)}.brand img{width:30px;height:30px;border-radius:7px}
 nav.main{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav.main a{color:var(--text);padding:6px 12px;border-radius:999px;font-size:15px}nav.main a.on,nav.main a:hover{background:var(--chip);color:var(--blue);text-decoration:none}
+nav.main a{color:var(--text);padding:6px 12px;border-radius:999px;font-size:15px}nav.main .ns{display:none}nav.main a.on,nav.main a:hover{background:var(--chip);color:var(--blue);text-decoration:none}
 .btn{display:inline-block;background:var(--blue);color:#fff!important;padding:11px 22px;border-radius:8px;font-weight:600;text-decoration:none!important}
 .btn.alt{background:var(--card);color:var(--head)!important;border:1px solid var(--line)}
 .hero{padding:64px 0 36px}.hero h1{font-size:clamp(34px,5.4vw,58px);line-height:1.08;margin:0 0 18px;color:var(--head);letter-spacing:-.02em}
@@ -181,13 +181,26 @@ footer.site .foot3{display:grid;grid-template-columns:1fr auto 1fr;align-items:c
 .lbx button:hover{background:rgba(255,255,255,.25)}.lbx-x{top:18px;right:18px}.lbx-p{left:18px;top:50%;transform:translateY(-50%)}.lbx-n{right:18px;top:50%;transform:translateY(-50%)}
 ${SNIPPET_CSS}
 pre code{font-family:Consolas,"Cascadia Code","SFMono-Regular",monospace}
-@media(max-width:760px){nav.main{display:none}header.top .wrap{justify-content:space-between}.lbx-p,.lbx-n{display:none}}
+@media(max-width:760px){
+  header.top .wrap{flex-wrap:wrap;height:auto;gap:4px 12px;padding-top:10px;padding-bottom:8px}
+  nav.main{margin-left:0;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:-2px}
+  nav.main::-webkit-scrollbar{display:none}
+  nav.main a{white-space:nowrap;font-size:14px;padding:8px 9px;flex:none}
+  nav.main .nl{display:none}nav.main .ns{display:inline}
+  .lbx-p,.lbx-n{display:none}
+}
+@media(max-width:600px){
+  h2{font-size:25px}h2 code{font-size:.72em;overflow-wrap:anywhere}
+  table{font-size:14px}td,th{overflow-wrap:anywhere;word-break:normal}td code,th code{overflow-wrap:anywhere;white-space:normal}
+  .rules a{flex-wrap:wrap;row-gap:6px}.rules a span{min-width:0;overflow-wrap:anywhere}.rules .badge{margin-left:0}
+}
 `;
 
 function page(file: string, title: string, active: string, body: string, depth = 0): void {
   const up = depth ? '../'.repeat(depth) : '';
-  const nav = [['index.html', 'Home'], ['guide.html', 'How to use'], ['faq/index.html', 'How to fix'], ['settings.html', 'Settings & CLI']]
-    .map(([href, label]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}">${label}</a>`).join('');
+  // phones show the short label so all four fit on one line (down to 320px wide)
+  const nav = [['index.html', 'Home', 'Home'], ['guide.html', 'How to use', 'Guide'], ['faq/index.html', 'How to fix', 'How to fix'], ['settings.html', 'Settings & CLI', 'Settings']]
+    .map(([href, label, short]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}"${label === active ? ' aria-current="page"' : ''}>${label === short ? esc(label) : `<span class="nl">${esc(label)}</span><span class="ns">${esc(short)}</span>`}</a>`).join('');
   const meta = pageMeta(file, title);
   const pageUrl = `${DOCS_SITE}/${file === 'index.html' ? '' : file}`;
   const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
