@@ -91,6 +91,17 @@ const fig = (file: string, up = '', cls = '') => {
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
 /** Click any .lb link to view the image large: captions, arrows / keys, swipe, Esc or click outside to close. */
+const MENU_JS = `(() => {
+  const h = document.querySelector('header.top'), b = h && h.querySelector('button.burger');
+  if (!b) { return; }
+  const set = open => { h.classList.toggle('open', open); b.setAttribute('aria-expanded', String(open)); b.setAttribute('aria-label', open ? 'Close menu' : 'Open menu'); };
+  b.addEventListener('click', e => { e.stopPropagation(); set(!h.classList.contains('open')); });
+  h.querySelectorAll('nav.main a').forEach(a => a.addEventListener('click', () => set(false)));
+  document.addEventListener('click', e => { if (!h.contains(e.target)) { set(false); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && h.classList.contains('open')) { set(false); b.focus(); } });
+  matchMedia('(min-width:761px)').addEventListener('change', e => { if (e.matches) { set(false); } });
+})();
+`;
 const LIGHTBOX_JS = `(() => {
   const links = [...document.querySelectorAll('a.lb')];
   if (!links.length) return;
@@ -122,7 +133,7 @@ header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg
 header.top .wrap{display:flex;align-items:center;gap:22px;height:64px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--head)}.brand img{width:30px;height:30px;border-radius:7px}
 nav.main{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
-nav.main a{color:var(--text);padding:6px 12px;border-radius:999px;font-size:15px}nav.main .ns{display:none}nav.main a.on,nav.main a:hover{background:var(--chip);color:var(--blue);text-decoration:none}
+nav.main a{color:var(--text);padding:6px 12px;border-radius:999px;font-size:15px}nav.main a.on,nav.main a:hover{background:var(--chip);color:var(--blue);text-decoration:none}
 .btn{display:inline-block;background:var(--blue);color:#fff!important;padding:11px 22px;border-radius:8px;font-weight:600;text-decoration:none!important}
 .btn.alt{background:var(--card);color:var(--head)!important;border:1px solid var(--line)}
 .hero{padding:64px 0 36px}.hero h1{font-size:clamp(34px,5.4vw,58px);line-height:1.08;margin:0 0 18px;color:var(--head);letter-spacing:-.02em}
@@ -181,12 +192,21 @@ footer.site .foot3{display:grid;grid-template-columns:1fr auto 1fr;align-items:c
 .lbx button:hover{background:rgba(255,255,255,.25)}.lbx-x{top:18px;right:18px}.lbx-p{left:18px;top:50%;transform:translateY(-50%)}.lbx-n{right:18px;top:50%;transform:translateY(-50%)}
 ${SNIPPET_CSS}
 pre code{font-family:Consolas,"Cascadia Code","SFMono-Regular",monospace}
+button.burger{display:none}
 @media(max-width:760px){
-  header.top .wrap{flex-wrap:wrap;height:auto;gap:4px 12px;padding-top:10px;padding-bottom:8px}
-  nav.main{margin-left:0;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:2px;margin-bottom:-2px}
-  nav.main::-webkit-scrollbar{display:none}
-  nav.main a{white-space:nowrap;font-size:14px;padding:8px 9px;flex:none}
-  nav.main .nl{display:none}nav.main .ns{display:inline}
+  header.top .wrap{position:relative}
+  button.burger{display:inline-flex;flex-direction:column;justify-content:center;gap:5px;margin-left:auto;width:44px;height:44px;padding:0 11px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer}
+  button.burger span{display:block;height:2px;border-radius:2px;background:var(--head);transition:transform .2s,opacity .2s}
+  header.top.open button.burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  header.top.open button.burger span:nth-child(2){opacity:0}
+  header.top.open button.burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  .js nav.main{display:none}
+  nav.main{margin:0;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:2px;padding:8px 16px 14px;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 12px 24px rgba(0,0,0,.12)}
+  header.top.open nav.main{display:flex}
+  nav.main a{font-size:17px;padding:12px 14px;border-radius:10px}
+  html:not(.js) nav.main{position:static;flex-direction:row;flex-wrap:wrap;box-shadow:none;border:0;padding:0 0 8px}
+  html:not(.js) header.top .wrap{flex-wrap:wrap;height:auto}
+  html:not(.js) button.burger{display:none}
   .lbx-p,.lbx-n{display:none}
 }
 @media(max-width:600px){
@@ -198,12 +218,11 @@ pre code{font-family:Consolas,"Cascadia Code","SFMono-Regular",monospace}
 
 function page(file: string, title: string, active: string, body: string, depth = 0): void {
   const up = depth ? '../'.repeat(depth) : '';
-  // phones show the short label so all four fit on one line (down to 320px wide)
-  const nav = [['index.html', 'Home', 'Home'], ['guide.html', 'How to use', 'Guide'], ['faq/index.html', 'How to fix', 'How to fix'], ['settings.html', 'Settings & CLI', 'Settings']]
-    .map(([href, label, short]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}"${label === active ? ' aria-current="page"' : ''}>${label === short ? esc(label) : `<span class="nl">${esc(label)}</span><span class="ns">${esc(short)}</span>`}</a>`).join('');
+  const nav = [['index.html', 'Home'], ['guide.html', 'How to use'], ['faq/index.html', 'How to fix'], ['settings.html', 'Settings & CLI']]
+    .map(([href, label]) => `<a href="${up}${href}" class="${label === active ? 'on' : ''}"${label === active ? ' aria-current="page"' : ''}>${esc(label)}</a>`).join('');
   const meta = pageMeta(file, title);
   const pageUrl = `${DOCS_SITE}/${file === 'index.html' ? '' : file}`;
-  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><script>document.documentElement.classList.add('js')</script><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(meta.title)}${/SPFX Pretty/.test(meta.title) ? '' : ' | SPFX Pretty'}</title><meta name="description" content="${esc(meta.desc)}">
 <link rel="canonical" href="${pageUrl}">
 <meta property="og:type" content="${file === 'index.html' ? 'website' : 'article'}"><meta property="og:site_name" content="SPFX Pretty"><meta property="og:title" content="${esc(meta.title)}"><meta property="og:description" content="${esc(meta.desc)}"><meta property="og:url" content="${pageUrl}">
@@ -212,14 +231,14 @@ function page(file: string, title: string, active: string, body: string, depth =
 <link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#2A6FDB">
 ${meta.ld.map(o => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, '\\u003c')}</script>`).join('')}
 <link rel="stylesheet" href="${up}assets/site.css"></head><body>
-<header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><nav class="main">${nav}</nav></div></header>
+<header class="top"><div class="wrap"><a class="brand" href="${up}index.html"><img src="${up}assets/icon.png" alt="">SPFX Pretty</a><button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="site-nav"><span></span><span></span><span></span></button><nav class="main" id="site-nav" aria-label="Main">${nav}</nav></div></header>
 <main class="wrap">${body}</main>
 <footer class="site"><div class="wrap foot3">
   <span class="foot-ver">SPFX Pretty ${esc(pkg.version)}</span>
   <a class="footer-kachihro" href="${KACHIHRO}" target="_blank" rel="noopener noreferrer"><svg class="footer-kachihro-icon" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="footer-kachihro-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c5cff"></stop><stop offset="100%" stop-color="#3ba7ff"></stop></linearGradient></defs><polygon points="12,2 22,9 12,22 2,9" fill="url(#footer-kachihro-gradient)"></polygon></svg><span>&copy; ${new Date().getFullYear()} Kachihro</span></a>
   <span class="foot-links"><a href="${up}faq/index.html">How to fix</a></span>
 </div></footer>
-<script src="${up}assets/lightbox.js" defer></script>
+<script src="${up}assets/lightbox.js" defer></script><script src="${up}assets/menu.js" defer></script>
 </body></html>`;
   if (file !== '404.html') { PAGES.push(file); }
   const target = path.join(out, file);
@@ -240,6 +259,7 @@ fs.copyFileSync(path.join(root, 'media', 'before-after.png'), path.join(out, 'as
 fs.mkdirSync(path.join(out, 'assets', 'screens'), { recursive: true });
 for (const f of Object.keys(SHOTS)) { fs.copyFileSync(path.join(root, 'media', 'screens', f), path.join(out, 'assets', 'screens', f)); }
 fs.writeFileSync(path.join(out, 'assets', 'lightbox.js'), LIGHTBOX_JS);
+fs.writeFileSync(path.join(out, 'assets', 'menu.js'), MENU_JS);
 
 // ---------- home ----------
 const ruleCount = RULE_DOCS.length;
