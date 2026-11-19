@@ -66,10 +66,10 @@ function issueList(c: Ctx, list: Finding[]): string {
     return `<details class="iss">
       <summary title="Show explanation"><span class="dot ${f.severity}"></span><span class="iss-t">${esc(doc?.title ?? f.message)}</span></summary>
       <div class="iss-b">
-        <p>${esc(f.message)}</p>
-        ${doc ? `<p class="sub">${esc(doc.why)}</p>` : ''}
-        ${fix ? `<div class="iss-l">${esc(fix.title)}</div>${changes.length ? `<pre class="chg">${changes.map(l => `<span class="${/^\s*\+/.test(l) ? 'add' : /^\s*-/.test(l) ? 'del' : ''}">${esc(l)}</span>`).join('\n')}</pre>` : ''}` : `<div class="iss-l">Needs you: ${esc(doc?.fix[0] ?? 'see Help')}</div>`}
-        ${buttons}
+        <div class="iss-row"><span class="iss-k">Problem</span><div>${esc(f.message)}</div></div>
+        ${doc ? `<div class="iss-row"><span class="iss-k">Why</span><div class="sub">${esc(doc.why)}</div></div>` : ''}
+        <div class="iss-row"><span class="iss-k">Fix</span><div class="iss-fix">${fix ? `<div class="iss-l">${esc(fix.title)}</div>${changes.length ? `<pre class="chg">${changes.map(l => `<span class="${/^\s*\+/.test(l) ? 'add' : /^\s*-/.test(l) ? 'del' : ''}">${esc(l)}</span>`).join('\n')}</pre>` : ''}` : `<div class="iss-l">Needs you: ${esc(doc?.fix[0] ?? 'see Help')}</div>`}
+        ${buttons}</div></div>
       </div>
     </details>`;
   }).join('');
@@ -204,9 +204,10 @@ function toolbox(c: Ctx): string {
   const items = list.map(comp => {
     const titleIssue = c.r.findings.find(f => f.ruleId === 'CMP001' && f.severity !== 'pass' && f.file === comp.manifestFile);
     const better = suggestion(titleIssue);
-    return `<div class="tbx-item" title="${esc(comp.description ?? '')}">${toolboxIcon(comp)}
-      <div class="${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
+    return `<div class="tbx-item"><div class="tbx-head"><div class="tbx-ic">${toolboxIcon(comp)}</div><div class="tbx-info">
+      <div class="tbx-name ${titleIssue ? 'ugly' : ''}">${esc(componentName(comp))}</div>
       ${better ? `<div class="kind">→ ${esc(better)}</div>` : ''}<div class="kind">${esc(effectiveGroup(comp))}</div>
+      ${comp.description ? `<div class="kind tbx-desc">${esc(comp.description)}</div>` : ''}</div></div>
       ${issueList(c, c.r.findings.filter(f => f.file === comp.manifestFile && sectionMatcher('toolbox')(f)))}</div>`;
   }).join('');
   return `<div class="panel"><div class="tbx">${items}</div>${issueNote(c, 'Toolbox')}</div>`;
@@ -290,7 +291,7 @@ function section(id: string, title: string, sub: string, colour: string, inner: 
   const fixAll = interactive && safeFixes ? `<button class="fixsec" data-sec="${id}" title="Apply the safe fixes in this section">&#x2728; Fix all (${safeFixes})</button>` : '';
   const badge = count === undefined ? '' : count ? `<span class="sbadge">${count} to polish</span>` : '<span class="sbadge ok">&#x2714; all nice</span>';
   void colour; // every section uses the same blue
-  return `<details class="sec" id="${id}" open>
+  return `<details class="sec" id="${id}">
     <summary class="sh"><div class="shl">${CHEVRON}<span class="sicon">${SECTION_ICONS[id] ?? ''}</span><span class="stt"><span class="st">${esc(title)}</span><span class="ss">${esc(sub)}</span></span></div><div class="shr">${fixAll}${badge}</div></summary>
     <div class="sb">${inner}</div>
   </details>`;
@@ -365,13 +366,15 @@ table.sp .ugly,.tile .ugly,.tile .tdesc.ugly{background:#fde7e9;color:#a4262c}
 .ugly-b{border-color:var(--bad)!important;color:var(--bad)!important}
 .note{font-size:12px;margin-top:8px}.note.ok{color:var(--good)}.note.bad{color:var(--bad)}.note.info{color:var(--sub);margin-top:10px}
 .suggest{margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tbx{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
-.tbx-item{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px;border-radius:8px;border:1px solid var(--line);text-align:left;font-size:12.5px;min-width:0;word-break:break-word}
+.tbx{display:flex;flex-direction:column;gap:10px}
+.tbx-item{display:block;padding:12px;border-radius:8px;border:1px solid var(--line);text-align:left;font-size:12.5px;min-width:0;word-break:break-word}
 .tbx-img{width:40px;height:28px;object-fit:contain}
 .tbx-glyph{display:grid;place-items:center;width:44px;height:34px;border:1px dashed var(--sub);border-radius:6px;color:var(--sub)}
 .tbx-cap{font-size:11px;color:var(--sub);margin-top:-2px}.tbx-cap.bad{color:var(--bad)}
 .tbx-font{min-width:40px;height:28px;display:grid;place-items:center;padding:0 4px;border:1px dashed var(--sub);border-radius:4px;font-size:10px;color:var(--sub)}
 .kind{font-size:11px;color:var(--sub)}
+.tbx-head{display:flex;gap:14px;align-items:center}.tbx-ic{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:96px;text-align:center}
+.tbx-info{display:flex;flex-direction:column;gap:2px;min-width:0}.tbx-name{font-size:14px;font-weight:600;width:fit-content}.tbx-desc{font-style:italic}
 .pp .pp-h{font-size:13px;margin-bottom:10px;display:inline-block}.pp .pp-g{font-weight:600;margin:6px 0;display:inline-block}
 .pp .pp-l{font-size:12.5px;margin:6px 0 4px;display:block;width:fit-content}
 .pp-in{border:1px solid var(--sub);border-radius:3px;padding:4px 8px;font-size:13px;min-height:28px;margin-bottom:6px}
@@ -412,9 +415,14 @@ details.iss>summary::after{content:"\\203A";margin-left:auto;font-size:16px;line
 details.iss[open]>summary::after{transform:rotate(90deg)}
 .iss-t{flex:1;min-width:0;line-height:1.35}
 .dot{flex:none;width:8px;height:8px;border-radius:50%}.dot.error{background:var(--bad)}.dot.warning{background:var(--warn)}.dot.info{background:var(--info)}
-.iss-b{padding:0 12px 10px;font-size:12.5px}.iss-b p{margin:4px 0}
-.iss-l{font-weight:600;margin:8px 0 4px}
-pre.chg{margin:0;padding:6px 8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;font-size:11.5px;white-space:pre-wrap;word-break:break-word}
+.iss-b{padding:4px 12px 12px;font-size:12.5px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.iss-row{display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:baseline}
+.iss-k{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);padding-top:8px}
+.iss-row>div{padding-top:6px;line-height:1.45;min-width:0}
+.iss-fix{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px!important;margin-top:4px}
+.iss-l{font-weight:600;margin:0 0 6px}
+@media (max-width:520px){.iss-row{grid-template-columns:1fr;gap:0}.iss-k{padding-top:2px}}
+pre.chg{margin:0;padding:6px 8px;background:var(--card);border:1px solid var(--line);border-radius:6px;font-size:11.5px;white-space:pre-wrap;word-break:break-word}
 pre.chg .add{color:var(--good)}pre.chg .del{color:var(--bad)}
 .iss-btns{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
 button.apply{background:#2A6FDB;border-color:#2A6FDB;color:#fff;font-weight:600;border-radius:6px;padding:4px 14px}
@@ -474,10 +482,10 @@ ${'' /* sections */}${section('checks', 'All checks', 'grouped by area - right-c
 <script${opts.nonce ? ` nonce="${opts.nonce}"` : ''}>
 const vscode = ${opts.interactive ? 'acquireVsCodeApi()' : 'null'};
 const secs = () => [...document.querySelectorAll('details.sec')];
-const save = () => { const closed = secs().filter(d => !d.open).map(d => d.id); if (vscode) { vscode.setState({ closed }); } };
-// restore which sections were collapsed (survives the refresh after a fix)
+const save = () => { const opened = secs().filter(d => d.open).map(d => d.id); if (vscode) { vscode.setState({ opened }); } };
+// everything starts collapsed; restore the sections the developer opened (survives the refresh after a fix)
 const st = vscode && vscode.getState();
-if (st && st.closed) { st.closed.forEach(id => { const d = document.getElementById(id); if (d) d.open = false; }); }
+if (st && st.opened) { st.opened.forEach(id => { const d = document.getElementById(id); if (d) d.open = true; }); }
 secs().forEach(d => d.addEventListener('toggle', save));
 document.addEventListener('click', e => {
   const j = e.target.closest('a[data-jump]');
