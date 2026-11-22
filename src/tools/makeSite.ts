@@ -298,7 +298,7 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
 </ol>
 <div class="tip">Every finding links to a page explaining <a href="faq/index.html">how to fix it</a> - ${ruleCount} rules in all.</div>
 
-<p class="kicker">Open source</p><h2>Free, open and made in the open</h2>
+<p class="kicker">Open source</p>
 <div class="cards four">
   <div class="card"><h3>📖 MIT licence</h3><p>Free for personal and commercial work. Read the code, fork it, change it - see the <a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">licence</a>.</p></div>
   <div class="card"><h3>🐙 On GitHub</h3><p>Source, releases and the full history at <a href="${GITHUB}" target="_blank" rel="noopener noreferrer">github.com/kachihro/SPFX-Pretty</a>.</p></div>
