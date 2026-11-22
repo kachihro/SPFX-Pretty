@@ -13,6 +13,7 @@
   <a href="https://marketplace.visualstudio.com/items?itemName=kachihro.spfx-pretty"><img src="https://img.shields.io/badge/VS%20Code-Install-007ACC?logo=visualstudiocode&logoColor=white" alt="Install from the VS Code Marketplace"></a>
   <a href="https://www.spfxpretty.com"><img src="https://img.shields.io/badge/Website-spfxpretty.com-6B46C1" alt="Website: spfxpretty.com"></a>
   <a href="https://www.kachihro.com"><img src="https://img.shields.io/badge/Made%20by-Kachihro-d83b01" alt="Made by Kachihro"></a>
+  <a href="https://github.com/kachihro/SPFX-Pretty/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT licence"></a>
   <a href="https://ko-fi.com/kachihro"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white" alt="Buy me a coffee on Ko-fi"></a>
 </p>
 
@@ -78,4 +79,4 @@ SPFX Pretty is made by **[Kachihro](https://www.kachihro.com)** - Microsoft 365 
 Website and help: [spfxpretty.com](https://www.spfxpretty.com)
 Source and issues: [github.com/kachihro/SPFX-Pretty](https://github.com/kachihro/SPFX-Pretty)
 
-Free to use for personal and commercial work - see the LICENSE file.
+Free and open source under the [MIT licence](LICENSE). Issues, ideas and pull requests are welcome.

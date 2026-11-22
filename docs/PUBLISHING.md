@@ -8,10 +8,10 @@ Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/pub
 | Item | Now | Needed for the Marketplace |
 |---|---|---|
 | `publisher` in package.json | `kachihro` ✅ | Must equal your Marketplace **publisher ID**. Extension ID: `kachihro.spfx-pretty`. |
-| `LICENSE` | Free to use, proprietary ✅ | - |
-| Website address | **not set yet** | Set `DOCS_SITE` in `src/core/site.ts` - `npm run publish-marketplace` refuses to publish until it is. |
-| README images | Embedded in the VSIX README | Marketplace requires **HTTPS** image URLs (no `data:` images, no SVG). Host them on the help website and set `DOCS_SITE` in `src/core/site.ts` - the packaged README then uses `https://<site>/assets/before-after.png` automatically. |
-| Repo links | Private GitHub repo | Links to a private repo ask visitors to sign in. Point readers at the help website instead (or make the repo public). |
+| `LICENSE` | MIT ✅ | - |
+| Website address | `https://www.spfxpretty.com` ✅ | Set in `DOCS_SITE` (`src/core/site.ts`) - `npm run publish-marketplace` refuses to publish without it. |
+| README images | Served from the website ✅ | Marketplace requires **HTTPS** image URLs (no `data:` images, no SVG). With `DOCS_SITE` set, the packaged README uses `https://<site>/assets/before-after.png` automatically. |
+| Repo links | Public GitHub repo ✅ | `repository` / `bugs` in package.json point at https://github.com/kachihro/SPFX-Pretty - the Marketplace page shows them. |
 | Icon | `media/icon.png`, 128x128 PNG | OK - PNG, at least 128x128, not SVG. |
 
 ## One-off setup
@@ -57,7 +57,7 @@ Add the PAT as a repository secret named `VSCE_PAT` (vsce reads it automatically
     VSCE_PAT: ${{ secrets.VSCE_PAT }}
 ```
 
-## Private alternative (no Marketplace)
+## Without the Marketplace
 
-Keep sharing the `.vsix`: teammates install it with
+Share the `.vsix` (it is also attached to each **Publish to Marketplace** workflow run): people install it with
 `code --install-extension spfx-pretty-<version>.vsix`, or `npm run install-local` from a clone.
