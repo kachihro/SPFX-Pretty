@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
-- Open source under the MIT licence; source and issues on GitHub (github.com/kachihro/SPFX-Pretty)
+## 0.9.6 - 22/11/2026
+- Open source under the MIT licence - source, issues and pull requests on GitHub: https://github.com/kachihro/SPFX-Pretty
+- Marketplace page: repository and issues links, MIT and Ko-fi badges, and a Support section
 
 ## 0.9.5 - 17/11/2026
 - Help website moved to https://www.spfxpretty.com (help links, "Open online", Marketplace images and homepage)
