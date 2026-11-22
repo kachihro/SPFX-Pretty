@@ -8,7 +8,7 @@ const PAGES: string[] = [];
 
 // ---------- SEO: a real title + description per page (Google shows these), structured data, icons ----------
 const SITE_NAME = 'SPFX Pretty';
-const DEFAULT_DESC = 'Free VS Code extension that polishes SharePoint Framework (SPFx) apps before you deploy: nice App Catalog names, company icons, a tidy toolbox and SPFx upgrades.';
+const DEFAULT_DESC = 'Free, open-source VS Code extension that polishes SharePoint Framework (SPFx) apps before you deploy: nice App Catalog names, company icons, a tidy toolbox and SPFx upgrades.';
 const META: Record<string, { title: string; desc: string }> = {
   'index.html': { title: 'SPFX Pretty - Polish your SPFx apps before you deploy', desc: DEFAULT_DESC },
   'guide.html': { title: 'How to use SPFX Pretty in VS Code', desc: 'Scan an SPFx project, read the report, preview every fix and apply it, or go through each issue with Fix step by step. A quick guide to SPFX Pretty.' },
@@ -35,7 +35,7 @@ function pageMeta(file: string, fallbackTitle: string): { title: string; desc: s
     ld.push({ '@context': 'https://schema.org', '@type': 'WebSite', name: SITE_NAME, alternateName: ['SPFx Pretty', 'spfxpretty'], url: DOCS_SITE + '/' },
       { '@context': 'https://schema.org', '@type': 'SoftwareApplication', name: SITE_NAME, description: DEFAULT_DESC, url: DOCS_SITE + '/', downloadUrl: MARKETPLACE, image: `${DOCS_SITE}/icon-512.png`, screenshot: `${DOCS_SITE}/assets/before-after.png`,
         applicationCategory: 'DeveloperApplication', applicationSubCategory: 'VS Code extension', operatingSystem: 'Windows, macOS, Linux (Visual Studio Code)', softwareVersion: pkg.version,
-        offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' }, publisher: { '@type': 'Organization', name: 'Kachihro', url: KACHIHRO, logo: `${DOCS_SITE}/icon-512.png` } });
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' }, license: 'https://opensource.org/licenses/MIT', sameAs: [GITHUB, MARKETPLACE], publisher: { '@type': 'Organization', name: 'Kachihro', url: KACHIHRO, logo: `${DOCS_SITE}/icon-512.png` } });
   } else if (file !== '404.html') {
     ld.push(crumbs([['Home', DOCS_SITE + '/'], [fallbackTitle, url]]));
   }
@@ -55,6 +55,8 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const KACHIHRO = 'https://www.kachihro.com';
 const MARKETPLACE = `https://marketplace.visualstudio.com/items?itemName=${pkg.publisher}.${pkg.name}`;
 const EXT_ID = `${pkg.publisher}.${pkg.name}`;
+const GITHUB = 'https://github.com/kachihro/SPFX-Pretty';
+const KOFI = 'https://ko-fi.com/kachihro';
 
 const esc = (s: string) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 /** `code` and **bold** in short help strings */
@@ -174,15 +176,16 @@ th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vert
 .crumb{font-size:14px;color:var(--sub);margin-top:22px}
 footer.site{margin-top:70px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--sub);font-size:14px}
 footer.site .foot3{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px}
-.foot-ver{justify-self:start}.foot-links{justify-self:end}
+.foot-ver{justify-self:start}.foot-links{justify-self:end;display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:flex-end}
 .footer-kachihro{display:inline-flex;align-items:center;gap:8px;color:var(--sub)!important;text-decoration:none!important;font-weight:500}
 .footer-kachihro:hover span{color:var(--blue)}.footer-kachihro-icon{width:20px;height:20px;flex:none}
-@media(max-width:600px){footer.site .foot3{grid-template-columns:1fr;justify-items:center;text-align:center}.foot-ver,.foot-links{justify-self:center}}
+@media(max-width:600px){footer.site .foot3{grid-template-columns:1fr;justify-items:center;text-align:center}.foot-ver,.foot-links{justify-self:center}.foot-links{justify-content:center}}
 .fig{margin:16px 0 22px}.fig a{display:block;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 10px 30px rgba(21,40,127,.14);background:#1f1f1f;cursor:zoom-in}
 .fig img{width:100%;display:block;transition:transform .25s}.fig a:hover img{transform:scale(1.015)}
 .fig figcaption{font-size:14px;color:var(--sub);margin-top:8px}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;margin:20px 0}.gallery .fig{margin:0}
 .gallery .fig a{aspect-ratio:16/10}.gallery .fig img{height:100%;object-fit:cover;object-position:top left}
+.cards.four{grid-template-columns:repeat(2,1fr)}@media(min-width:1000px){.cards.four{grid-template-columns:repeat(4,1fr)}}@media(max-width:600px){.cards.four{grid-template-columns:1fr}}
 .cards.eight{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}.card .ic{font-size:22px}
 .lbx{position:fixed;inset:0;z-index:50;background:rgba(10,12,20,.92);display:flex;align-items:center;justify-content:center;padding:24px}
 .lbx[hidden]{display:none}.lbx figure{margin:0;max-width:min(1400px,92vw);text-align:center}
@@ -236,7 +239,7 @@ ${meta.ld.map(o => `<script type="application/ld+json">${JSON.stringify(o).repla
 <footer class="site"><div class="wrap foot3">
   <span class="foot-ver">SPFX Pretty ${esc(pkg.version)}</span>
   <a class="footer-kachihro" href="${KACHIHRO}" target="_blank" rel="noopener noreferrer"><svg class="footer-kachihro-icon" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="footer-kachihro-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c5cff"></stop><stop offset="100%" stop-color="#3ba7ff"></stop></linearGradient></defs><polygon points="12,2 22,9 12,22 2,9" fill="url(#footer-kachihro-gradient)"></polygon></svg><span>&copy; ${new Date().getFullYear()} Kachihro</span></a>
-  <span class="foot-links"><a href="${up}faq/index.html">How to fix</a></span>
+  <span class="foot-links"><a href="${up}faq/index.html">How to fix</a><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a><a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a><a href="${KOFI}" target="_blank" rel="noopener noreferrer">☕ Ko-fi</a></span>
 </div></footer>
 <script src="${up}assets/lightbox.js" defer></script><script src="${up}assets/menu.js" defer></script>
 </body></html>`;
@@ -266,8 +269,8 @@ const ruleCount = RULE_DOCS.length;
 page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
 <section class="hero">
   <h1>Make your SPFx apps look <span class="grad">professional.</span></h1>
-  <p class="lead">SPFX Pretty is a free VS Code extension that checks your SharePoint Framework project and fixes what people actually see - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.</p>
-  <div class="cta"><a class="btn" href="${MARKETPLACE}">Install from the Marketplace</a><a class="btn alt" href="guide.html">See how it works</a></div>
+  <p class="lead">SPFX Pretty is a free, open-source VS Code extension that checks your SharePoint Framework project and fixes what people actually see - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.</p>
+  <div class="cta"><a class="btn" href="${MARKETPLACE}">Install from the Marketplace</a><a class="btn alt" href="guide.html">See how it works</a><a class="btn alt" href="${GITHUB}" target="_blank" rel="noopener noreferrer">View on GitHub</a></div>
 </section>
 <div class="shot"><a class="lb" href="assets/before-after.png" data-caption="Before: 7/100 - the generator's name and a generic icon. After SPFX Pretty: 51/100 - a real name, your icon and a description." style="cursor:zoom-in"><img src="assets/before-after.png" alt="Before: project-client-side-solution with a generic icon, 7/100. After SPFX Pretty: Kachihro Project with a company icon, 51/100."></a></div>
 
@@ -293,7 +296,15 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
   <li><b>The report opens</b> - it shows your app the way the App Catalog, "Add an app" and Site Contents show it, with every issue underlined.</li>
   <li><b>Click ▶ Fix step by step</b> - fix, explain, skip or ignore each issue. Most are one click; the rest tell you exactly what to do.</li>
 </ol>
-<div class="tip">Every finding links to a page explaining <a href="faq/index.html">how to fix it</a> - ${ruleCount} rules in all.</div>`);
+<div class="tip">Every finding links to a page explaining <a href="faq/index.html">how to fix it</a> - ${ruleCount} rules in all.</div>
+
+<p class="kicker">Open source</p><h2>Free, open and made in the open</h2>
+<div class="cards four">
+  <div class="card"><h3>📖 MIT licence</h3><p>Free for personal and commercial work. Read the code, fork it, change it - see the <a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">licence</a>.</p></div>
+  <div class="card"><h3>🐙 On GitHub</h3><p>Source, releases and the full history at <a href="${GITHUB}" target="_blank" rel="noopener noreferrer">github.com/kachihro/SPFX-Pretty</a>.</p></div>
+  <div class="card"><h3>💡 Issues &amp; ideas</h3><p>Found a bug or want a new rule? <a href="${GITHUB}/issues" target="_blank" rel="noopener noreferrer">Open an issue</a> - pull requests are welcome too.</p></div>
+  <div class="card"><h3>☕ Support</h3><p>If SPFX Pretty saved you some time, you can <a href="${KOFI}" target="_blank" rel="noopener noreferrer">buy me a coffee on Ko-fi</a>. Thank you!</p></div>
+</div>`);
 
 // ---------- guide ----------
 page('guide.html', 'How to use', 'How to use', `
