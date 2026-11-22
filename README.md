@@ -1,6 +1,29 @@
-# SPFX Pretty ✨
+<p align="center">
+  <img src="https://www.spfxpretty.com/assets/icon.png" alt="SPFX Pretty" width="96">
+</p>
 
-**Make your SPFx apps look professional where people actually see them** - the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.
+<h1 align="center">SPFX Pretty ✨</h1>
+
+<p align="center">
+  <b>Make your SPFx apps look professional where people actually see them</b><br>
+  the App Catalog, Site Contents, the web part toolbox, the property pane and Teams.
+</p>
+
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=kachihro.spfx-pretty"><img src="https://img.shields.io/badge/VS%20Code-Install-007ACC?logo=visualstudiocode&logoColor=white" alt="Install from the VS Code Marketplace"></a>
+  <a href="https://www.spfxpretty.com"><img src="https://img.shields.io/badge/Website-spfxpretty.com-6B46C1" alt="Website: spfxpretty.com"></a>
+  <a href="https://www.kachihro.com"><img src="https://img.shields.io/badge/Made%20by-Kachihro-d83b01" alt="Made by Kachihro"></a>
+  <a href="https://ko-fi.com/kachihro"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white" alt="Buy me a coffee on Ko-fi"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.spfxpretty.com"><b>Website</b></a> ·
+  <a href="https://www.spfxpretty.com/faq/index.html"><b>FAQ for every rule</b></a> ·
+  <a href="https://marketplace.visualstudio.com/items?itemName=kachihro.spfx-pretty"><b>Marketplace</b></a> ·
+  <a href="https://ko-fi.com/kachihro"><b>Support ☕</b></a>
+</p>
+
+---
 
 ![Before and after SPFX Pretty](media/before-after.png)
 
@@ -45,7 +68,14 @@ In VS Code: **Extensions** (`Ctrl+Shift+X`) → search **SPFX Pretty** → **Ins
 
 More: [FAQ for every rule](docs/faq/README.md) · [rules, settings and CLI](docs/RULES.md)
 
+## Support ☕
+
+SPFX Pretty is free. If it saved you some time, you can [buy me a coffee on Ko-fi](https://ko-fi.com/kachihro) - thank you!
+
 ## About
 
 SPFX Pretty is made by **[Kachihro](https://www.kachihro.com)** - Microsoft 365 and Azure projects done properly.
+Website and help: [spfxpretty.com](https://www.spfxpretty.com)
 Source and issues: [github.com/kachihro/SPFX-Pretty](https://github.com/kachihro/SPFX-Pretty)
+
+Free to use for personal and commercial work - see the LICENSE file.
