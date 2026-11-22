@@ -1,9 +1,9 @@
 # Publishing SPFX Pretty to the VS Code Marketplace
 
-Checked against `@vscode/vsce` 3.2.1 (the version this repo uses) on 17/11/2026.
+Checked against `@vscode/vsce` 4.1.1 (the version this repo uses; needs Node 22+) on 22/11/2026.
 Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 
-## Before the first publish - decisions
+## Checklist
 
 | Item | Now | Needed for the Marketplace |
 |---|---|---|
@@ -14,47 +14,40 @@ Microsoft's guide: https://code.visualstudio.com/api/working-with-extensions/pub
 | Repo links | Public GitHub repo ✅ | `repository` / `bugs` in package.json point at https://github.com/kachihro/SPFX-Pretty - the Marketplace page shows them. |
 | Icon | `media/icon.png`, 128x128 PNG | OK - PNG, at least 128x128, not SVG. |
 
-## One-off setup
+## Release (GitHub Actions, trusted publishing)
 
-1. **Create a publisher**: https://marketplace.visualstudio.com/manage - sign in with your Microsoft account, **Create publisher**, choose an ID (e.g. `kachihro`) and display name (`Kachihro`).
-2. **Create a Personal Access Token (PAT)** in Azure DevOps (any organisation you belong to, e.g. https://dev.azure.com/kachihro):
-   - User settings (top right) > **Personal access tokens** > **New Token**
-   - **Organization: All accessible organizations** (vsce fails with 401 otherwise)
-   - **Scopes: Custom defined > Marketplace > Manage**
-   - Copy the token - it is shown once.
-4. Check the token works:
+No token or secret: the **Publish to Marketplace** workflow (`.github/workflows/publish.yml`) gets a short-lived
+GitHub OIDC token and the Marketplace trusts it because of the publisher's Trusted Publishing policy.
+
+1. Bump `version` in package.json (and package-lock.json) and add a CHANGELOG entry; commit and push.
+2. Tag and push the tag - the workflow tests, packages and publishes:
    ```powershell
-   npx vsce verify-pat kachihro
+   git tag v0.9.6
+   git push origin v0.9.6
    ```
+   It can also be started by hand from the repo's **Actions** tab (**Run workflow**).
 
-## Publish
+One-off setup (done): https://marketplace.visualstudio.com/manage > **Kachihro** > **Trusted Publishing** >
+a **GitHub Actions** policy with owner `kachihro`, repository `SPFX-Pretty`, workflow `publish.yml`.
+The workflow needs `permissions: id-token: write` and runs `npm run publish-marketplace -- --oidc`.
+If the repo, the workflow file name or an environment changes, update the policy to match.
+
+## Publish from your own machine
+
+Needs Node 22+ (`nvm use 22.22.0`) and a Personal Access Token (Azure DevOps > User settings >
+**Personal access tokens** > **New Token**, Organization **All accessible organizations**, scope **Marketplace > Manage**):
 
 ```powershell
 npx vsce login kachihro            # paste the PAT once
 npm run publish-marketplace        # builds the VSIX, checks images/links are public, publishes
 ```
 
-Or let GitHub do it: add the PAT as the repository secret `VSCE_PAT`, bump the version in package.json, then
-`git tag v0.9.0; git push origin v0.9.0` - the **Publish to Marketplace** workflow tests, packages and publishes.
-
 Other useful commands:
 
 ```powershell
-npx vsce publish patch             # bump 0.8.0 -> 0.8.1 and publish
 npx vsce publish --pre-release     # publish as a pre-release
 npx vsce show kachihro.spfx-pretty # what the Marketplace has
 npx vsce unpublish kachihro.spfx-pretty
-```
-
-## Publish from GitHub Actions
-
-Add the PAT as a repository secret named `VSCE_PAT` (vsce reads it automatically), then a release step can run:
-
-```yaml
-- run: npm ci && npm run package
-- run: npx vsce publish -i spfx-pretty-*.vsix
-  env:
-    VSCE_PAT: ${{ secrets.VSCE_PAT }}
 ```
 
 ## Without the Marketplace

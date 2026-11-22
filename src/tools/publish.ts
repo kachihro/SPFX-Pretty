@@ -3,7 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DOCS_SITE } from '../core/site';
 // npm run publish-marketplace: safety checks, then `vsce publish` of the VSIX that `npm run package` built.
-// Auth: run `npx vsce login kachihro` once, or set VSCE_PAT (CI).
+// Auth: GitHub Actions uses trusted publishing (`npm run publish-marketplace -- --oidc`, no token);
+// from your own machine, run `npx vsce login kachihro` once. Extra arguments are passed on to vsce publish.
 const root = path.join(__dirname, '..', '..');
 const { version, name, publisher } = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const fail = (m: string) => { console.error(`\nNot published: ${m}\n`); process.exit(1); };
@@ -13,5 +14,6 @@ if (/\]\(data:/.test(readme)) { fail('build/README.md still embeds images (data:
 const vsix = path.join(root, `${name}-${version}.vsix`);
 if (!fs.existsSync(vsix)) { fail(`${path.basename(vsix)} not found`); }
 console.log(`Publishing ${publisher}.${name} ${version} to the VS Code Marketplace...`);
-execSync(`npx vsce publish -i "${vsix}"`, { stdio: 'inherit', cwd: root });
+const extra = process.argv.slice(2).filter(a => /^--[a-z-]+$/.test(a)).join(' ');
+execSync(`npx vsce publish -i "${vsix}" ${extra}`.trim(), { stdio: 'inherit', cwd: root });
 console.log(`\nPublished. Listing: https://marketplace.visualstudio.com/items?itemName=${publisher}.${name}`);

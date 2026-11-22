@@ -1,11 +1,15 @@
-# Publishes SPFX Pretty to the VS Code Marketplace when a version tag is pushed (e.g. v0.9.0),
-# or on demand. One-off setup: add a repository secret VSCE_PAT (Azure DevOps PAT,
-# "All accessible organizations", scope Marketplace > Manage) - see docs/PUBLISHING.md.
+# Publishes SPFX Pretty to the VS Code Marketplace when a version tag is pushed (e.g. v0.9.6),
+# or on demand. Uses Marketplace trusted publishing (OIDC) - no token or secret needed.
+# One-off setup: marketplace.visualstudio.com/manage > Kachihro > Trusted Publishing, with a
+# GitHub Actions policy for kachihro / SPFX-Pretty / publish.yml - see docs/PUBLISHING.md.
 name: Publish to Marketplace
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write # lets vsce get a GitHub OIDC token for trusted publishing
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -16,9 +20,7 @@ jobs:
           node-version: 22
       - run: npm ci
       - run: npm test
-      - run: npm run publish-marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - run: npm run publish-marketplace -- --oidc
       - uses: actions/upload-artifact@v4
         with:
           name: vsix

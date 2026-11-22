@@ -17,8 +17,18 @@
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": ["Linters", "Other"],
-  "keywords": ["SPFx", "SharePoint", "App Catalog", "web part", "branding", "icons"],
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "SPFx",
+    "SharePoint",
+    "App Catalog",
+    "web part",
+    "branding",
+    "icons"
+  ],
   "main": "./out/extension.js",
   "bin": {
     "spfx-pretty": "./out/cli.js"
@@ -28,79 +38,317 @@
   ],
   "contributes": {
     "commands": [
-      { "command": "spfxPretty.scan", "title": "Scan Project", "category": "SPFX Pretty", "icon": "$(refresh)" },
-      { "command": "spfxPretty.showReport", "title": "Show App Catalog Preview & Report", "category": "SPFX Pretty", "icon": "$(preview)" },
-      { "command": "spfxPretty.makeTitlesNice", "title": "Make Titles Nice (App Catalog + Toolbox)", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.generateIcons", "title": "Generate Icons (.sppkg, Web Parts, Teams)", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.fixAll", "title": "Apply All Safe Fixes", "category": "SPFX Pretty", "icon": "$(sparkle)" },
-      { "command": "spfxPretty.uploadCompanyLogo", "title": "Upload Company Logo (App Catalog, Teams, Toolbox)", "category": "SPFX Pretty", "icon": "$(file-media)" },
-      { "command": "spfxPretty.upgradeAssessment", "title": "Version Check & Upgrade Assessment", "category": "SPFX Pretty", "icon": "$(versions)" },
-      { "command": "spfxPretty.themingSnippet", "title": "Show Theme-Aware Web Part Snippet", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.filter", "title": "Filter by Severity...", "category": "SPFX Pretty", "icon": "$(filter)" },
-      { "command": "spfxPretty.filterActive", "title": "Filter by Severity (filtered)...", "category": "SPFX Pretty", "icon": "$(filter-filled)" },
-      { "command": "spfxPretty.filterErrors", "title": "Show Errors Only", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.filterWarnings", "title": "Show Errors and Warnings", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.filterAll", "title": "Show All Findings", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.applyFix", "title": "Apply Fix...", "category": "SPFX Pretty", "icon": "$(lightbulb)" },
-      { "command": "spfxPretty.fixCategory", "title": "Fix All in This Group", "category": "SPFX Pretty", "icon": "$(sparkle)" },
-      { "command": "spfxPretty.ignoreRule", "title": "Ignore This Rule (workspace)", "category": "SPFX Pretty", "icon": "$(eye-closed)" },
-      { "command": "spfxPretty.copyMessage", "title": "Copy Message", "category": "SPFX Pretty" },
-      { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
-      { "command": "spfxPretty.howToFix", "title": "Explain & How to Fix", "category": "SPFX Pretty", "icon": "$(question)" },
-      { "command": "spfxPretty.faq", "title": "FAQ - What Each Finding Means", "category": "SPFX Pretty", "icon": "$(book)" },
-      { "command": "spfxPretty.fixStepByStep", "title": "Fix Step by Step", "category": "SPFX Pretty", "icon": "$(run-all)" },
-      { "command": "spfxPretty.openFinding", "title": "Open", "category": "SPFX Pretty" }
+      {
+        "command": "spfxPretty.scan",
+        "title": "Scan Project",
+        "category": "SPFX Pretty",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "spfxPretty.showReport",
+        "title": "Show App Catalog Preview & Report",
+        "category": "SPFX Pretty",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "spfxPretty.makeTitlesNice",
+        "title": "Make Titles Nice (App Catalog + Toolbox)",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.generateIcons",
+        "title": "Generate Icons (.sppkg, Web Parts, Teams)",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.fixAll",
+        "title": "Apply All Safe Fixes",
+        "category": "SPFX Pretty",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "spfxPretty.uploadCompanyLogo",
+        "title": "Upload Company Logo (App Catalog, Teams, Toolbox)",
+        "category": "SPFX Pretty",
+        "icon": "$(file-media)"
+      },
+      {
+        "command": "spfxPretty.upgradeAssessment",
+        "title": "Version Check & Upgrade Assessment",
+        "category": "SPFX Pretty",
+        "icon": "$(versions)"
+      },
+      {
+        "command": "spfxPretty.themingSnippet",
+        "title": "Show Theme-Aware Web Part Snippet",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.filter",
+        "title": "Filter by Severity...",
+        "category": "SPFX Pretty",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "spfxPretty.filterActive",
+        "title": "Filter by Severity (filtered)...",
+        "category": "SPFX Pretty",
+        "icon": "$(filter-filled)"
+      },
+      {
+        "command": "spfxPretty.filterErrors",
+        "title": "Show Errors Only",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.filterWarnings",
+        "title": "Show Errors and Warnings",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.filterAll",
+        "title": "Show All Findings",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.applyFix",
+        "title": "Apply Fix...",
+        "category": "SPFX Pretty",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "spfxPretty.fixCategory",
+        "title": "Fix All in This Group",
+        "category": "SPFX Pretty",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "spfxPretty.ignoreRule",
+        "title": "Ignore This Rule (workspace)",
+        "category": "SPFX Pretty",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "spfxPretty.copyMessage",
+        "title": "Copy Message",
+        "category": "SPFX Pretty"
+      },
+      {
+        "command": "spfxPretty.showPanel",
+        "title": "Show Findings Panel",
+        "category": "SPFX Pretty",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "spfxPretty.howToFix",
+        "title": "Explain & How to Fix",
+        "category": "SPFX Pretty",
+        "icon": "$(question)"
+      },
+      {
+        "command": "spfxPretty.faq",
+        "title": "FAQ - What Each Finding Means",
+        "category": "SPFX Pretty",
+        "icon": "$(book)"
+      },
+      {
+        "command": "spfxPretty.fixStepByStep",
+        "title": "Fix Step by Step",
+        "category": "SPFX Pretty",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "spfxPretty.openFinding",
+        "title": "Open",
+        "category": "SPFX Pretty"
+      }
     ],
     "menus": {
       "view/title": [
-        { "command": "spfxPretty.filter", "when": "view =~ /^spfxPretty\\.findings/ && !spfxPretty.filtered", "group": "navigation@0" },
-        { "command": "spfxPretty.filterActive", "when": "view =~ /^spfxPretty\\.findings/ && spfxPretty.filtered", "group": "navigation@0" },
-        { "command": "spfxPretty.filterErrors", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@1" },
-        { "command": "spfxPretty.filterWarnings", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@2" },
-        { "command": "spfxPretty.filterAll", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@3" },
-        { "command": "spfxPretty.fixStepByStep", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@0" },
-        { "command": "spfxPretty.faq", "when": "view =~ /^spfxPretty\\.findings/", "group": "1_filter@9" },
-        { "command": "spfxPretty.scan", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@1" },
-        { "command": "spfxPretty.showReport", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@2" },
-        { "command": "spfxPretty.fixAll", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@3" },
-        { "command": "spfxPretty.uploadCompanyLogo", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@4" },
-        { "command": "spfxPretty.upgradeAssessment", "when": "view =~ /^spfxPretty\\.findings/", "group": "navigation@5" }
+        {
+          "command": "spfxPretty.filter",
+          "when": "view =~ /^spfxPretty\\.findings/ && !spfxPretty.filtered",
+          "group": "navigation@0"
+        },
+        {
+          "command": "spfxPretty.filterActive",
+          "when": "view =~ /^spfxPretty\\.findings/ && spfxPretty.filtered",
+          "group": "navigation@0"
+        },
+        {
+          "command": "spfxPretty.filterErrors",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "1_filter@1"
+        },
+        {
+          "command": "spfxPretty.filterWarnings",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "1_filter@2"
+        },
+        {
+          "command": "spfxPretty.filterAll",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "1_filter@3"
+        },
+        {
+          "command": "spfxPretty.fixStepByStep",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@0"
+        },
+        {
+          "command": "spfxPretty.faq",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "1_filter@9"
+        },
+        {
+          "command": "spfxPretty.scan",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "spfxPretty.showReport",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "spfxPretty.fixAll",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@3"
+        },
+        {
+          "command": "spfxPretty.uploadCompanyLogo",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@4"
+        },
+        {
+          "command": "spfxPretty.upgradeAssessment",
+          "when": "view =~ /^spfxPretty\\.findings/",
+          "group": "navigation@5"
+        }
       ],
       "view/item/context": [
-        { "command": "spfxPretty.applyFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable", "group": "inline" },
-        { "command": "spfxPretty.fixCategory", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable", "group": "inline" },
-        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
-      { "command": "spfxPretty.howToFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "inline@9" },
-        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
-      { "command": "spfxPretty.howToFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "1_fix@2" },
-        { "command": "spfxPretty.applyFix", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable", "group": "1_fix@1" },
-        { "command": "spfxPretty.fixCategory", "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable", "group": "1_fix@1" },
-        { "command": "spfxPretty.openFinding", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "2_nav@1" },
-        { "command": "spfxPretty.copyMessage", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "2_nav@2" },
-        { "command": "spfxPretty.ignoreRule", "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/", "group": "3_ignore@1" }
+        {
+          "command": "spfxPretty.applyFix",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable",
+          "group": "inline"
+        },
+        {
+          "command": "spfxPretty.fixCategory",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable",
+          "group": "inline"
+        },
+        {
+          "command": "spfxPretty.showPanel",
+          "title": "Show Findings Panel",
+          "category": "SPFX Pretty",
+          "icon": "$(list-tree)"
+        },
+        {
+          "command": "spfxPretty.howToFix",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/",
+          "group": "inline@9"
+        },
+        {
+          "command": "spfxPretty.showPanel",
+          "title": "Show Findings Panel",
+          "category": "SPFX Pretty",
+          "icon": "$(list-tree)"
+        },
+        {
+          "command": "spfxPretty.howToFix",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/",
+          "group": "1_fix@2"
+        },
+        {
+          "command": "spfxPretty.applyFix",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem == finding.fixable",
+          "group": "1_fix@1"
+        },
+        {
+          "command": "spfxPretty.fixCategory",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem == category.fixable",
+          "group": "1_fix@1"
+        },
+        {
+          "command": "spfxPretty.openFinding",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/",
+          "group": "2_nav@1"
+        },
+        {
+          "command": "spfxPretty.copyMessage",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/",
+          "group": "2_nav@2"
+        },
+        {
+          "command": "spfxPretty.ignoreRule",
+          "when": "view =~ /^spfxPretty\\.findings/ && viewItem =~ /^finding/",
+          "group": "3_ignore@1"
+        }
       ],
       "commandPalette": [
-        { "command": "spfxPretty.applyFix", "when": "false" },
-        { "command": "spfxPretty.openFinding", "when": "false" },
-        { "command": "spfxPretty.fixCategory", "when": "false" },
-        { "command": "spfxPretty.ignoreRule", "when": "false" },
-        { "command": "spfxPretty.copyMessage", "when": "false" },
-        { "command": "spfxPretty.showPanel", "title": "Show Findings Panel", "category": "SPFX Pretty", "icon": "$(list-tree)" },
-      { "command": "spfxPretty.howToFix", "when": "false" },
-        { "command": "spfxPretty.filterActive", "when": "false" }
+        {
+          "command": "spfxPretty.applyFix",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.openFinding",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.fixCategory",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.ignoreRule",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.copyMessage",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.showPanel",
+          "title": "Show Findings Panel",
+          "category": "SPFX Pretty",
+          "icon": "$(list-tree)"
+        },
+        {
+          "command": "spfxPretty.howToFix",
+          "when": "false"
+        },
+        {
+          "command": "spfxPretty.filterActive",
+          "when": "false"
+        }
       ]
     },
     "viewsContainers": {
       "activitybar": [
-        { "id": "spfxPretty", "title": "SPFX Pretty", "icon": "media/activitybar.svg" }
+        {
+          "id": "spfxPretty",
+          "title": "SPFX Pretty",
+          "icon": "media/activitybar.svg"
+        }
       ]
     },
     "views": {
       "spfxPretty": [
-        { "id": "spfxPretty.findings", "name": "Findings", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty", "when": "config.spfxPretty.location != explorer" }
+        {
+          "id": "spfxPretty.findings",
+          "name": "Findings",
+          "icon": "media/activitybar.svg",
+          "contextualTitle": "SPFX Pretty",
+          "when": "config.spfxPretty.location != explorer"
+        }
       ],
       "explorer": [
-        { "id": "spfxPretty.findingsExplorer", "name": "SPFX Pretty", "icon": "media/activitybar.svg", "contextualTitle": "SPFX Pretty", "when": "config.spfxPretty.location == explorer || config.spfxPretty.location == both" }
+        {
+          "id": "spfxPretty.findingsExplorer",
+          "name": "SPFX Pretty",
+          "icon": "media/activitybar.svg",
+          "contextualTitle": "SPFX Pretty",
+          "when": "config.spfxPretty.location == explorer || config.spfxPretty.location == both"
+        }
       ]
     },
     "viewsWelcome": [
@@ -110,9 +358,18 @@
       }
     ],
     "snippets": [
-      { "language": "typescript", "path": "./snippets/spfx-theming.code-snippets" },
-      { "language": "typescriptreact", "path": "./snippets/spfx-theming.code-snippets" },
-      { "language": "scss", "path": "./snippets/spfx-scss.code-snippets" }
+      {
+        "language": "typescript",
+        "path": "./snippets/spfx-theming.code-snippets"
+      },
+      {
+        "language": "typescriptreact",
+        "path": "./snippets/spfx-theming.code-snippets"
+      },
+      {
+        "language": "scss",
+        "path": "./snippets/spfx-scss.code-snippets"
+      }
     ],
     "configuration": {
       "title": "SPFX Pretty",
@@ -130,7 +387,9 @@
         },
         "spfxPretty.brandWords": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Brand spellings to keep in suggested titles, e.g. [\"Kachihro\", \"SharePoint\"]. Also learnt from your web part titles and developer name."
         },
@@ -147,25 +406,63 @@
         "spfxPretty.toolboxGroup": {
           "type": "string",
           "default": "",
-          "enum": ["", "Text, media, and content", "Discovery", "Communication and collaboration", "Planning and process", "Business and intelligence", "Site tools"],
+          "enum": [
+            "",
+            "Text, media, and content",
+            "Discovery",
+            "Communication and collaboration",
+            "Planning and process",
+            "Business and intelligence",
+            "Site tools"
+          ],
           "description": "Preferred modern toolbox group for your web parts. Only these predefined groups get a toolbox section - custom groupIds fall back to 'Advanced'."
         },
-        "spfxPretty.developer.name": { "type": "string", "default": "", "description": "Developer/company name shown in the App Catalog." },
-        "spfxPretty.developer.websiteUrl": { "type": "string", "default": "", "description": "Developer website URL." },
-        "spfxPretty.developer.privacyUrl": { "type": "string", "default": "", "description": "Privacy statement URL." },
-        "spfxPretty.developer.termsOfUseUrl": { "type": "string", "default": "", "description": "Terms of use URL." },
-        "spfxPretty.developer.mpnId": { "type": "string", "default": "Undefined-1.0.0", "description": "Microsoft Partner Network ID (or 'Undefined-x.y.z')." },
+        "spfxPretty.developer.name": {
+          "type": "string",
+          "default": "",
+          "description": "Developer/company name shown in the App Catalog."
+        },
+        "spfxPretty.developer.websiteUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Developer website URL."
+        },
+        "spfxPretty.developer.privacyUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Privacy statement URL."
+        },
+        "spfxPretty.developer.termsOfUseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Terms of use URL."
+        },
+        "spfxPretty.developer.mpnId": {
+          "type": "string",
+          "default": "Undefined-1.0.0",
+          "description": "Microsoft Partner Network ID (or 'Undefined-x.y.z')."
+        },
         "spfxPretty.disabledRules": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "Rule IDs to skip, e.g. [\"BRD003\"]. Can also be set per project in .spfxprettyrc.json."
         },
         "spfxPretty.location": {
           "type": "string",
           "default": "activityBar",
-          "enum": ["activityBar", "explorer", "both"],
-          "enumDescriptions": ["Its own icon on the Activity Bar (left edge)", "A section in the Explorer sidebar, alongside Outline and Timeline", "Both places"],
+          "enum": [
+            "activityBar",
+            "explorer",
+            "both"
+          ],
+          "enumDescriptions": [
+            "Its own icon on the Activity Bar (left edge)",
+            "A section in the Explorer sidebar, alongside Outline and Timeline",
+            "Both places"
+          ],
           "description": "Where the SPFX Pretty findings panel lives. Tip: if you dragged it somewhere and lost it, run 'View: Reset View Locations'."
         },
         "spfxPretty.previewFixes": {
@@ -192,7 +489,6 @@
     "icon": "node ./out/tools/makeExtensionIcon.js",
     "docs": "npm run compile && node ./out/tools/makeDocs.js",
     "site": "npm run compile && node ./out/tools/makeSite.js",
-
     "test": "npm run compile && node --test out/test/*.test.js",
     "package": "npm run compile && node ./out/tools/makeVsixReadme.js && vsce package --no-rewrite-relative-links --readme-path build/README.md",
     "install-local": "npm run package && node ./out/tools/installLocal.js",
@@ -206,7 +502,7 @@
   "devDependencies": {
     "@types/node": "20.14.10",
     "@types/vscode": "1.90.0",
-    "@vscode/vsce": "3.2.1",
+    "@vscode/vsce": "4.1.1",
     "typescript": "5.6.3"
   }
 }
