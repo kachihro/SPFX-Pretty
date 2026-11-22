@@ -239,7 +239,7 @@ ${meta.ld.map(o => `<script type="application/ld+json">${JSON.stringify(o).repla
 <footer class="site"><div class="wrap foot3">
   <span class="foot-ver">SPFX Pretty ${esc(pkg.version)}</span>
   <a class="footer-kachihro" href="${KACHIHRO}" target="_blank" rel="noopener noreferrer"><svg class="footer-kachihro-icon" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="footer-kachihro-gradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c5cff"></stop><stop offset="100%" stop-color="#3ba7ff"></stop></linearGradient></defs><polygon points="12,2 22,9 12,22 2,9" fill="url(#footer-kachihro-gradient)"></polygon></svg><span>&copy; ${new Date().getFullYear()} Kachihro</span></a>
-  <span class="foot-links"><a href="${up}faq/index.html">How to fix</a><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a><a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a><a href="${KOFI}" target="_blank" rel="noopener noreferrer">☕ Ko-fi</a></span>
+  <span class="foot-links"><a href="${up}faq/index.html">How to fix</a><a href="${GITHUB}" target="_blank" rel="noopener noreferrer">GitHub</a><a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT licence</a><a href="${KOFI}" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee (or beer)!</a></span>
 </div></footer>
 <script src="${up}assets/lightbox.js" defer></script><script src="${up}assets/menu.js" defer></script>
 </body></html>`;
@@ -303,7 +303,7 @@ page('index.html', 'Nice names, icons and versions for SPFx apps', 'Home', `
   <div class="card"><h3>📖 MIT licence</h3><p>Free for personal and commercial work. Read the code, fork it, change it - see the <a href="${GITHUB}/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">licence</a>.</p></div>
   <div class="card"><h3>🐙 On GitHub</h3><p>Source, releases and the full history at <a href="${GITHUB}" target="_blank" rel="noopener noreferrer">github.com/kachihro/SPFX-Pretty</a>.</p></div>
   <div class="card"><h3>💡 Issues &amp; ideas</h3><p>Found a bug or want a new rule? <a href="${GITHUB}/issues" target="_blank" rel="noopener noreferrer">Open an issue</a> - pull requests are welcome too.</p></div>
-  <div class="card"><h3>☕ Support</h3><p>If SPFX Pretty saved you some time, you can <a href="${KOFI}" target="_blank" rel="noopener noreferrer">buy me a coffee on Ko-fi</a>. Thank you!</p></div>
+  <div class="card"><h3>☕ Support</h3><p>If SPFX Pretty saved you some time, <a href="${KOFI}" target="_blank" rel="noopener noreferrer">buy me a coffee (or beer)!</a> Thank you!</p></div>
 </div>`);
 
 // ---------- guide ----------

@@ -14,14 +14,14 @@
   <a href="https://www.spfxpretty.com"><img src="https://img.shields.io/badge/Website-spfxpretty.com-6B46C1" alt="Website: spfxpretty.com"></a>
   <a href="https://www.kachihro.com"><img src="https://img.shields.io/badge/Made%20by-Kachihro-d83b01" alt="Made by Kachihro"></a>
   <a href="https://github.com/kachihro/SPFX-Pretty/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="MIT licence"></a>
-  <a href="https://ko-fi.com/kachihro"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white" alt="Buy me a coffee on Ko-fi"></a>
+  <a href="https://ko-fi.com/kachihro"><img src="https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee%20%28or%20beer%29%21-FF5E5B?logo=kofi&logoColor=white" alt="Buy me a coffee (or beer)! on Ko-fi"></a>
 </p>
 
 <p align="center">
   <a href="https://www.spfxpretty.com"><b>Website</b></a> ·
   <a href="https://www.spfxpretty.com/faq/index.html"><b>FAQ for every rule</b></a> ·
   <a href="https://marketplace.visualstudio.com/items?itemName=kachihro.spfx-pretty"><b>Marketplace</b></a> ·
-  <a href="https://ko-fi.com/kachihro"><b>Support ☕</b></a>
+  <a href="https://ko-fi.com/kachihro"><b>☕ Buy me a coffee (or beer)!</b></a>
 </p>
 
 ---
@@ -71,7 +71,7 @@ More: [FAQ for every rule](docs/faq/README.md) · [rules, settings and CLI](docs
 
 ## Support ☕
 
-SPFX Pretty is free. If it saved you some time, you can [buy me a coffee on Ko-fi](https://ko-fi.com/kachihro) - thank you!
+SPFX Pretty is free. If it saved you some time, [buy me a coffee (or beer)!](https://ko-fi.com/kachihro) on Ko-fi - thank you!
 
 ## About
 
